@@ -9,6 +9,9 @@
     "scripting",
     "tts"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -17,9 +20,6 @@
     "default_title": "Accessibilify",
     "default_icon": "icon.png"
   },
-  "host_permissions": [
-    "<all_urls>"
-  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

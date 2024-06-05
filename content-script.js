@@ -37,6 +37,9 @@
             case "setValue":
                 element.value = value;
                 break;
+            case "setText":
+                element.textContent = value;
+                break;
             case "remove":
                 element.remove();
                 break;
@@ -45,21 +48,6 @@
                 break;
         }
     }
-
-    chrome.runtime.onMessage.addListener(
-        function(request, sender, sendResponse) {
-            if (request.action) {
-                performAction(action.action, action.index, action.value);
-            }
-            else if (request.actions) {
-                request.actions.forEach(
-                    (action) => {
-                        performAction(action.action, action.index, action.value);
-                    }
-                );
-            }
-        }
-    );
 
     function getHtmlSkeleton(htmlString) {
         const tempDiv = document.createElement("div");
@@ -76,17 +64,14 @@
                     node.textContent = node.textContent.replace(/(&nbsp;|\s)+/g, " ")
                     console.log(node.textContent);
                 }
-                else if (node.nodeType === Node.COMMENT_NODE){
+                else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
                     node.remove();
                 }
-                else if (node.tagName.toLowerCase() === "script" && node.innerHTML && node.innerHTML.trim()){
-                    node.innerHTML = "/* some script here */";
-                }
-                else if (node.tagName.toLowerCase() === "style" && node.innerHTML && node.innerHTML.trim()){
-                    node.innerHTML = "/* some style here */";
-                }
-                else if (node.tagName.toLowerCase() === "noscript"){
-                    node.remove();
+                else {
+                    if (window.getComputedStyle(node).display === "none")
+                        node.style = "display: none";
+                    else
+                        node.removeAttribute("style");
                 }
 
                 // remove all data attributes
@@ -106,14 +91,31 @@
         return htmlSkeleton.trim().replace(/>\s+</g, "><");
     }
 
+    chrome.runtime.onMessage.addListener(
+        function(request, sender, sendResponse) {
+            if (request.action) {
+                performAction(action.action, action.index, action.value);
+            }
+            else if (request.actions) {
+                request.actions.forEach(
+                    (action) => {
+                        performAction(action.action, action.index, action.value);
+                    }
+                );
+            }
+        }
+    );
+
     window.addEventListener("load", () => {
         injectCssClasses();
 
         chrome.runtime.sendMessage({
-            documentHTML: getHtmlSkeleton(document.body.innerHTML),
-            documentText: document.body.innerText,
-            documentURL: document.location.href,
-            documentTitle: document.title,
+            document: {
+                html: getHtmlSkeleton(document.body.innerHTML),
+                text: document.body.innerText,
+                url: document.location.href,
+                title: document.title,
+            }
         });
     });
 
