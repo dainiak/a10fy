@@ -38,26 +38,20 @@ async function sendWebsiteDescriptionRequest(dataUrl, request){
     }
 
     const GOOGLE_API_KEY = "AIzaSyD4YqBxteEa_aAR4wr1VEMNsMJJdnCkVXQ";
-    const MODEL_NAME = "gemini-1.5-flash";
-    const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
-    const streamingMode = false;
-    const geminiCommand = streamingMode ? "streamGenerateContent" : "generateContent";
-    const geminiUrl = `${API_BASE}/models/${MODEL_NAME}:${geminiCommand}?key=${GOOGLE_API_KEY}`;
-
-    const parser = new JSONParser({stringBufferSize: undefined, paths: ["$.*.*"]});
-    parser.onValue = ({value, key, parent, stack}) => {
-        console.log(stack, value);
-    };
-
-    const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
-    const llm = genAI.getGenerativeModel(
+    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
         {
             model: "gemini-1.5-flash"
         }
     );
-    llm.generationConfig.responseMimeType = "application/json";
+    gemini.generationConfig.responseMimeType = "application/json";
 
-    const result = await llm.generateContentStream(requestData);
+    const parser = new JSONParser({stringBufferSize: undefined, paths: ["$.*.*"]});
+
+    parser.onValue = ({value, key, parent, stack}) => {
+        console.log(stack, value);
+    };
+
+    const result = await gemini.generateContentStream(requestData);
 
     for await (const chunk of result.stream) {
         parser.write(chunk.text())
@@ -93,5 +87,24 @@ chrome.runtime.onMessage.addListener(
         ).then((dataUrl) => sendWebsiteDescriptionRequest(dataUrl, {document: request.document}));
     }
 );
+
+chrome.commands.onCommand.addListener(async (command) => {
+    if(command !== "analysePage")
+        return;
+
+    const tabScreenshot = chrome.tabs.captureVisibleTab(
+        {
+            "format": "jpeg",
+            "quality": 40
+        }
+    );
+    const [tab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true
+    });
+
+    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: "getDocumentInfo"});
+
+});
 
 

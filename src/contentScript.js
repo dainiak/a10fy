@@ -108,31 +108,32 @@
 
     chrome.runtime.onMessage.addListener(
         function(request, sender, sendResponse) {
-            if (request.action) {
-                performAction(action.action, action.index, action.value);
-            }
-            else if (request.actions) {
-                request.actions.forEach(
-                    (action) => {
-                        performAction(action.action, action.index, action.value);
-                    }
-                );
-            }
+            if(sender.tab)
+                return;
+            if (request.action === "getDocumentInfo")
+                sendResponse({
+                    html: getHtmlSkeleton(document.body.innerHTML),
+                    text: document.body.innerText,
+                    url: document.location.href,
+                    title: document.title,
+                });
+            if (request.action === "performAction")
+                performAction(request.action, request.index, request.value);
         }
     );
 
-    window.addEventListener("load", () => {
-        injectCssClasses();
-
-        chrome.runtime.sendMessage({
-            document: {
-                html: getHtmlSkeleton(document.body.innerHTML),
-                text: document.body.innerText,
-                url: document.location.href,
-                title: document.title,
-            }
-        });
-    });
+    // window.addEventListener("load", () => {
+    //     injectCssClasses();
+    //
+    //     chrome.runtime.sendMessage({
+    //         document: {
+    //             html: getHtmlSkeleton(document.body.innerHTML),
+    //             text: document.body.innerText,
+    //             url: document.location.href,
+    //             title: document.title,
+    //         }
+    //     });
+    // });
 
     // window.navigation.addEventListener("navigate", () => {
     //     console.log("page changed");
