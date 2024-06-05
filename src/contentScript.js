@@ -1,17 +1,32 @@
 (() => {
     const cssPrefix = "a10fy_";
+    const cssPrefixFallbackSymbol = Symbol(cssPrefix);
+
     function injectCssClasses() {
         Array.from(document.getElementsByTagName("*")).forEach(
             (element, idx) => {
                 element.classList.add(cssPrefix + idx);
+                element[cssPrefixFallbackSymbol] = idx;
             }
         );
     }
 
+    function findElementByIndex(index) {
+        let element = document.querySelector(`.${cssPrefix}${index}`);
+        if(element)
+            return element;
+        for (let element of document.getElementsByTagName("*"))
+            if (element[cssPrefixFallbackSymbol] === index)
+                return element
+    }
+
     function performAction(action, index, value) {
-        const element = document.querySelector(`.${cssPrefix}${index}`);
-        if (!element)
+        const element = findElementByIndex(index);
+        if (!element) {
+            console.error(`Element with index ${index} not found`);
             return;
+        }
+
         switch (action) {
             case "click":
                 element.click();
