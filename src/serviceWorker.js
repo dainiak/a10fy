@@ -1,19 +1,22 @@
-// import { JSONParser } from '@streamparser/json';
-//
-// const jsonparser = new JSONParser({ stringBufferSize: undefined, paths: ['$.*'] });
-// jsonparser.onValue = ({ value, key, parent, stack }) => {
-//     console.log(value);
-// };
-//
-// const response = await fetch('https://example.com/');
-// const reader = response.body.getReader();
-// while(true) {
-//     const { done, value } = await reader.read();
-//     if (done) break;
-//     jsonparser.write(value);
-// }
-//
+import { JSONParser } from "@streamparser/json";
 
+
+function testJsonParser() {
+    const jsonparser = new JSONParser({stringBufferSize: undefined, paths: ["$.users.*"]});
+    jsonparser.onValue = ({value, key, parent, stack}) => {
+        console.log(value);
+    };
+
+    fetch("https://dummyjson.com/users").then(response => response.body.getReader()).then(
+        async reader => {
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                jsonparser.write(value);
+            }
+        }
+    )
+}
 
 function getInlineImage(imageData) {
     return {
@@ -85,6 +88,7 @@ function sendWebsiteDescriptionRequest(dataUrl, request){
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+        testJsonParser();
         console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
         console.log(request);
 
