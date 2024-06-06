@@ -41,7 +41,21 @@
                 element.select();
                 break;
             case "submit":
-                element.submit();
+                if(typeof element.submit === "function") {
+                    element.submit();
+                    break;
+                }
+
+                const form = element.querySelector("form");
+                if (form) {
+                    form.submit();
+                    break;
+                }
+                for (let parent = element.parentElement; parent; parent = parent.parentElement)
+                    if (parent.tagName === "FORM") {
+                        parent.submit();
+                        break;
+                    }
                 break;
             case "setChecked":
                 element.checked = true;
@@ -117,8 +131,8 @@
                     url: document.location.href,
                     title: document.title,
                 });
-            if (request.action === "performAction")
-                performAction(request.action, request.index, request.value);
+            if (request.action === "performCommand")
+                performAction(request.command, request.index, request.value);
         }
     );
 
@@ -134,6 +148,10 @@
     //         }
     //     });
     // });
+
+    window.addEventListener("load", () => {
+        injectCssClasses();
+    });
 
     // window.navigation.addEventListener("navigate", () => {
     //     console.log("page changed");

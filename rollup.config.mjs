@@ -7,6 +7,7 @@ export default {
     input: {
         serviceWorker: 'src/serviceWorker.js',
         contentScript: 'src/contentScript.js',
+        sidePanel: 'src/sidePanel.js',
         popup: 'src/popup.ts',
     },
     output: {
