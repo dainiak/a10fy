@@ -26,10 +26,14 @@ function getJsonGeminiModel() {
 async function asyncRequestAndParse(requestData, parser) {
     const gemini = getJsonGeminiModel();
     const result = await gemini.generateContentStream(requestData);
+    let completeText = "";
 
     for await (const chunk of result.stream) {
-        parser.write(chunk.text())
+        const text = chunk.text();
+        parser.write(text);
+        completeText += text;
     }
+    console.log(completeText);
 }
 
 async function sendWebsiteDescriptionRequest(dataUrl, request){
@@ -103,8 +107,7 @@ async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription,
     - "hide" - set "element.style.display" to "none"
     - "setValue" - set "element.value" to the provided value
     - "setText" - set "element.textContent" to the provided value
-The step sequence should ideally correspond to what a user would do to perform the action. I.e., before changing a text input value, the user would first click or focus on it.
-        `
+All in all, your response should look like \`\`\`{"isPossible": ..., "steps": [[...], ...]}\`\`\`.`
         }
     ];
 
@@ -118,7 +121,7 @@ The step sequence should ideally correspond to what a user would do to perform t
     const parser = new JSONParser({stringBufferSize: undefined, paths: ["$.steps.*"]});
 
     parser.onValue = ({value, key, parent, stack}) => {
-        console.log(stack, value);
+        console.log(key, parent, stack, value);
         let index, command, val;
         if (value.length === 2)
             [index, command] = value;
@@ -127,6 +130,7 @@ The step sequence should ideally correspond to what a user would do to perform t
         chrome.tabs.sendMessage(tab.id, {action: "performCommand", index: index, command: command, value: val})
     };
 
+    console.log(`Sending request for action: ${actionDescription} on the website to LLM.`)
     asyncRequestAndParse(requestData, parser);
 
     // then((response) => {
@@ -178,7 +182,10 @@ chrome.commands.onCommand.addListener(async (command) => {
 
     const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: "getDocumentInfo"});
 
-    sendWebsiteActionRequest(tabScreenshot, tabDocumentInfo, "Search for \"chrome side panel\"", tab);
+    const query = await chrome.tabs.sendMessage(tab.id, {action: "getUserQuery"});
+    if (query !== null && query !== "") {
+        sendWebsiteActionRequest(tabScreenshot, tabDocumentInfo, query, tab);
+    }
 });
 
 

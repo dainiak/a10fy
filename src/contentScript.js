@@ -20,62 +20,122 @@
                 return element
     }
 
-    function performAction(action, index, value) {
-        const element = findElementByIndex(index);
-        if (!element) {
-            console.error(`Element with index ${index} not found`);
-            return;
+    function typeString(element, s) {
+        element.focus();
+
+        for (const char of s) {
+            const charData = {
+                key: char,
+                code: `Key${char.toUpperCase()}`,
+                keyCode: char.codePointAt(0),
+                charCode: char.codePointAt(0),
+                bubbles: true
+            };
+
+            element.dispatchEvent(new KeyboardEvent('keydown', charData));
+            element.dispatchEvent(new KeyboardEvent('keypress', charData));
+
+            element.value += char;
+            element.dispatchEvent(new Event('input', {
+                inputType: 'insertText',
+                cancelable: false,
+                data: char,
+                bubbles: true
+            }));
+
+            element.dispatchEvent(new KeyboardEvent('keyup', charData));
         }
 
-        switch (action) {
-            case "click":
-                element.click();
-                break;
-            case "focus":
-                element.focus();
-                break;
-            case "scrollIntoView":
-                element.scrollIntoView();
-                break;
-            case "select":
-                element.select();
-                break;
-            case "submit":
-                if(typeof element.submit === "function") {
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    const domActions = [
+        {
+            name: "click",
+            description: "Call the click() method on the element.",
+            action: (element, _) => element.click()
+        },
+        {
+            name: "focus",
+            description: "Call the focus() method on the element.",
+            action: (element, _) => element.focus()
+        },
+        {
+            name: "scrollIntoView",
+            description: "Call the scrollIntoView() method on the element.",
+            action: (element, _) => element.scrollIntoView()
+        },
+        // {
+        //     name: "select",
+        //     description: "Call the select() method on the element.",
+        //     action: (element, _) => element.select()
+        // },
+        {
+            name: "submit",
+            description: "Call the submit() method on the element. If the element is a form element, submit the form.",
+            action: (element, _) => {
+                if(typeof element.submit === "function")
                     element.submit();
-                    break;
+                else {
+                    const form = element.querySelector("form");
+                    if (form)
+                        form.submit();
+                    for (let parent = element.parentElement; parent; parent = parent.parentElement)
+                        if (parent.tagName.toLowerCase() === "form") {
+                            parent.submit();
+                            break;
+                        }
                 }
-
-                const form = element.querySelector("form");
-                if (form) {
-                    form.submit();
-                    break;
-                }
-                for (let parent = element.parentElement; parent; parent = parent.parentElement)
-                    if (parent.tagName === "FORM") {
-                        parent.submit();
-                        break;
-                    }
-                break;
-            case "setChecked":
-                element.checked = true;
-                break;
-            case "setUnchecked":
-                element.checked = false;
-                break;
-            case "setValue":
+            }
+        },
+        {
+            name: "setValue",
+            description: "Set the value attribute of the element to the provided value.",
+            action: (element, value) => {
+                if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
+                    throw new Error(`Element is not an input, textarea or select element.`);
                 element.value = value;
-                break;
-            case "setText":
-                element.textContent = value;
-                break;
-            case "remove":
-                element.remove();
-                break;
-            case "hide":
-                element.style.display = "none";
-                break;
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        },
+        {
+            name: "typeString",
+            description: "Simulate typing the provided string value into the element.",
+            action: (element, value) => typeString(element, value)
+        },
+        {
+            name: "setText",
+            description: "Set the textContent of the element to the provided value.",
+            action: (element, value) => element.textContent = value
+        },
+        {
+            name: "remove",
+            description: "Remove the element from DOM.",
+            action: (element, _) => element.remove()
+        },
+        {
+            name: "hide",
+            description: 'Hide the element by setting style as "display: none".',
+            action: (element, _) => element.style.display = "none"
         }
+    ]
+
+    function performAction(actionName, actionTargetIndex, actionParams) {
+        const element = findElementByIndex(actionTargetIndex);
+        if (!element) {
+            const errorMessage = `Element with index ${actionTargetIndex} not found`;
+            console.error(errorMessage);
+            return errorMessage;
+        }
+
+        for (let actionData of domActions){
+            if(actionData.name === actionName){
+                actionData.action(element, actionParams);
+                return;
+            }
+        }
+        console.log(`Action ${actionName} not found`)
     }
 
     function getHtmlSkeleton(htmlString) {
@@ -124,15 +184,21 @@
         function(request, sender, sendResponse) {
             if(sender.tab)
                 return;
-            if (request.action === "getDocumentInfo")
+            if (request.action === "getDocumentInfo") {
+                injectCssClasses();
                 sendResponse({
                     html: getHtmlSkeleton(document.body.innerHTML),
                     text: document.body.innerText,
                     url: document.location.href,
                     title: document.title,
                 });
-            if (request.action === "performCommand")
+            }
+            else if (request.action === "performCommand")
                 performAction(request.command, request.index, request.value);
+            else if (request.action === "getUserQuery") {
+                const query = prompt("Enter your query:");
+                sendResponse(query);
+            }
         }
     );
 
@@ -149,9 +215,9 @@
     //     });
     // });
 
-    window.addEventListener("load", () => {
-        injectCssClasses();
-    });
+    // window.addEventListener("load", () => {
+    //     injectCssClasses();
+    // });
 
     // window.navigation.addEventListener("navigate", () => {
     //     console.log("page changed");
