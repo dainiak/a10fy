@@ -89,6 +89,7 @@ async function sendWebsiteDescriptionRequest(dataUrl, request){
 
 async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription, tab){
     const possibleActions = websiteData.pageActionDescriptions.map((action) => `${action.name} - ${action.description}`).join("\n");
+    actionDescription = actionDescription.trim().replace(/`/g, "'").replace(/\n/g, " ");
 
     let requestParts = [
         {
@@ -104,10 +105,14 @@ async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription,
             )
         },
         {
-            text:  `The user wants to perform the following action on the webpage: \`\`\`${actionDescription}\`\`\`. Return a JSON object with keys "isPossible" - a boolean value signifying if the action could be technically performed on the webpage or not, and "steps" - an array of steps of DOM element tweaking necessary to perform the action. Each step is represented with an array [elementIndex, stepCommand] or [elementIndex, stepCommand, value]. The elementIndex is the number that stands after ${cssPrefix}-prefix in the element's CSS class. The stepCommand is a string that represents the action to be performed on the element. The following are the possible values of stepCommand with corresponding action on the DOM element:
+            text:  `The user wants to perform the following action on the webpage: \`\`\`${actionDescription}\`\`\`. Return a JSON object with three keys: "understoodAs" - a string describing the user intention according to how you understood it, "isPossible" - a boolean value signifying if the action could be technically performed on the webpage or not, and "steps" - an array of steps of DOM tweaking or user interaction simulation necessary to perform the action. Each step is represented with an array [elementIndex, stepCommand] or [elementIndex, stepCommand, commandParams]. The elementIndex is the integer number that stands after ${cssPrefix}-prefix in the element's CSS class. The stepCommand is a string that represents the action to be performed on the element. The commandParams is an optional value required for some of the commands. The following are the possible values of stepCommand with the descriptions of their effects on the DOM elements:
 ${possibleActions}
 
-All in all, your response should look like \`\`\`{"isPossible": ..., "steps": [[...], ...]}\`\`\`.`
+All in all, your response should look like \`\`\`{
+    "understoodAs": "...",
+    "isPossible": ..., 
+    "steps": [[...], ...]
+}\`\`\`.`
         }
     ];
 

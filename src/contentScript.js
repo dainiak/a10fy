@@ -5,6 +5,34 @@
         getUserQuery: "getUserQuery"
     }
 
+    function getActionQueue() {
+        let stack1 = [];
+        let stack2 = [];
+        return {
+            isEmpty: () => stack1.length === 0 && stack2.length === 0,
+            clear: () => {
+                stack1 = [];
+                stack2 = [];
+            },
+            enqueue: (value) => Array.isArray(value) ? stack1.push(...value) : stack1.push(value),
+            executeNext: () => {
+                if (stack2.length === 0){
+                    if (stack1.length === 0)
+                        return;
+                    stack2 = stack1.reverse();
+                    stack1 = [];
+                }
+                return stack2.pop()();
+            }
+        }
+    }
+
+    const pageActionQueue = getActionQueue();
+    const pageActionQueueInterval = setInterval(
+        pageActionQueue.executeNext,
+        50
+    );
+
     const cssPrefix = "a10fy_";
     const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
@@ -26,10 +54,10 @@
                 return element
     }
 
-    function typeString(element, s) {
-        element.focus();
+    function typeStringExplode(element, string) {
+        const atomicActions = [() => element.focus()];
 
-        for (const char of s) {
+        for (const char of string) {
             const charData = {
                 key: char,
                 code: `Key${char.toUpperCase()}`,
@@ -38,38 +66,43 @@
                 bubbles: true
             };
 
-            element.dispatchEvent(new KeyboardEvent('keydown', charData));
-            element.dispatchEvent(new KeyboardEvent('keypress', charData));
-
-            element.value += char;
-            element.dispatchEvent(new Event('input', {
+            atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keydown', charData))});
+            atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keypress', charData))});
+            atomicActions.push(() => {document.activeElement.value += char});
+            atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('input', {
                 inputType: 'insertText',
                 cancelable: false,
                 data: char,
                 bubbles: true
-            }));
-
-            element.dispatchEvent(new KeyboardEvent('keyup', charData));
+            }))});
+            atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keyup', charData))});
         }
+        atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('change', { bubbles: true }))});
 
-        element.dispatchEvent(new Event('change', { bubbles: true }));
+        return atomicActions;
+    }
+
+    function pressEnter(element) {
+        element.dispatchEvent(new KeyboardEvent(
+            'keydown', {key: "Enter", code: "Enter", keyCode: 13, charCode: 13, bubbles: true}
+        ))
     }
 
     const domActions = [
         {
             name: "click",
-            description: "Call the click() method on the element.",
-            action: (element, _) => element.click()
+            description: "Call the click() method on the element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
+            atomicActions: (element) => [() => element.click()]
         },
         {
             name: "focus",
             description: "Call the focus() method on the element.",
-            action: (element, _) => element.focus()
+            atomicActions: (element) => [() => element.focus()]
         },
         {
             name: "scrollIntoView",
             description: "Call the scrollIntoView() method on the element.",
-            action: (element, _) => element.scrollIntoView()
+            atomicActions: (element) => [() => element.scrollIntoView()]
         },
         // {
         //     name: "select",
@@ -78,8 +111,8 @@
         // },
         {
             name: "submit",
-            description: "Call the submit() method on the element. If the element is a form element, submit the form.",
-            action: (element, _) => {
+            description: "Call the submit() method on a form element. This command is also valid when the element is a button or input element inside a form element. In this case, the form element containing the button or input element will be submitted. For search forms, prefer using this command instead of clicking the search button/icon if there is any.",
+            atomicActions: element => [() => {
                 if(typeof element.submit === "function")
                     element.submit();
                 else {
@@ -92,38 +125,70 @@
                             break;
                         }
                 }
-            }
+            }]
         },
-        {
-            name: "setValue",
-            description: "Set the value attribute of the element to the provided value.",
-            action: (element, value) => {
-                if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
-                    throw new Error(`Element is not an input, textarea or select element.`);
-                element.value = value;
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        },
+        // {
+        //     name: "setValue",
+        //     description: "Set the value attribute of the element to the provided value.",
+        //     action: (element, value) => {
+        //         if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
+        //             throw new Error(`Element is not an input, textarea or select element.`);
+        //         element.value = value;
+        //         element.dispatchEvent(new Event('input', { bubbles: true }));
+        //         element.dispatchEvent(new Event('change', { bubbles: true }));
+        //     }
+        // },
         {
             name: "typeString",
-            description: "Simulate typing the provided string value into the element.",
-            action: (element, value) => typeString(element, value)
+            description: "Simulate typing the provided string value into the DOM element.",
+            atomicActions: (element) => [() => element.focus(), ...typeStringExplode(element, value)]
         },
         {
             name: "setText",
             description: "Set the textContent of the element to the provided value.",
-            action: (element, value) => element.textContent = value
+            atomicActions: (element, value) => [() => element.textContent = value]
         },
         {
             name: "remove",
             description: "Remove the element from DOM.",
-            action: (element) => element.remove()
+            atomicActions: (element) => [() => element.remove()]
         },
         {
             name: "hide",
             description: 'Hide the element by setting style as "display: none".',
-            action: (element) => element.style.display = "none"
+            atomicActions: (element) => [() => element.style.display = "none"]
+        },
+        {
+            name: "setStyle",
+            description: "Modify the CSS style attribute of the element according to the provided commandParams. If commandParams is an object, set each key-value pair as a style property. If commandParams is a string, set the complete style attribute equal to the provided string.",
+            atomicActions: (element, value) => {
+                if(typeof value === "object")
+                    return [() => {for(let attr in value) element.style.setAttribute(attr, value[attr])}]
+                return [() => element.style = value]
+            }
+        },
+        {
+            name: "setAttribute",
+            description: "Set the attribute of the element to the provided value. The commandParams is an array with two elements: the attribute name and the new attribute value. Do not use this command to set the value of input elements. Use setValue instead.",
+            atomicActions: (element, [attribute, value]) => [() => element.setAttribute(attribute, value)]
+        },
+        {
+            name: "removeAttribute",
+            description: "Remove the attribute from the element. The commandParams is the attribute name.",
+            atomicActions: (element, attribute) => [() => element.removeAttribute(attribute)]
+        },
+        {
+            name: "pressEnter",
+            description: "Simulate pressing the Enter key on the element. You can use this command to try submit forms if there is no other obvious way to do it.",
+            atomicActions: (element) => [() => pressEnter(element)]
+        },
+        {
+            name: "searchForm",
+            description: "Search for the provided query in the search form of a webpage. The element for this command is the form's input field. The commandParams is the query string to be searched.",
+            atomicActions: (element, query) => [
+                ...typeStringExplode(element, query),
+                () => pressEnter(document.activeElement)
+            ]
         }
     ]
 
@@ -146,7 +211,7 @@
 
         for (let actionData of domActions){
             if(actionData.name === actionName){
-                actionData.action(element, actionParams);
+                pageActionQueue.enqueue(actionData.atomicActions(element, actionParams));
                 return;
             }
         }
