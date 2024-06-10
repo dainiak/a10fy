@@ -1,4 +1,10 @@
 (() => {
+    const ACTIONS = {
+        getDocumentInfo: "getDocumentInfo",
+        performCommand: "performCommand",
+        getUserQuery: "getUserQuery"
+    }
+
     const cssPrefix = "a10fy_";
     const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
@@ -112,14 +118,23 @@
         {
             name: "remove",
             description: "Remove the element from DOM.",
-            action: (element, _) => element.remove()
+            action: (element) => element.remove()
         },
         {
             name: "hide",
             description: 'Hide the element by setting style as "display: none".',
-            action: (element, _) => element.style.display = "none"
+            action: (element) => element.style.display = "none"
         }
     ]
+
+    function getPageActionDescriptions() {
+        return domActions.map(action => {
+            return {
+                name: action.name,
+                description: action.description
+            }
+        });
+    }
 
     function performAction(actionName, actionTargetIndex, actionParams) {
         const element = findElementByIndex(actionTargetIndex);
@@ -191,11 +206,12 @@
                     text: document.body.innerText,
                     url: document.location.href,
                     title: document.title,
+                    pageActionDescriptions: getPageActionDescriptions()
                 });
             }
-            else if (request.action === "performCommand")
+            else if (request.action === ACTIONS.performCommand)
                 performAction(request.command, request.index, request.value);
-            else if (request.action === "getUserQuery") {
+            else if (request.action === ACTIONS.getUserQuery) {
                 const query = prompt("Enter your query:");
                 sendResponse(query);
             }

@@ -3,6 +3,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const cssPrefix = "a10fy_";
 
+const ACTIONS = {
+    getDocumentInfo: "getDocumentInfo",
+    performCommand: "performCommand",
+    getUserQuery: "getUserQuery"
+}
+
+
 function getInlineImage(imageData) {
     return {
         inlineData: {
@@ -23,7 +30,10 @@ function getJsonGeminiModel() {
     return gemini;
 }
 
-async function asyncRequestAndParse(requestData, parser) {
+async function asyncRequestAndParse(requestData, jsonPaths, onValueCallback) {
+    const parser = new JSONParser({stringBufferSize: undefined, paths: jsonPaths});
+    parser.onValue = onValueCallback;
+
     const gemini = getJsonGeminiModel();
     const result = await gemini.generateContentStream(requestData);
     let completeText = "";
@@ -63,12 +73,9 @@ async function sendWebsiteDescriptionRequest(dataUrl, request){
         }]
     }
 
-    const parser = new JSONParser({stringBufferSize: undefined, paths: ["$.*.*"]});
-    parser.onValue = ({value, key, parent, stack}) => {
+    await asyncRequestAndParse(requestData, ["$.*.*"], ({value, stack}) => {
         console.log(stack, value);
-    };
-
-    await asyncRequestAndParse(requestData, parser);
+    });
 
     // then((response) => {
     //     return response.json();
@@ -81,6 +88,8 @@ async function sendWebsiteDescriptionRequest(dataUrl, request){
 }
 
 async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription, tab){
+    const possibleActions = websiteData.pageActionDescriptions.map((action) => `${action.name} - ${action.description}`).join("\n");
+
     let requestParts = [
         {
             text: "Here is a screenshot of a webpage:"
@@ -96,17 +105,8 @@ async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription,
         },
         {
             text:  `The user wants to perform the following action on the webpage: \`\`\`${actionDescription}\`\`\`. Return a JSON object with keys "isPossible" - a boolean value signifying if the action could be technically performed on the webpage or not, and "steps" - an array of steps of DOM element tweaking necessary to perform the action. Each step is represented with an array [elementIndex, stepCommand] or [elementIndex, stepCommand, value]. The elementIndex is the number that stands after ${cssPrefix}-prefix in the element's CSS class. The stepCommand is a string that represents the action to be performed on the element. The following are the possible values of stepCommand with corresponding action on the DOM element:
-    - "click" - run "element.click()"
-    - "focus" - run "element.focus()"
-    - "scrollIntoView" - run "element.scrollIntoView()"
-    - "select" - run "element.select()"
-    - "submit" - run "element.submit()"
-    - "setChecked" - set "element.checked" to true
-    - "setUnchecked" - set "element.checked" to false
-    - "remove" - run "element.remove()"
-    - "hide" - set "element.style.display" to "none"
-    - "setValue" - set "element.value" to the provided value
-    - "setText" - set "element.textContent" to the provided value
+${possibleActions}
+
 All in all, your response should look like \`\`\`{"isPossible": ..., "steps": [[...], ...]}\`\`\`.`
         }
     ];
@@ -118,20 +118,16 @@ All in all, your response should look like \`\`\`{"isPossible": ..., "steps": [[
         }]
     }
 
-    const parser = new JSONParser({stringBufferSize: undefined, paths: ["$.steps.*"]});
-
-    parser.onValue = ({value, key, parent, stack}) => {
+    console.log(`Sending request for action: ${actionDescription} on the website to LLM.`)
+    await asyncRequestAndParse(requestData, ["$.steps.*"], ({value, key, parent, stack}) => {
         console.log(key, parent, stack, value);
         let index, command, val;
         if (value.length === 2)
             [index, command] = value;
         else
             [index, command, val] = value;
-        chrome.tabs.sendMessage(tab.id, {action: "performCommand", index: index, command: command, value: val})
-    };
-
-    console.log(`Sending request for action: ${actionDescription} on the website to LLM.`)
-    asyncRequestAndParse(requestData, parser);
+        chrome.tabs.sendMessage(tab.id, {action: ACTIONS.performCommand, index: index, command: command, value: val})
+    });
 
     // then((response) => {
     //     return response.json();
@@ -144,7 +140,7 @@ All in all, your response should look like \`\`\`{"isPossible": ..., "steps": [[
 }
 
 chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
+    function (request, sender) {
         console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
         console.log(request);
 
@@ -180,9 +176,9 @@ chrome.commands.onCommand.addListener(async (command) => {
         lastFocusedWindow: true
     });
 
-    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: "getDocumentInfo"});
+    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: ACTIONS.getDocumentInfo});
 
-    const query = await chrome.tabs.sendMessage(tab.id, {action: "getUserQuery"});
+    const query = await chrome.tabs.sendMessage(tab.id, {action: ACTIONS.getUserQuery});
     if (query !== null && query !== "") {
         sendWebsiteActionRequest(tabScreenshot, tabDocumentInfo, query, tab);
     }
