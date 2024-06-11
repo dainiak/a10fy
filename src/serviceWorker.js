@@ -1,13 +1,7 @@
 import { JSONParser } from "@streamparser/json";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const cssPrefix = "a10fy_";
-
-const ACTIONS = {
-    getDocumentInfo: "getDocumentInfo",
-    performCommand: "performCommand",
-    getUserQuery: "getUserQuery"
-}
+import { globalActions, cssPrefix } from "./helpers/constants";
 
 
 function getInlineImage(imageData) {
@@ -131,7 +125,7 @@ All in all, your response should look like \`\`\`{
             [index, command] = value;
         else
             [index, command, val] = value;
-        chrome.tabs.sendMessage(tab.id, {action: ACTIONS.performCommand, index: index, command: command, value: val})
+        chrome.tabs.sendMessage(tab.id, {action: globalActions.performCommand, index: index, command: command, value: val})
     });
 
     // then((response) => {
@@ -181,11 +175,11 @@ chrome.commands.onCommand.addListener(async (command) => {
         lastFocusedWindow: true
     });
 
-    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: ACTIONS.getDocumentInfo});
+    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: globalActions.getDocumentInfo});
 
-    const query = await chrome.tabs.sendMessage(tab.id, {action: ACTIONS.getUserQuery});
+    const query = await chrome.tabs.sendMessage(tab.id, {action: globalActions.getUserQuery});
     if (query !== null && query !== "") {
-        sendWebsiteActionRequest(tabScreenshot, tabDocumentInfo, query, tab);
+        await sendWebsiteActionRequest(tabScreenshot, tabDocumentInfo, query, tab);
     }
 });
 
@@ -203,3 +197,5 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).finally();
 //         chrome.sidePanel.setOptions({ tabId, enabled: false });
 //     }
 // });
+
+
