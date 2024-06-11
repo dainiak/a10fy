@@ -7,5 +7,6 @@ const globalActions = {
 }
 
 const cssPrefix = "a10fy_";
+const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
-export { globalActions, cssPrefix };
+export { globalActions, cssPrefix, cssPrefixFallbackSymbol };
