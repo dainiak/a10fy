@@ -27,7 +27,6 @@ chrome.runtime.onMessage.addListener(
         }
         else if (request.action === globalActions.performCommand)
             enqueueAction(
-                document,
                 pageActionQueue,
                 {
                     actionName: request.command,

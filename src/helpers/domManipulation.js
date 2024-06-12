@@ -3,6 +3,8 @@ import { cssPrefix, cssPrefixFallbackSymbol } from "./constants";
 const elementMap = new Map();
 
 function findElementByIndex(index) {
+    index = Number.parseInt(index);
+
     if (elementMap.has(index)) {
         const element = elementMap.get(index);
         if (element[cssPrefixFallbackSymbol] === index)
@@ -24,7 +26,7 @@ function getDocumentSkeleton() {
         keepWhitespace ||= false;
         if (node.nodeType === Node.TEXT_NODE) {
             if (keepWhitespace)
-                return node.textContent;
+                return document.createTextNode(node.textContent);
             return document.createTextNode(node.textContent.replace(/(&nbsp;|\s|\n)+/g, " "));
         }
         else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
@@ -246,9 +248,9 @@ function getPageActionDescriptions() {
     });
 }
 
-function enqueueAction(rootNode, actionQueue, action) {
+function enqueueAction(actionQueue, action) {
     const {actionName, actionTargetIndex, actionParams} = action;
-    const element = findElementByIndex(rootNode, actionTargetIndex);
+    const element = findElementByIndex(actionTargetIndex);
     if (!element) {
         const errorMessage = `Element with index ${actionTargetIndex} not found`;
         console.error(errorMessage);
