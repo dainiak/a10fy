@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   let startRecordBtn = document.getElementById("start-record-btn");
   let statusText = document.getElementById("status");
-  startRecordBtn.addEventListener("click", function () {
+  startRecordBtn?.addEventListener("click", function () {
     startRecording();
     statusText.textContent = "Recording.";
   });

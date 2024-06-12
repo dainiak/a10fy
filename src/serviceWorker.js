@@ -3,6 +3,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { globalActions, cssPrefix } from "./helpers/constants";
 
+function navigateToUrl(url) {
+    chrome.tabs.update({
+        url: url
+    });
+}
 
 function getInlineImage(imageData) {
     return {

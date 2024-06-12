@@ -1,67 +1,126 @@
-import {cssPrefix, cssPrefixFallbackSymbol} from "./constants";
+import { cssPrefix, cssPrefixFallbackSymbol } from "./constants";
 
+const elementMap = new Map();
 
-function injectCssClasses(rootNode) {
-    Array.from(rootNode.getElementsByTagName("*")).forEach(
-        (element, idx) => {
-            element.classList.add(cssPrefix + idx);
-            element[cssPrefixFallbackSymbol] = idx;
-        }
-    );
-}
-
-function findElementByIndex(rootNode, index) {
-    let element = rootNode.querySelector(`.${cssPrefix}${index}`);
-    if(element)
-        return element;
-    for (let element of rootNode.getElementsByTagName("*"))
+function findElementByIndex(index) {
+    if (elementMap.has(index)) {
+        const element = elementMap.get(index);
         if (element[cssPrefixFallbackSymbol] === index)
-            return element
+            return element;
+    }
+
+    for (let element of document.getElementsByTagName("*"))
+        if (element[cssPrefixFallbackSymbol] === index)
+            return element;
+
+    return null;
 }
 
-function getHtmlSkeleton(htmlString) {
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = htmlString;
-    Array.from(tempDiv.getElementsByTagName("*")).forEach(
-        (node) => {
-            // if node is a text element, remove all leading and trailing white spaces
-            if(node.nodeType === Node.TEXT_NODE){
-                if(!node.previousSibling)
-                    node.textContent = node.textContent.replace(/^(&nbsp;|\s)*/, "")
-                if(!node.nextSibling)
-                    node.textContent = node.textContent.replace(/(&nbsp;|\s)*$/, "")
+function getDocumentSkeleton() {
+    elementMap.clear();
+    let nodeIndex = 0;
 
-                node.textContent = node.textContent.replace(/(&nbsp;|\s)+/g, " ")
-                console.log(node.textContent);
-            }
-            else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
-                node.remove();
-            }
-            else {
-                if (window.getComputedStyle(node).display === "none")
-                    node.style = "display: none";
-                else
-                    node.removeAttribute("style");
-            }
-
-            // remove all data attributes
-            Object.keys(node.dataset).forEach(key => {delete node.dataset[key]});
-            // remove inner content of svg elements
-            if(node.tagName === "svg") {
-                node.innerHTML = "";
-            }
-            // remove all classes that do not start with cssPrefix
-            Array.from(node.classList).forEach(
-                (className) => !className.startsWith(cssPrefix) && node.classList.remove(className)
-            );
+    function getSimplifiedDomRecursive(node, keepWhitespace) {
+        keepWhitespace ||= false;
+        if (node.nodeType === Node.TEXT_NODE) {
+            if (keepWhitespace)
+                return node.textContent;
+            return document.createTextNode(node.textContent.replace(/(&nbsp;|\s|\n)+/g, " "));
         }
-    );
-    let htmlSkeleton = tempDiv.innerHTML;
-    tempDiv.remove();
-    return htmlSkeleton.trim().replace(/>\s+</g, "><");
+        else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
+            return null;
+        }
+        else if (node.nodeType === Node.ELEMENT_NODE) {
+            const nodeStyle = window.getComputedStyle(node);
+            const resultNode = node.cloneNode(false);
+
+            nodeIndex++;
+            resultNode.setAttribute("class", `${cssPrefix}${nodeIndex}`);
+            node[cssPrefixFallbackSymbol] = nodeIndex;
+            elementMap.set(nodeIndex, node);
+
+            const srcAttribute = node.getAttribute("src");
+            if (srcAttribute?.startsWith("data:")) {
+                resultNode.removeAttribute("src");
+            }
+            for (let i = 0; i < resultNode.attributes.length; i++) {
+                const attribute = resultNode.attributes[i];
+                if (attribute.name.startsWith("data-")) {
+                    resultNode.removeAttribute(attribute.name);
+                }
+            }
+
+            if (["svg"].includes(node.tagName.toLowerCase()))
+                return resultNode;
+
+            keepWhitespace ||= ["preserve", "preserve-spaces"].includes(nodeStyle.getPropertyValue("white-space-collapse"));
+            keepWhitespace ||= node.tagName.toLowerCase() === "pre";
+
+            if (nodeStyle.getPropertyValue("display") === "none") {
+                resultNode.style = "display: none";
+                return resultNode;
+            }
+            if(["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility"))) {
+                resultNode.style = "visibility: collapse";
+                return resultNode;
+            }
+            if(nodeStyle.getPropertyValue("opacity") === "0") {
+                resultNode.style = "opacity: 0";
+                return resultNode;
+            }
+
+            const nChildren = node.childNodes.length;
+            node.childNodes.forEach((child, idx) => {
+                const childResult = getSimplifiedDomRecursive(child, keepWhitespace, cssPrefix);
+                if (childResult === null)
+                    return;
+                if ((idx === 0 || idx === nChildren-1) && nodeStyle.getPropertyValue("display") === "block" && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
+                    return;
+                if (idx > 0 && idx < nChildren-1 && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
+                    return;
+                resultNode.appendChild(childResult);
+            });
+
+            return resultNode;
+        }
+    }
+
+    return getSimplifiedDomRecursive(document.body, false).outerHTML;
+
+    // Array.from(tempDiv.getElementsByTagName("*")).forEach(
+    //     (node) => {
+    //         // if node is a text element, remove all extra whitespaces
+    //         if(node.nodeType === Node.TEXT_NODE){
+    //             node.textContent = node.textContent.replace(/(&nbsp;|\s|\n)+/g, " ")
+    //         }
+    //         else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
+    //             node.remove();
+    //         }
+    //         else {
+    //             if (window.getComputedStyle(node).display === "none")
+    //                 node.style = "display: none";
+    //             else
+    //                 node.removeAttribute("style");
+    //         }
+    //
+    //         // remove all data attributes
+    //         Object.keys(node.dataset).forEach(key => {delete node.dataset[key]});
+    //         // remove inner content of svg elements
+    //         if(node.tagName === "svg") {
+    //             node.innerHTML = "";
+    //         }
+    //         // remove all classes that do not start with cssPrefix
+    //         Array.from(node.classList).forEach(
+    //             (className) => !className.startsWith(cssPrefix) && node.classList.remove(className)
+    //         );
+    //     }
+    // );
+    // let htmlSkeleton = tempDiv.innerHTML;
+    // tempDiv.remove();
+    // return htmlSkeleton.trim().replace(/>\s+</g, "><");
 }
 
-function typeStringExplode(element, string) {
+function getStringTypingSimulationSequence(element, string) {
     const atomicActions = [() => element.focus()];
 
     for (const char of string) {
@@ -76,15 +135,10 @@ function typeStringExplode(element, string) {
         atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keydown', charData))});
         atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keypress', charData))});
         atomicActions.push(() => {document.activeElement.value += char});
-        atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('input', {
-            inputType: 'insertText',
-            cancelable: false,
-            data: char,
-            bubbles: true
-        }))});
+        atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('input', {bubbles: true}))});
         atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keyup', charData))});
     }
-    atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('change', { bubbles: true }))});
+    atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('change', {bubbles: true}))});
 
     return atomicActions;
 }
@@ -134,21 +188,30 @@ const domActions = [
             }
         }]
     },
-    // {
-    //     name: "setValue",
-    //     description: "Set the value attribute of the element to the provided value.",
-    //     action: (element, value) => {
-    //         if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
-    //             throw new Error(`Element is not an input, textarea or select element.`);
-    //         element.value = value;
-    //         element.dispatchEvent(new Event('input', { bubbles: true }));
-    //         element.dispatchEvent(new Event('change', { bubbles: true }));
-    //     }
-    // },
+    {
+        name: "setValue",
+        description: "Set the value attribute of the element to the provided value.",
+        action: (element, value) => {
+            if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
+                throw new Error(`Element is not an input, textarea or select element.`);
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    },
+    {
+        name: "clearInput",
+        description: "Clear the input value of the element.",
+        atomicActions: (element) => [
+            () => element.value = "",
+            () => element.dispatchEvent(new Event('input', { bubbles: true })),
+            () => element.dispatchEvent(new Event('change', { bubbles: true }))
+        ]
+    },
     {
         name: "typeString",
-        description: "Simulate typing the provided string value into the DOM element.",
-        atomicActions: (element, value) => [() => element.focus(), ...typeStringExplode(element, value)]
+        description: "Simulate typing the provided string value into the DOM element character-by-character.",
+        atomicActions: (element, value) => getStringTypingSimulationSequence(element, value)
     },
     {
         name: "setText",
@@ -193,7 +256,10 @@ const domActions = [
         name: "searchForm",
         description: "Search for the provided query in the search form of a webpage. The element for this command is the form's input field. The commandParams is the query string to be searched.",
         atomicActions: (element, query) => [
-            ...typeStringExplode(element, query),
+            () => element.value = "",
+            () => element.dispatchEvent(new Event('input', { bubbles: true })),
+            () => element.dispatchEvent(new Event('change', { bubbles: true })),
+            ...getStringTypingSimulationSequence(element, query),
             () => pressEnter(document.activeElement)
         ]
     }
@@ -227,6 +293,4 @@ function enqueueAction(rootNode, actionQueue, action) {
 }
 
 
-
-
-export {injectCssClasses, getHtmlSkeleton, enqueueAction, getPageActionDescriptions};
+export {getDocumentSkeleton, enqueueAction, getPageActionDescriptions};

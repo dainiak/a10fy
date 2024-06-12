@@ -1,5 +1,5 @@
-import {globalActions} from "./helpers/constants.js";
-import {getHtmlSkeleton, injectCssClasses, getPageActionDescriptions, enqueueAction} from "./helpers/domManipulation.js";
+import { globalActions } from "./helpers/constants.js";
+import { getDocumentSkeleton, getPageActionDescriptions, enqueueAction } from "./helpers/domManipulation.js";
 
 import getActionQueue from "./helpers/actionQueue.js";
 
@@ -11,17 +11,16 @@ let audioRecorder = null;
 const pageActionQueue = getActionQueue();
 setInterval(
     pageActionQueue.executeNext,
-    50
+    5
 );
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         if(sender.tab)
             return;
-        if (request.action === "getDocumentInfo") {
-            injectCssClasses(document);
+        if (request.action === globalActions.getDocumentInfo) {
             sendResponse({
-                html: getHtmlSkeleton(document.body.innerHTML),
+                html: getDocumentSkeleton(document.body.innerHTML),
                 text: document.body.innerText,
                 url: document.location.href,
                 title: document.title,
