@@ -86,38 +86,6 @@ function getDocumentSkeleton() {
     }
 
     return getSimplifiedDomRecursive(document.body, false).outerHTML;
-
-    // Array.from(tempDiv.getElementsByTagName("*")).forEach(
-    //     (node) => {
-    //         // if node is a text element, remove all extra whitespaces
-    //         if(node.nodeType === Node.TEXT_NODE){
-    //             node.textContent = node.textContent.replace(/(&nbsp;|\s|\n)+/g, " ")
-    //         }
-    //         else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
-    //             node.remove();
-    //         }
-    //         else {
-    //             if (window.getComputedStyle(node).display === "none")
-    //                 node.style = "display: none";
-    //             else
-    //                 node.removeAttribute("style");
-    //         }
-    //
-    //         // remove all data attributes
-    //         Object.keys(node.dataset).forEach(key => {delete node.dataset[key]});
-    //         // remove inner content of svg elements
-    //         if(node.tagName === "svg") {
-    //             node.innerHTML = "";
-    //         }
-    //         // remove all classes that do not start with cssPrefix
-    //         Array.from(node.classList).forEach(
-    //             (className) => !className.startsWith(cssPrefix) && node.classList.remove(className)
-    //         );
-    //     }
-    // );
-    // let htmlSkeleton = tempDiv.innerHTML;
-    // tempDiv.remove();
-    // return htmlSkeleton.trim().replace(/>\s+</g, "><");
 }
 
 function getStringTypingSimulationSequence(element, string) {
@@ -132,13 +100,15 @@ function getStringTypingSimulationSequence(element, string) {
             bubbles: true
         };
 
-        atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keydown', charData))});
-        atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keypress', charData))});
-        atomicActions.push(() => {document.activeElement.value += char});
-        atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('input', {bubbles: true}))});
-        atomicActions.push(() => {document.activeElement.dispatchEvent(new KeyboardEvent('keyup', charData))});
+        atomicActions.push(() => {
+            document.activeElement.dispatchEvent(new KeyboardEvent('keydown', charData));
+            document.activeElement.dispatchEvent(new KeyboardEvent('keypress', charData));
+            document.activeElement.value += char;
+            document.activeElement.dispatchEvent(new Event('input', {bubbles: true}));
+            document.activeElement.dispatchEvent(new KeyboardEvent('keyup', charData));
+            document.activeElement.dispatchEvent(new Event('change', {bubbles: true}));
+        });
     }
-    atomicActions.push(() => {document.activeElement.dispatchEvent(new Event('change', {bubbles: true}))});
 
     return atomicActions;
 }
@@ -191,22 +161,22 @@ const domActions = [
     {
         name: "setValue",
         description: "Set the value attribute of the element to the provided value.",
-        action: (element, value) => {
+        action: (element, value) => [() => {
             if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
                 throw new Error(`Element is not an input, textarea or select element.`);
             element.value = value;
             element.dispatchEvent(new Event('input', { bubbles: true }));
             element.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        }]
     },
     {
         name: "clearInput",
         description: "Clear the input value of the element.",
-        atomicActions: (element) => [
-            () => element.value = "",
-            () => element.dispatchEvent(new Event('input', { bubbles: true })),
-            () => element.dispatchEvent(new Event('change', { bubbles: true }))
-        ]
+        atomicActions: (element) => [() => {
+            element.value = "";
+            element.dispatchEvent(new Event('input', {bubbles: true}));
+            element.dispatchEvent(new Event('change', {bubbles: true}));
+        }]
     },
     {
         name: "typeString",
@@ -257,8 +227,10 @@ const domActions = [
         description: "Search for the provided query in the search form of a webpage. The element for this command is the form's input field. The commandParams is the query string to be searched.",
         atomicActions: (element, query) => [
             () => element.value = "",
-            () => element.dispatchEvent(new Event('input', { bubbles: true })),
-            () => element.dispatchEvent(new Event('change', { bubbles: true })),
+            () => {
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+            },
             ...getStringTypingSimulationSequence(element, query),
             () => pressEnter(document.activeElement)
         ]

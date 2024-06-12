@@ -1,11 +1,8 @@
 import { globalActions } from "./helpers/constants.js";
 import { getDocumentSkeleton, getPageActionDescriptions, enqueueAction } from "./helpers/domManipulation.js";
+import {startRecording, stopRecording} from "./helpers/audioRecording.js";
 
 import getActionQueue from "./helpers/actionQueue.js";
-
-
-const audioBuffer = [];
-let audioRecorder = null;
 
 
 const pageActionQueue = getActionQueue();
@@ -13,6 +10,7 @@ setInterval(
     pageActionQueue.executeNext,
     5
 );
+
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -42,35 +40,10 @@ chrome.runtime.onMessage.addListener(
             sendResponse(query);
         }
         else if (request.action === globalActions.startAudioCapture) {
-            if (!navigator.mediaDevices) {
-                sendResponse({error: "Media devices not supported"});
-            }
-            else {
-                navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-                    audioRecorder = new MediaRecorder(stream);
-                    audioRecorder.ondataavailable = (e) => {
-                        audioBuffer.push(e.data);
-                    };
-
-                    audioRecorder.start();
-                    //TODO: remove this automatic stop
-                    setTimeout(audioRecorder.stop, 3000);
-                })
-                .catch((err) => {
-                    console.error(`The following error occurred: ${err}`);
-                    sendResponse({error: err});
-                });
-            }
+            startRecording(sendResponse);
         }
         else if (request.action === globalActions.stopAudioCapture) {
-            if (audioRecorder) {
-                audioRecorder.stop();
-                sendResponse({audio: URL.createObjectURL(new Blob(audioBuffer, { type: "audio/ogg; codecs=opus" }))});
-                audioBuffer.length = 0;
-            }
-            else {
-                sendResponse({error: "No audio recording in progress"});
-            }
+            sendResponse(stopRecording());
         }
     }
 );
