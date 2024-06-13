@@ -7,7 +7,11 @@ const extensionActions = {
     processUserAudioQuery: "processUserAudioQuery"
 }
 
+const storageKeys = {
+    googleApiKey: "googleApiKey"
+}
+
 const cssPrefix = "a10fy_";
 const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
-export { extensionActions, cssPrefix, cssPrefixFallbackSymbol };
+export { extensionActions, storageKeys, cssPrefix, cssPrefixFallbackSymbol };

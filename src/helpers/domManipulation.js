@@ -28,7 +28,7 @@ function getDocumentSkeleton(options) {
         keepWhitespace ||= false;
         if (node.nodeType === Node.TEXT_NODE) {
             const text = keepWhitespace ? node.textContent : node.textContent.replace(/(&nbsp;|\s|\n)+/g, " ");
-            if (wrapTextNodes && (node.previousSibling || node.nextSibling)) {
+            if (wrapTextNodes && node.parentNode?.children.length > 1) {
                 const wrapper = document.createElement("span");
                 wrapper.textContent = text;
                 wrapper.setAttribute("class", `${cssPrefix}${nodeIndex}`);

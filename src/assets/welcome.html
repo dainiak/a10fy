@@ -1,9 +1,15 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
 <title>A10fy Welcome Screen</title>
-<script src="js/welcome.js"></script>
 </head>
 <body>
-Please allow the extension to use the microphone. You will only have to do it once.
+<h3>Let’s set up the extension!</h3>
+<ol>
+    <li>Please <a id="allowToUseMicrophone" href="#">allow the extension to use your microphone</a> to be able to dictate requests. You will only have to do it once.</li>
+    <li>Input your <label for="googleApiKey">Google Gemini API key:</label> <input id="googleApiKey" type="text"></li>
+</ol>
+
+<script src="js/welcome.js"></script>
 </body>
 </html>

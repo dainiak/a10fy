@@ -116,17 +116,12 @@ chrome.commands.onCommand.addListener(async (command) => {
     if(command === "voiceCommandExecute") {
         await setupOffscreenDocument();
         await chrome.runtime.sendMessage({action: extensionActions.stopAudioCapture});
-
-        // const recordingResult = await chrome.runtime.sendMessage({action: globalActions.stopAudioCapture});
-        // console.log(recordingResult);
-        // if(recordingResult.audio) {
-        //     console.log("Audio recorded successfully.");
-        //     const tabDocumentInfo = await getTabDocumentInfo(tab);
-        //     await sendWebsiteActionRequest(tabDocumentInfo, {audio: recordingResult.audio}, tab);
-        // }
-        // else {
-        //     console.log(recordingResult.error);
-        // }
+    }
+    if(command === "showWelcomeScreen"){
+        await chrome.tabs.create({
+            url: chrome.runtime.getURL("welcome.html"),
+            active: true
+        })
     }
 });
 
@@ -135,9 +130,8 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason.search(/install/g) === -1) {
+    if (details.reason.search(/install/g) === -1)
         return;
-    }
     await chrome.tabs.create({
         url: chrome.runtime.getURL("welcome.html"),
         active: true

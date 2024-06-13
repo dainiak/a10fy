@@ -56,6 +56,14 @@
         "mac": "Command+Shift+E"
       },
       "description": "Execute the voice command."
+    },
+    "showWelcomeScreen": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+W",
+        "windows": "Ctrl+Shift+W",
+        "mac": "Command+Shift+W"
+      },
+      "description": "Show the welcome/setup screen."
     }
   }
 }
