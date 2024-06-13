@@ -70,6 +70,28 @@ export default [
     },
     {
         input: {
+            offscreen: 'src/offscreen.js',
+        },
+        output: {
+            dir: 'dist/js',
+            format: 'es',
+            inlineDynamicImports: true
+        },
+        plugins: jsPlugins
+    },
+    {
+        input: {
+            welcome: 'src/welcome.js',
+        },
+        output: {
+            dir: 'dist/js',
+            format: 'es',
+            inlineDynamicImports: true
+        },
+        plugins: jsPlugins
+    },
+    {
+        input: {
             popup: 'src/popup.ts',
         },
         output: {

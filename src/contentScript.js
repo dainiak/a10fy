@@ -1,6 +1,5 @@
-import { globalActions } from "./helpers/constants.js";
+import { extensionActions } from "./helpers/constants.js";
 import { getDocumentSkeleton, getPageActionDescriptions, enqueueAction } from "./helpers/domManipulation.js";
-import {startRecording, stopRecording} from "./helpers/audioRecording.js";
 
 import getActionQueue from "./helpers/actionQueue.js";
 
@@ -8,7 +7,7 @@ import getActionQueue from "./helpers/actionQueue.js";
 const pageActionQueue = getActionQueue();
 setInterval(
     pageActionQueue.executeNext,
-    5
+    20
 );
 
 
@@ -16,7 +15,7 @@ chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         if(sender.tab)
             return;
-        if (request.action === globalActions.getDocumentInfo) {
+        if (request.action === extensionActions.getDocumentInfo) {
             sendResponse({
                 html: getDocumentSkeleton(document.body.innerHTML),
                 text: document.body.innerText,
@@ -25,7 +24,7 @@ chrome.runtime.onMessage.addListener(
                 pageActionDescriptions: getPageActionDescriptions()
             });
         }
-        else if (request.action === globalActions.performCommand)
+        else if (request.action === extensionActions.performCommand)
             enqueueAction(
                 pageActionQueue,
                 {
@@ -34,15 +33,9 @@ chrome.runtime.onMessage.addListener(
                     actionParams: request.value
                 }
             );
-        else if (request.action === globalActions.getUserQuery) {
+        else if (request.action === extensionActions.getUserQuery) {
             const query = prompt("Enter your query:");
             sendResponse(query);
-        }
-        else if (request.action === globalActions.startAudioCapture) {
-            startRecording(sendResponse);
-        }
-        else if (request.action === globalActions.stopAudioCapture) {
-            sendResponse(stopRecording());
         }
     }
 );

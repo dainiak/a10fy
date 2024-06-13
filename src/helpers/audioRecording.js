@@ -1,5 +1,5 @@
-const audioBuffer = [];
 let audioRecorder = null;
+let mediaStream = null;
 
 function startRecording(responseCallback) {
     if (!navigator.mediaDevices) {
@@ -7,28 +7,31 @@ function startRecording(responseCallback) {
     }
     else {
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            mediaStream = stream;
+            audioRecorder?.stop();
             audioRecorder = new MediaRecorder(stream);
-            audioRecorder.ondataavailable = (e) => {
-                audioBuffer.push(e.data);
-            };
-
-            audioBuffer.length = 0;
             audioRecorder.start();
             responseCallback({message: "Recording started"});
-            //TODO: remove this automatic stop
-            setTimeout(audioRecorder.stop, 3000);
-        })
-            .catch((err) => {
-                console.error(`The following error occurred: ${err}`);
-                responseCallback({error: err});
-            });
+        }).catch((err) => {
+            console.error(`The following error occurred: ${err}`);
+            mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
+            responseCallback({error: err});
+        });
     }
 }
 
-function stopRecording() {
+function stopRecording(responseCallback) {
     if (audioRecorder) {
+        audioRecorder.addEventListener("dataavailable", (blobEvent) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(blobEvent.data);
+            reader.addEventListener("loadend", () => {
+                responseCallback(reader.result);
+            });
+        });
         audioRecorder.stop();
-        return {audio: URL.createObjectURL(new Blob(audioBuffer, { type: "audio/ogg; codecs=opus" }))};
+        mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
+        mediaStream = null;
     }
     else {
         return {error: "No audio recording in progress"};

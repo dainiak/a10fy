@@ -1,12 +1,13 @@
-const globalActions = {
+const extensionActions = {
     getDocumentInfo: "getDocumentInfo",
     performCommand: "performCommand",
     getUserQuery: "getUserQuery",
     startAudioCapture: "startAudioCapture",
-    stopAudioCapture: "stopAudioCapture"
+    stopAudioCapture: "stopAudioCapture",
+    processUserAudioQuery: "processUserAudioQuery"
 }
 
 const cssPrefix = "a10fy_";
 const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
-export { globalActions, cssPrefix, cssPrefixFallbackSymbol };
+export { extensionActions, cssPrefix, cssPrefixFallbackSymbol };

@@ -1,100 +1,17 @@
-import { JSONParser } from "@streamparser/json";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { extensionActions, cssPrefix } from "./helpers/constants";
+import { getInlineImagePart, getMainPromptParts } from "./helpers/promptParts";
+import { setupOffscreenDocument } from "./helpers/setupOffscreenDocument";
+import { asyncRequestAndParse } from "./helpers/geminiInterfacing";
 
-import { globalActions, cssPrefix } from "./helpers/constants";
 
-function navigateToUrl(url) {
-    chrome.tabs.update({
-        url: url
-    });
-}
+setupOffscreenDocument().finally();
 
-function getInlineImage(imageData) {
-    return {
-        inlineData: {
-            mimeType: "image/jpeg",
-            data: imageData.replace(/^data:image\/?[A-z]*;base64,/, "")
-        }
-    }
-}
-
-function getJsonGeminiModel() {
-    const GOOGLE_API_KEY = "AIzaSyD4YqBxteEa_aAR4wr1VEMNsMJJdnCkVXQ";
-    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
-        {
-            model: "gemini-1.5-flash"
-        }
-    );
-    gemini.generationConfig.responseMimeType = "application/json";
-    return gemini;
-}
-
-async function asyncRequestAndParse(requestData, jsonPaths, onValueCallback) {
-    const parser = new JSONParser({stringBufferSize: undefined, paths: jsonPaths});
-    parser.onValue = onValueCallback;
-
-    const gemini = getJsonGeminiModel();
-    const result = await gemini.generateContentStream(requestData);
-    let completeText = "";
-
-    for await (const chunk of result.stream) {
-        const text = chunk.text();
-        parser.write(text);
-        completeText += text;
-    }
-    console.log(completeText);
-}
-
-async function sendWebsiteDescriptionRequest(dataUrl, request){
-    let personDescription = "9-year-old non-native English speaking child";
-    let requestParts = [
-        {
-            text: "Here is a screenshot of a website:"
-        },
-        getInlineImage(dataUrl),
-        {
-            text: (
-                `The website title is \`\`\`${request.document.title}\`\`\`.\n` +
-                `The website URL is \`\`\`${request.document.url}\`\`\`.\n` +
-                `The simplified representation of the DOM structure of the website is as follows (with removed styles and scripts, and injected "${cssPrefix}..." classes for identifying the DOM elements): \n` +
-                `\`\`\`${request.document.html}\`\`\``
-            )
-        },
-        {
-            text:  `Describe this website in one medium-sized paragraph for a ${personDescription} and provide the list of at most 10 useful actions that such person can perform on this website (follow some links, play some video, perform search etc.). Return a JSON object with keys 'website_description' and 'available_actions'.`
-        }
-    ];
-
-    let requestData = {
-        contents: [{
-            role: "user",
-            parts: requestParts
-        }]
-    }
-
-    await asyncRequestAndParse(requestData, ["$.*.*"], ({value, stack}) => {
-        console.log(stack, value);
-    });
-
-    // then((response) => {
-    //     return response.json();
-    // }).then((data) => {
-    //     // console.log(data);
-    //     let geminiResponse = data.candidates[0].content.parts[0].text;
-    //     // chrome.tts.speak(geminiResponse, {"lang": "en-US", "rate": 1.0});
-    //     console.log(geminiResponse);
-    // });
-}
-
-async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription, tab){
-    const possibleActions = websiteData.pageActionDescriptions.map((action) => `${action.name} - ${action.description}`).join("\n");
-    actionDescription = actionDescription.trim().replace(/`/g, "'").replace(/\n/g, " ");
-
+async function submitUserRequest(websiteData, userRequest, tab){
     let requestParts = [
         {
             text: "Here is a screenshot of a webpage:"
         },
-        getInlineImage(dataUrl),
+        getInlineImagePart(websiteData.screenshot),
         {
             text: (
                 `The webpage title is \`\`\`${websiteData.title}\`\`\`.\n` +
@@ -103,16 +20,7 @@ async function sendWebsiteActionRequest(dataUrl, websiteData, actionDescription,
                 `\`\`\`${websiteData.html}\`\`\``
             )
         },
-        {
-            text:  `The user wants to perform the following action on the webpage: \`\`\`${actionDescription}\`\`\`. Return a JSON object with three keys: "understoodAs" - a string describing the user intention according to how you understood it, "isPossible" - a boolean value signifying if the action could be technically performed on the webpage or not, and "steps" - an array of steps of DOM tweaking or user interaction simulation necessary to perform the action. Each step is represented with an array [elementIndex, stepCommand] or [elementIndex, stepCommand, commandParams]. The elementIndex is the integer number that stands after ${cssPrefix}-prefix in the element's CSS class. The stepCommand is a string that represents the action to be performed on the element. The commandParams is an optional value required for some of the commands. The following are the possible values of stepCommand with the descriptions of their effects on the DOM elements:
-${possibleActions}
-
-All in all, your response should look like \`\`\`{
-    "understoodAs": "...",
-    "isPossible": ..., 
-    "steps": [[...], ...]
-}\`\`\`.`
-        }
+        ...getMainPromptParts(userRequest)
     ];
 
     let requestData = {
@@ -122,15 +30,26 @@ All in all, your response should look like \`\`\`{
         }]
     }
 
-    console.log(`Sending request for action: ${actionDescription} on the website to LLM.`)
-    await asyncRequestAndParse(requestData, ["$.steps.*"], ({value, key, parent, stack}) => {
+    console.log(`Sending request for action: ${userRequest} on the website to LLM.`)
+    await asyncRequestAndParse(requestData, ["$.actionList.*"], ({value, key, parent, stack}) => {
         console.log(key, parent, stack, value);
         let index, command, val;
         if (value.length === 2)
-            [index, command] = value;
+            [command, index] = value;
         else
-            [index, command, val] = value;
-        chrome.tabs.sendMessage(tab.id, {action: globalActions.performCommand, index: index, command: command, value: val})
+            [command, index, val] = value;
+
+        if(command === "speak") {
+            chrome.tts.speak(val, {lang: "en-US", rate: 1.0, enqueue: true});
+            return;
+        } else {
+            chrome.tabs.sendMessage(tab.id, {
+                action: extensionActions.performCommand,
+                index: index,
+                command: command,
+                value: val
+            })
+        }
     });
 
     // then((response) => {
@@ -144,63 +63,83 @@ All in all, your response should look like \`\`\`{
 }
 
 chrome.runtime.onMessage.addListener(
-    function (request, sender) {
-        console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
-        console.log(request);
+    async function (request, sender) {
+        if(!sender.tab && request.action === extensionActions.processUserAudioQuery && request.audio) {
+            console.log("Audio query received.", request.audio);
 
-        // if (request.greeting === "hello"){
-        //     chrome.tts.speak("Hello, world.", {"lang": "en-US", "rate": 1.0});
-        //     sendResponse({
-        //         farewell: "goodbye"
-        //     });
-        // }
-
-        chrome.tabs.captureVisibleTab(
-            {
-                "format": "jpeg",
-                "quality": 40
-            }
-        ).then((dataUrl) => sendWebsiteDescriptionRequest(dataUrl, {document: request.document}));
+            const [tab] = await chrome.tabs.query({
+                active: true,
+                lastFocusedWindow: true
+            });
+            const tabDocumentInfo = await getTabDocumentInfo(tab);
+            await submitUserRequest(tabDocumentInfo, {audio: request.audio}, tab);
+        }
     }
 );
 
-
-chrome.commands.onCommand.addListener(async (command) => {
-    if(command !== "analysePage")
-        return;
-
+async function getTabDocumentInfo(tab) {
     const tabScreenshot = await chrome.tabs.captureVisibleTab(
         {
             "format": "jpeg",
             "quality": 40
         }
     );
+
+    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDocumentInfo});
+    tabDocumentInfo.screenshot = tabScreenshot;
+    return tabDocumentInfo;
+}
+
+async function textBasedCommandOnPage() {
     const [tab] = await chrome.tabs.query({
         active: true,
         lastFocusedWindow: true
     });
 
-    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: globalActions.getDocumentInfo});
-
-    const query = await chrome.tabs.sendMessage(tab.id, {action: globalActions.getUserQuery});
+    const query = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getUserQuery});
     if (query !== null && query !== "") {
-        await sendWebsiteActionRequest(tabScreenshot, tabDocumentInfo, query, tab);
+        const tabDocumentInfo = await getTabDocumentInfo(tab);
+        await submitUserRequest(tabDocumentInfo, {text: query}, tab);
+    }
+}
+
+
+chrome.commands.onCommand.addListener(async (command) => {
+    if(command === "analysePage")
+        return textBasedCommandOnPage();
+    if(command === "voiceCommandRecord") {
+        await setupOffscreenDocument();
+        chrome.tts.stop();
+        await chrome.runtime.sendMessage({action: extensionActions.startAudioCapture});
+        return;
+    }
+    if(command === "voiceCommandExecute") {
+        await setupOffscreenDocument();
+        await chrome.runtime.sendMessage({action: extensionActions.stopAudioCapture});
+
+        // const recordingResult = await chrome.runtime.sendMessage({action: globalActions.stopAudioCapture});
+        // console.log(recordingResult);
+        // if(recordingResult.audio) {
+        //     console.log("Audio recorded successfully.");
+        //     const tabDocumentInfo = await getTabDocumentInfo(tab);
+        //     await sendWebsiteActionRequest(tabDocumentInfo, {audio: recordingResult.audio}, tab);
+        // }
+        // else {
+        //     console.log(recordingResult.error);
+        // }
     }
 });
 
 
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).finally();
-
-// chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
-//     if (!tab.url) return;
-//
-//     const url = new URL(tab.url);
-//
-//     if (url.origin === 'https://example.com') {
-//         chrome.sidePanel.setOptions({ tabId, path: 'sidepanel.html', enabled: true });
-//     } else {
-//         chrome.sidePanel.setOptions({ tabId, enabled: false });
-//     }
-// });
+// chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).finally();
 
 
+chrome.runtime.onInstalled.addListener(async (details) => {
+    if (details.reason.search(/install/g) === -1) {
+        return;
+    }
+    await chrome.tabs.create({
+        url: chrome.runtime.getURL("welcome.html"),
+        active: true
+    })
+})

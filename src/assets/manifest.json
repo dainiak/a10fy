@@ -4,11 +4,12 @@
   "version": "1.0",
   "description": "Turn any website into an accessible one.",
   "permissions": [
-    "tabCapture",
-    "sidePanel",
     "activeTab",
-    "storage",
+    "offscreen",
     "scripting",
+    "sidePanel",
+    "storage",
+    "tabCapture",
     "tts"
   ],
   "host_permissions": [
@@ -35,9 +36,26 @@
     "analysePage": {
       "suggested_key": {
         "default": "Ctrl+Shift+Y",
+        "windows": "Ctrl+Shift+Y",
         "mac": "Command+Shift+Y"
       },
-      "description": "Analyse the current page."
+      "description": "Perform text-based command for the current page."
+    },
+    "voiceCommandRecord": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+V",
+        "windows": "Ctrl+Shift+V",
+        "mac": "Command+Shift+V"
+      },
+      "description": "Start recording voice command."
+    },
+    "voiceCommandExecute": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "windows": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "Execute the voice command."
     }
   }
 }

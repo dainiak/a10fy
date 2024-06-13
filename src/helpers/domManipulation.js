@@ -18,16 +18,25 @@ function findElementByIndex(index) {
     return null;
 }
 
-function getDocumentSkeleton() {
+function getDocumentSkeleton(options) {
+    const wrapTextNodes = options?.wrapTextNodes || false;
+
     elementMap.clear();
     let nodeIndex = 0;
 
     function getSimplifiedDomRecursive(node, keepWhitespace) {
         keepWhitespace ||= false;
         if (node.nodeType === Node.TEXT_NODE) {
-            if (keepWhitespace)
-                return document.createTextNode(node.textContent);
-            return document.createTextNode(node.textContent.replace(/(&nbsp;|\s|\n)+/g, " "));
+            const text = keepWhitespace ? node.textContent : node.textContent.replace(/(&nbsp;|\s|\n)+/g, " ");
+            if (wrapTextNodes && (node.previousSibling || node.nextSibling)) {
+                const wrapper = document.createElement("span");
+                wrapper.textContent = text;
+                wrapper.setAttribute("class", `${cssPrefix}${nodeIndex}`);
+                ++nodeIndex;
+                node[cssPrefixFallbackSymbol] = nodeIndex;
+                return wrapper;
+            }
+            return document.createTextNode(text);
         }
         else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
             return null;
@@ -36,7 +45,7 @@ function getDocumentSkeleton() {
             const nodeStyle = window.getComputedStyle(node);
             const resultNode = node.cloneNode(false);
 
-            nodeIndex++;
+            ++nodeIndex;
             resultNode.setAttribute("class", `${cssPrefix}${nodeIndex}`);
             node[cssPrefixFallbackSymbol] = nodeIndex;
             elementMap.set(nodeIndex, node);
@@ -124,17 +133,17 @@ function pressEnter(element) {
 const domActions = [
     {
         name: "click",
-        description: "Call the click() method on the element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
+        description: "Call the click() method on a DOM element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
         atomicActions: (element) => [() => element.click()]
     },
     {
         name: "focus",
-        description: "Call the focus() method on the element.",
+        description: "Call the focus() method on a DOM element.",
         atomicActions: (element) => [() => element.focus()]
     },
     {
         name: "scrollIntoView",
-        description: "Call the scrollIntoView() method on the element.",
+        description: "Call the scrollIntoView() method on a DOM element.",
         atomicActions: (element) => [() => element.scrollIntoView()]
     },
     // {
@@ -144,7 +153,7 @@ const domActions = [
     // },
     {
         name: "submit",
-        description: "Call the submit() method on a form element. This command is also valid when the element is a button or input element inside a form element. In this case, the form element containing the button or input element will be submitted. For search forms, prefer using this command instead of clicking the search button/icon if there is any.",
+        description: "Call the submit() method on a form DOM element. This command is also valid when the element is a button or input element inside a form element. In this case, the form element containing the button or input element will be submitted. For search forms, prefer using this command instead of clicking the search button/icon if there is any.",
         atomicActions: element => [() => {
             if(typeof element.submit === "function")
                 element.submit();
@@ -162,7 +171,7 @@ const domActions = [
     },
     {
         name: "setValue",
-        description: "Set the value attribute of the element to the provided value.",
+        description: "Set the 'value' attribute of a DOM element to a given string (actionParams is a string).",
         action: (element, value) => [() => {
             if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
                 throw new Error(`Element is not an input, textarea or select element.`);
@@ -173,7 +182,7 @@ const domActions = [
     },
     {
         name: "clearInput",
-        description: "Clear the input value of the element.",
+        description: "Clear the input value of a DOM element.",
         atomicActions: (element) => [() => {
             element.value = "";
             element.dispatchEvent(new Event('input', {bubbles: true}));
@@ -182,12 +191,12 @@ const domActions = [
     },
     {
         name: "typeString",
-        description: "Simulate typing the provided string value into the DOM element character-by-character.",
+        description: "Simulate typing the provided string value into the DOM element character-by-character (actionParams is a string).",
         atomicActions: (element, value) => getStringTypingSimulationSequence(element, value)
     },
     {
         name: "setText",
-        description: "Set the textContent of the element to the provided value.",
+        description: "Set the textContent of the element to the provided value (actionParams is a string).",
         atomicActions: (element, value) => [() => element.textContent = value]
     },
     {
@@ -202,7 +211,7 @@ const domActions = [
     },
     {
         name: "setStyle",
-        description: "Modify the CSS style attribute of the element according to the provided commandParams. If commandParams is an object, set each key-value pair as a style property. If commandParams is a string, set the complete style attribute equal to the provided string.",
+        description: "Modify the CSS style attribute of the element according to the provided actionParams. If actionParams is an object, set each key-value pair as a style property. If actionParams is a string, set the complete style attribute equal to the provided string.",
         atomicActions: (element, value) => {
             if(typeof value === "object")
                 return [() => {for(let attr in value) element.style.setAttribute(attr, value[attr])}]
@@ -211,12 +220,12 @@ const domActions = [
     },
     {
         name: "setAttribute",
-        description: "Set the attribute of the element to the provided value. The commandParams is an array with two elements: the attribute name and the new attribute value. Do not use this command to set the value of input elements. Use setValue instead.",
-        atomicActions: (element, [attribute, value]) => [() => element.setAttribute(attribute, value)]
+        description: "Set the attribute of the element to the provided value. The actionParams is an object whose key-value pairs correspond to the attribute names and values to be set. Do not use this command to set the 'value' of HTML input elements. Use setValue instead.",
+        atomicActions: (element, value) => [() => {for(let attr in value) element.style.setAttribute(attr, value[attr])}]
     },
     {
         name: "removeAttribute",
-        description: "Remove the attribute from the element. The commandParams is the attribute name.",
+        description: "Remove the attribute from the element. The actionParams is the attribute name.",
         atomicActions: (element, attribute) => [() => element.removeAttribute(attribute)]
     },
     {
@@ -226,7 +235,7 @@ const domActions = [
     },
     {
         name: "searchForm",
-        description: "Search for the provided query in the search form of a webpage. The element for this command is the form's input field. The commandParams is the query string to be searched.",
+        description: "Search for the provided query in the search form of a webpage. The element for this command is the form's input field. The actionParams is the query string to be searched.",
         atomicActions: (element, query) => [
             () => element.value = "",
             () => {
@@ -236,6 +245,33 @@ const domActions = [
             ...getStringTypingSimulationSequence(element, query),
             () => pressEnter(document.activeElement)
         ]
+    },
+    {
+        name: "speak",
+        description: "Speak something using browser TTS engine. There are two forms of this action. Firstly, if the elementIndex is non-null, speak the innerText of the corresponding DOM element. Secondly, if the elementIndex is null then speak the string value provided as actionParams. In that second case if in need to speak large paragraph(s) of text, do not cram them in a single speak command, but rather emit multiple speak commands with smaller chunks of text per command. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
+        atomicActions: (element, value) => [
+            () => chrome.tts.speak(element ? element.innerText : value, {'enqueue': true, 'rate': 1.0})
+        ]
+    },
+    {
+        name: "navigate",
+        description: "Navigate to the provided URL. The actionParams is the URL to navigate to.",
+        atomicActions: (_, url) => [() => window.location = url]
+    },
+    {
+        name: "back",
+        description: "Navigate to the previous page in the browser history.",
+        atomicActions: () => [() => window.history.back()]
+    },
+    {
+        name: "forward",
+        description: "Navigate to the next page in the browser history.",
+        atomicActions: () => [() => window.history.forward()]
+    },
+    {
+        name: "reload",
+        description: "Reload the current page.",
+        atomicActions: () => [() => window.location.reload()]
     }
 ]
 
