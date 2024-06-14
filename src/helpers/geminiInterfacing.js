@@ -16,6 +16,7 @@ async function getJsonGeminiModel() {
 async function asyncRequestAndParse(requestData, jsonPaths, onValueCallback) {
     const parser = new JSONParser({stringBufferSize: undefined, paths: jsonPaths});
     parser.onValue = onValueCallback;
+    parser.onError = (error) => console.error(error);
 
     const gemini = await getJsonGeminiModel();
     const result = await gemini.generateContentStream(requestData);

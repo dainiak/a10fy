@@ -3,6 +3,9 @@ import {cssPrefix, cssPrefixFallbackSymbol} from "./constants";
 const elementMap = new Map();
 
 function findElementByIndex(index) {
+    if (index === null || index === undefined)
+        return null;
+
     index = Number.parseInt(index);
 
     if (elementMap.has(index)) {
@@ -128,7 +131,7 @@ function pressEnter(element) {
     ))
 }
 
-const domLlmActions = {
+const llmPageActions = {
     click: {
         description: "Call the click() method on a DOM element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
         atomicActions: (element) => [() => element.click()]
@@ -242,39 +245,13 @@ const domLlmActions = {
     }
 }
 
-const globalLlmActions = {
-    speak: {
-        description: "Speak something using browser TTS engine. There are two forms of this action. Firstly, if the elementIndex is non-null, speak the innerText of the corresponding DOM element. Secondly, if the elementIndex is null then speak the string value provided as actionParams. In that second case if in need to speak large paragraph(s) of text, do not cram them into a single speak command, but rather emit multiple speak actions with smaller chunks of text per action. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
-        atomicActions: (element, value) => [
-            () => chrome.tts.speak(element ? element.innerText : value, {'enqueue': true, 'rate': 1.0})
-        ]
-    },
-    showInSidePanel: {
-        description: "Show a text message in browser side panel alongside the current tab. The actionParams is the text of the message to show.",
-        atomicActions: (_, value) => [() => chrome.runtime.sendMessage({action: "showInSidePanel", message: value})]
-    }
-}
-
-function getPageActionDescriptions() {
-    return Object.keys({...domLlmActions, ...globalLlmActions}).map(actionName => {
-        return {
-            name: actionName,
-            description: domLlmActions[actionName].description
-        }
-    });
-}
 
 function enqueueAction(actionQueue, action) {
-    const {actionName, actionTargetIndex, actionParams} = action;
-    const element = findElementByIndex(actionTargetIndex);
-    if (!element) {
-        const errorMessage = `Element with index ${actionTargetIndex} not found`;
-        console.error(errorMessage);
-        return errorMessage;
-    }
+    const {actionName, elementIndex, actionParams} = action;
+    const element = findElementByIndex(elementIndex);
 
-    if (domLlmActions.hasOwnProperty(actionName)) {
-        actionQueue.enqueue(domLlmActions[actionName].atomicActions(element, actionParams));
+    if (llmPageActions.hasOwnProperty(actionName)) {
+        actionQueue.enqueue(llmPageActions[actionName].atomicActions(element, actionParams));
     }
     else {
         console.log(`Action ${actionName} not found`)
@@ -282,4 +259,4 @@ function enqueueAction(actionQueue, action) {
 }
 
 
-export {getDocumentSkeleton, enqueueAction, getPageActionDescriptions, findElementByIndex};
+export {getDocumentSkeleton, enqueueAction, findElementByIndex, llmPageActions};

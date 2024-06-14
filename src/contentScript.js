@@ -1,5 +1,5 @@
 import {extensionActions} from "./helpers/constants.js";
-import {getDocumentSkeleton, getPageActionDescriptions, enqueueAction, findElementByIndex} from "./helpers/domManipulation.js";
+import {getDocumentSkeleton, enqueueAction, findElementByIndex} from "./helpers/domManipulation.js";
 
 import getActionQueue from "./helpers/actionQueue.js";
 
@@ -20,16 +20,15 @@ chrome.runtime.onMessage.addListener(
                 html: getDocumentSkeleton(document.body.innerHTML),
                 text: document.body.innerText,
                 url: document.location.href,
-                title: document.title,
-                pageActionDescriptions: getPageActionDescriptions()
+                title: document.title
             });
-        } else if (request.action === extensionActions.performCommand)
+        } else if (request.action === extensionActions.executePageAction)
             enqueueAction(
                 pageActionQueue,
                 {
-                    actionName: request.command,
-                    actionTargetIndex: request.elementIndex,
-                    actionParams: request.value
+                    actionName: request.actionName,
+                    elementIndex: request.elementIndex,
+                    actionParams: request.actionParams
                 }
             );
         else if (request.action === extensionActions.getUserQuery) {

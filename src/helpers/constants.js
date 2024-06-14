@@ -1,6 +1,6 @@
 const extensionActions = {
     getDocumentInfo: "getDocumentInfo",
-    performCommand: "performCommand",
+    executePageAction: "executePageAction",
     getUserQuery: "getUserQuery",
     startAudioCapture: "startAudioCapture",
     stopAudioCapture: "stopAudioCapture",

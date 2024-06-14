@@ -1,3 +1,8 @@
+const mediaRecorderOptions = {
+    audioBitsPerSecond: 96000,
+    mimeType: "audio/ogg",
+};
+
 let audioRecorder = null;
 let mediaStream = null;
 
@@ -9,7 +14,7 @@ function startRecording(responseCallback) {
         navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
             mediaStream = stream;
             audioRecorder?.stop();
-            audioRecorder = new MediaRecorder(stream);
+            audioRecorder = new MediaRecorder(stream, mediaRecorderOptions);
             audioRecorder.start();
             responseCallback({message: "Recording started"});
         }).catch((err) => {

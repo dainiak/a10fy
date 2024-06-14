@@ -1,7 +1,9 @@
 import {extensionActions, cssPrefix} from "./helpers/constants";
-import {getInlineImagePart, getMainPromptParts} from "./helpers/promptParts";
+import {getInlineDataPart, getMainPromptParts} from "./helpers/promptParts";
 import {setupOffscreenDocument} from "./helpers/setupOffscreenDocument";
 import {asyncRequestAndParse} from "./helpers/geminiInterfacing";
+import {llmGlobalActions} from "./helpers/llmGlobalActions";
+import {llmPageActions} from "./helpers/domManipulation";
 
 
 setupOffscreenDocument().finally();
@@ -11,7 +13,7 @@ async function submitUserRequest(websiteData, userRequest, tab) {
         {
             text: "Here is a screenshot of a webpage:"
         },
-        getInlineImagePart(websiteData.screenshot),
+        getInlineDataPart(websiteData.screenshot),
         {
             text: (
                 `The webpage title is \`\`\`${websiteData.title}\`\`\`.\n` +
@@ -30,35 +32,28 @@ async function submitUserRequest(websiteData, userRequest, tab) {
         }]
     }
 
-    console.log(`Sending request for action: ${userRequest} on the website to LLM.`)
+    console.log(requestData);
+
     await asyncRequestAndParse(requestData, ["$.actionList.*"], ({value, key, parent, stack}) => {
         console.log(key, parent, stack, value);
-        let index, command, val;
+        let elementIndex, actionName, actionParams;
         if (value.length === 2)
-            [command, index] = value;
+            [actionName, elementIndex] = value;
         else
-            [command, index, val] = value;
+            [actionName, elementIndex, actionParams] = value;
 
-        if (command === "speak") {
-            if (index === null)
-                chrome.tts.speak(val, {lang: "en-US", rate: 1.0, enqueue: true});
-            else {
-                chrome.tabs.sendMessage(tab.id, {
-                    action: extensionActions.getDomElementProperties,
-                    elementIndex: index,
-                    propertyNames: ["innerText"]
-                }).then((response) => {
-                    if (response.innerText)
-                        chrome.tts.speak(response.innerText, {lang: "en-US", rate: 1.0, enqueue: true});
-                });
-            }
-        } else {
+        if (llmPageActions.hasOwnProperty(actionName)) {
             chrome.tabs.sendMessage(tab.id, {
-                action: extensionActions.performCommand,
-                elementIndex: index,
-                command: command,
-                value: val
+                action: extensionActions.executePageAction,
+                elementIndex: elementIndex,
+                actionName: actionName,
+                actionParams: actionParams
             })
+        }
+        else if (llmGlobalActions.hasOwnProperty(actionName)) {
+            llmGlobalActions[actionName].execute(elementIndex, actionParams)
+        } else {
+            console.error(`Unknown command: ${command}`);
         }
     });
 }
