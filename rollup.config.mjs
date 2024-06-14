@@ -2,12 +2,12 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from "rollup-plugin-copy";
 import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 
-// import typescript from '@rollup/plugin-typescript';
-// contentScript: 'src/contentScript.js',
-//     sidePanel: 'src/sidePanel.js',
+// contentScript: 'src/contentScript.ts',
+//     sidePanel: 'src/sidePanel.ts',
 //     popup: 'src/popup.ts',
-//     constants: 'src/helpers/constants.js',
+//     constants: 'src/helpers/constants.ts',
 
 const enableTerser = false;
 
@@ -21,6 +21,18 @@ const jsPlugins = [
     ),
     commonjs()
 ];
+
+const tsPlugins = [
+    resolve(
+        {
+            main: true,
+            browser: true,
+            preferBuiltins: true
+        }
+    ),
+    typescript()
+];
+
 
 if(enableTerser) {
     jsPlugins.push(
@@ -37,58 +49,58 @@ if(enableTerser) {
 export default [
     {
         input: {
-            serviceWorker: 'src/serviceWorker.js',
+            serviceWorker: 'src/serviceWorker.ts',
         },
         output: {
             dir: 'dist/js',
             format: 'iife',
             inlineDynamicImports: true
         },
-        plugins: jsPlugins
+        plugins: tsPlugins
     },
     {
         input: {
-            contentScript: 'src/contentScript.js',
+            contentScript: 'src/contentScript.ts',
         },
         output: {
             dir: 'dist/js',
             format: 'iife',
             inlineDynamicImports: true
         },
-        plugins: jsPlugins
+        plugins: tsPlugins
     },
     {
         input: {
-            sidePanel: 'src/sidePanel.js',
+            sidePanel: 'src/sidePanel.ts',
         },
         output: {
             dir: 'dist/js',
             format: 'es',
             inlineDynamicImports: true
         },
-        plugins: jsPlugins
+        plugins: tsPlugins
     },
     {
         input: {
-            offscreen: 'src/offscreen.js',
+            offscreen: 'src/offscreen.ts',
         },
         output: {
             dir: 'dist/js',
             format: 'es',
             inlineDynamicImports: true
         },
-        plugins: jsPlugins
+        plugins: tsPlugins
     },
     {
         input: {
-            welcome: 'src/welcome.js',
+            welcome: 'src/welcome.ts',
         },
         output: {
             dir: 'dist/js',
             format: 'es',
             inlineDynamicImports: true
         },
-        plugins: jsPlugins
+        plugins: tsPlugins
     },
     {
         input: {
@@ -99,7 +111,7 @@ export default [
             format: 'es',
             inlineDynamicImports: true
         },
-        plugins: [copy({
+        plugins: [...tsPlugins, copy({
             targets: [
                 { src: 'src/assets/*', dest: 'dist' }
             ]

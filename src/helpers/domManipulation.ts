@@ -2,11 +2,11 @@ import {cssPrefix, cssPrefixFallbackSymbol} from "./constants";
 
 const elementMap = new Map();
 
-function findElementByIndex(index) {
+function findElementByIndex(index: number | string | null) {
     if (index === null || index === undefined)
         return null;
 
-    index = Number.parseInt(index);
+    index = Number.parseInt(index as string);
 
     if (elementMap.has(index)) {
         const element = elementMap.get(index);
@@ -14,40 +14,50 @@ function findElementByIndex(index) {
             return element;
     }
 
-    for (let element of document.getElementsByTagName("*"))
+    // @ts-ignore
+    for (const element of document.getElementsByTagName("*"))
         if (element[cssPrefixFallbackSymbol] === index)
             return element;
 
     return null;
 }
 
-function getDocumentSkeleton(options) {
+type DocumentSkeletonizationOptions = {
+    wrapTextNodes?: boolean;
+}
+
+function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}):string {
     const wrapTextNodes = options?.wrapTextNodes || false;
 
     elementMap.clear();
     let nodeIndex = 0;
 
-    function getSimplifiedDomRecursive(node, keepWhitespace) {
+    function getSimplifiedDomRecursive(node: Node, keepWhitespace: boolean)  {
+        if (!(node instanceof Text || node instanceof HTMLElement || node instanceof Comment))
+            return null;
         keepWhitespace ||= false;
-        if (node.nodeType === Node.TEXT_NODE) {
-            const text = keepWhitespace ? node.textContent : node.textContent.replace(/(&nbsp;|\s|\n)+/g, " ");
-            if (wrapTextNodes && node.parentNode?.children.length > 1) {
+        if (node instanceof Text) {
+            const text = (keepWhitespace ? node.textContent : node.textContent?.replace(/(&nbsp;|\s|\n)+/g, " ")) || "";
+            if (wrapTextNodes && (node.parentNode?.children.length || 0) > 1) {
                 const wrapper = document.createElement("span");
                 wrapper.textContent = text;
                 wrapper.setAttribute("class", `${cssPrefix}${nodeIndex}`);
                 ++nodeIndex;
+                // @ts-ignore
                 node[cssPrefixFallbackSymbol] = nodeIndex;
+                elementMap.set(nodeIndex, node);
                 return wrapper;
             }
             return document.createTextNode(text);
-        } else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
+        } else if (node instanceof Comment || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
             return null;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
+        } else if (node instanceof HTMLElement) {
             const nodeStyle = window.getComputedStyle(node);
-            const resultNode = node.cloneNode(false);
+            const resultNode = node.cloneNode(false) as HTMLElement;
 
             ++nodeIndex;
             resultNode.setAttribute("class", `${cssPrefix}${nodeIndex}`);
+            // @ts-ignore
             node[cssPrefixFallbackSymbol] = nodeIndex;
             elementMap.set(nodeIndex, node);
 
@@ -69,21 +79,21 @@ function getDocumentSkeleton(options) {
             keepWhitespace ||= node.tagName.toLowerCase() === "pre";
 
             if (nodeStyle.getPropertyValue("display") === "none")
-                resultNode.style = "display: none";
+                resultNode.setAttribute("style", "display: none");
             if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility")))
-                resultNode.style = "visibility: hidden";
+                resultNode.setAttribute("style", "visibility: hidden");
             if (nodeStyle.getPropertyValue("opacity") === "0")
-                resultNode.style = "opacity: 0";
+                resultNode.setAttribute("style", "opacity: 0");
 
             const nChildren = node.childNodes.length;
             node.childNodes.forEach((child, idx) => {
                 const childResult = getSimplifiedDomRecursive(child, keepWhitespace);
-                if (childResult === null)
-                    return;
+                if (childResult == null)
+                    return null;
                 if ((idx === 0 || idx === nChildren - 1) && nodeStyle.getPropertyValue("display") === "block" && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
-                    return;
+                    return null;
                 if (idx > 0 && idx < nChildren - 1 && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
-                    return;
+                    return null;
                 resultNode.appendChild(childResult);
             });
 
@@ -91,13 +101,18 @@ function getDocumentSkeleton(options) {
         }
     }
 
-    return getSimplifiedDomRecursive(document.body, false).outerHTML;
+    const simplifiedDomBody = getSimplifiedDomRecursive(document.body, false);
+    if (simplifiedDomBody instanceof HTMLElement)
+        return simplifiedDomBody.outerHTML;
+    return "";
 }
 
-function getStringTypingSimulationSequence(element, string) {
+function getStringTypingSimulationSequence(element: Node, s: string) {
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement))
+        return [];
     const atomicActions = [() => element.focus()];
 
-    for (const char of string) {
+    for (const char of s) {
         const charData = {
             key: char,
             code: `Key${char.toUpperCase()}`,
@@ -107,48 +122,59 @@ function getStringTypingSimulationSequence(element, string) {
         };
 
         atomicActions.push(() => {
-            document.activeElement.dispatchEvent(new KeyboardEvent('keydown', charData));
-            document.activeElement.dispatchEvent(new KeyboardEvent('keypress', charData));
-            document.activeElement.value += char;
-            document.activeElement.dispatchEvent(new Event('input', {bubbles: true}));
-            document.activeElement.dispatchEvent(new KeyboardEvent('keyup', charData));
-            document.activeElement.dispatchEvent(new Event('change', {bubbles: true}));
+            const activeElement = document.activeElement;
+            activeElement?.dispatchEvent(new KeyboardEvent('keydown', charData));
+            activeElement?.dispatchEvent(new KeyboardEvent('keypress', charData));
+            if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)
+                activeElement.value += char;
+            activeElement?.dispatchEvent(new Event('input', {bubbles: true}));
+            activeElement?.dispatchEvent(new KeyboardEvent('keyup', charData));
+            activeElement?.dispatchEvent(new Event('change', {bubbles: true}));
         });
     }
 
     return atomicActions;
 }
 
-function pressEnter(element) {
+function pressEnter(element: Node) {
     element.dispatchEvent(new KeyboardEvent(
         'keydown', {key: "Enter", code: "Enter", keyCode: 13, charCode: 13, bubbles: true}
     ))
 }
 
-const llmPageActions = {
+interface Action {
+    description: string;
+    atomicActions: (element: Node, actionParams?: any) => (() => void)[];
+}
+
+interface LlmPageActions {
+    [key: string]: Action;
+}
+
+const llmPageActions: LlmPageActions = {
     click: {
         description: "Call the click() method on a DOM element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
-        atomicActions: (element) => [() => element.click()]
+        atomicActions: (element) => [() => element instanceof HTMLElement && element.click()]
     },
     focus: {
         description: "Call the focus() method on a DOM element.",
-        atomicActions: (element) => [() => element.focus()]
+        atomicActions: (element) => [() => element instanceof HTMLElement && element.focus()]
     },
     scrollIntoView: {
         description: "Call the scrollIntoView() method on a DOM element.",
-        atomicActions: (element) => [() => element.scrollIntoView()]
+        atomicActions: (element) => [() => element instanceof HTMLElement && element.scrollIntoView()]
     },
     submit: {
         description: "Call the submit() method on a form DOM element. This command is also valid when the element is a button or input element inside a form element. In this case, the form element containing the button or input element will be submitted. For search forms, prefer using this command instead of clicking the search button/icon if there is any.",
-        atomicActions: element => [() => {
-            if (typeof element.submit === "function")
+        atomicActions: (element) => [() => {
+            if (element instanceof HTMLFormElement)
                 element.submit();
-            else {
+            else if (element instanceof HTMLElement) {
                 const form = element.querySelector("form");
                 if (form)
                     form.submit();
                 for (let parent = element.parentElement; parent; parent = parent.parentElement)
-                    if (parent.tagName.toLowerCase() === "form") {
+                    if (parent instanceof HTMLFormElement) {
                         parent.submit();
                         break;
                     }
@@ -157,9 +183,9 @@ const llmPageActions = {
     },
     setValue: {
         description: "Set the 'value' attribute of a DOM element to a given string (actionParams is a string).",
-        action: (element, value) => [() => {
-            if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
-                throw new Error(`Element is not an input, textarea or select element.`);
+        atomicActions: (element, value) => [() => {
+            if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement))
+                return;
             element.value = value;
             element.dispatchEvent(new Event('input', {bubbles: true}));
             element.dispatchEvent(new Event('change', {bubbles: true}));
@@ -168,7 +194,8 @@ const llmPageActions = {
     clearInput: {
         description: "Clear the input value of a DOM element.",
         atomicActions: (element) => [() => {
-            element.value = "";
+            if(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)
+                element.value = "";
             element.dispatchEvent(new Event('input', {bubbles: true}));
             element.dispatchEvent(new Event('change', {bubbles: true}));
         }]
@@ -183,31 +210,31 @@ const llmPageActions = {
     },
     remove: {
         description: "Remove the element from DOM.",
-        atomicActions: (element) => [() => element.remove()]
+        atomicActions: (element) => [() => element instanceof HTMLElement && element.remove()]
     },
     hide: {
         description: 'Hide the element by setting style as "display: none".',
-        atomicActions: (element) => [() => element.style.display = "none"]
+        atomicActions: (element) => [() => element instanceof HTMLElement && element.style.setProperty("display", "none")]
     },
     setStyle: {
         description: "Modify the CSS style attribute of the element according to the provided actionParams. If actionParams is an object, set each key-value pair as a style property. If actionParams is a string, set the complete style attribute equal to the provided string.",
         atomicActions: (element, value) => {
             if (typeof value === "object")
                 return [() => {
-                    for (let attr in value) element.style.setAttribute(attr, value[attr])
+                    for (let attr in value) element instanceof HTMLElement && element.style.setProperty(attr, value[attr])
                 }]
-            return [() => element.style = value]
+            return [() => element instanceof HTMLElement && element.setAttribute("style", value)]
         }
     },
     setAttribute: {
         description: "Set the attribute of the element to the provided value. The actionParams is an object whose key-value pairs correspond to the attribute names and values to be set. Do not use this command to set the 'value' of HTML input elements. Use setValue instead.",
         atomicActions: (element, value) => [() => {
-            for (let attr in value) element.style.setAttribute(attr, value[attr])
+            for (let attr in value) element instanceof HTMLElement && element.setAttribute(attr, value[attr])
         }]
     },
     removeAttribute: {
         description: "Remove the attribute from the element. The actionParams is the attribute name.",
-        atomicActions: (element, attribute) => [() => element.removeAttribute(attribute)]
+        atomicActions: (element, attribute) => [() => element instanceof HTMLElement && element.removeAttribute(attribute)]
     },
     pressEnter: {
         description: "Simulate pressing the Enter key on the element. You can use this command to try submit forms if there is no other obvious way to do it.",

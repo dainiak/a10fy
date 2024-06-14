@@ -1,10 +1,10 @@
-import {extensionActions} from "./helpers/constants.js";
-import {getDocumentSkeleton, enqueueAction, findElementByIndex} from "./helpers/domManipulation.js";
+import {extensionActions} from "./helpers/constants";
+import {getDocumentSkeleton, enqueueAction, findElementByIndex} from "./helpers/domManipulation";
 
-import getActionQueue from "./helpers/actionQueue.js";
+import ActionQueue from "./helpers/actionQueue";
 
 
-const pageActionQueue = getActionQueue();
+const pageActionQueue = new ActionQueue();
 setInterval(
     pageActionQueue.executeNext,
     20
