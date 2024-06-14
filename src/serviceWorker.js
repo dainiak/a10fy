@@ -51,7 +51,7 @@ async function submitUserRequest(websiteData, userRequest, tab) {
             })
         }
         else if (llmGlobalActions.hasOwnProperty(actionName)) {
-            llmGlobalActions[actionName].execute(elementIndex, actionParams)
+            llmGlobalActions[actionName].execute(elementIndex, actionParams, tab)
         } else {
             console.error(`Unknown command: ${command}`);
         }

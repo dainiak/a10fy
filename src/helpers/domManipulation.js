@@ -68,22 +68,16 @@ function getDocumentSkeleton(options) {
             keepWhitespace ||= ["preserve", "preserve-spaces"].includes(nodeStyle.getPropertyValue("white-space-collapse"));
             keepWhitespace ||= node.tagName.toLowerCase() === "pre";
 
-            if (nodeStyle.getPropertyValue("display") === "none") {
+            if (nodeStyle.getPropertyValue("display") === "none")
                 resultNode.style = "display: none";
-                return resultNode;
-            }
-            if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility"))) {
-                resultNode.style = "visibility: collapse";
-                return resultNode;
-            }
-            if (nodeStyle.getPropertyValue("opacity") === "0") {
+            if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility")))
+                resultNode.style = "visibility: hidden";
+            if (nodeStyle.getPropertyValue("opacity") === "0")
                 resultNode.style = "opacity: 0";
-                return resultNode;
-            }
 
             const nChildren = node.childNodes.length;
             node.childNodes.forEach((child, idx) => {
-                const childResult = getSimplifiedDomRecursive(child, keepWhitespace, cssPrefix);
+                const childResult = getSimplifiedDomRecursive(child, keepWhitespace);
                 if (childResult === null)
                     return;
                 if ((idx === 0 || idx === nChildren - 1) && nodeStyle.getPropertyValue("display") === "block" && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")

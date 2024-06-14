@@ -8,6 +8,13 @@ chrome.storage.session.onChanged.addListener((changes) => {
     updateLlmMessage(llmMessageChange.newValue);
 });
 
+document.addEventListener("load", () => {
+    const llmMessage = chrome.storage.session.get(["llmMessage"])["llmMessage"];
+    if (llmMessage) {
+        updateLlmMessage(llmMessage);
+    }
+});
+
 function updateLlmMessage(message) {
     if (!message) return;
     const llmMessageContainer = document.getElementById("llmMessageContainer");
