@@ -2,7 +2,6 @@ import {GoogleGenerativeAI} from "@google/generative-ai";
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 
-
 async function getJsonGeminiModel() {
     const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
     const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
@@ -30,4 +29,4 @@ async function asyncRequestAndParse(requestData, jsonPaths, onValueCallback) {
     console.log(completeText);
 }
 
-export { asyncRequestAndParse };
+export {asyncRequestAndParse};

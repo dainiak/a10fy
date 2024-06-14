@@ -1,4 +1,4 @@
-import { cssPrefix, cssPrefixFallbackSymbol } from "./constants";
+import {cssPrefix, cssPrefixFallbackSymbol} from "./constants";
 
 const elementMap = new Map();
 
@@ -37,11 +37,9 @@ function getDocumentSkeleton(options) {
                 return wrapper;
             }
             return document.createTextNode(text);
-        }
-        else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
+        } else if (node.nodeType === Node.COMMENT_NODE || ["script", "style", "noscript"].includes(node.tagName.toLowerCase())) {
             return null;
-        }
-        else if (node.nodeType === Node.ELEMENT_NODE) {
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
             const nodeStyle = window.getComputedStyle(node);
             const resultNode = node.cloneNode(false);
 
@@ -71,11 +69,11 @@ function getDocumentSkeleton(options) {
                 resultNode.style = "display: none";
                 return resultNode;
             }
-            if(["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility"))) {
+            if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility"))) {
                 resultNode.style = "visibility: collapse";
                 return resultNode;
             }
-            if(nodeStyle.getPropertyValue("opacity") === "0") {
+            if (nodeStyle.getPropertyValue("opacity") === "0") {
                 resultNode.style = "opacity: 0";
                 return resultNode;
             }
@@ -85,9 +83,9 @@ function getDocumentSkeleton(options) {
                 const childResult = getSimplifiedDomRecursive(child, keepWhitespace, cssPrefix);
                 if (childResult === null)
                     return;
-                if ((idx === 0 || idx === nChildren-1) && nodeStyle.getPropertyValue("display") === "block" && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
+                if ((idx === 0 || idx === nChildren - 1) && nodeStyle.getPropertyValue("display") === "block" && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
                     return;
-                if (idx > 0 && idx < nChildren-1 && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
+                if (idx > 0 && idx < nChildren - 1 && childResult.nodeType === Node.TEXT_NODE && childResult.textContent === " ")
                     return;
                 resultNode.appendChild(childResult);
             });
@@ -130,32 +128,23 @@ function pressEnter(element) {
     ))
 }
 
-const domActions = [
-    {
-        name: "click",
+const domLlmActions = {
+    click: {
         description: "Call the click() method on a DOM element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
         atomicActions: (element) => [() => element.click()]
     },
-    {
-        name: "focus",
+    focus: {
         description: "Call the focus() method on a DOM element.",
         atomicActions: (element) => [() => element.focus()]
     },
-    {
-        name: "scrollIntoView",
+    scrollIntoView: {
         description: "Call the scrollIntoView() method on a DOM element.",
         atomicActions: (element) => [() => element.scrollIntoView()]
     },
-    // {
-    //     name: "select",
-    //     description: "Call the select() method on the element.",
-    //     action: (element, _) => element.select()
-    // },
-    {
-        name: "submit",
+    submit: {
         description: "Call the submit() method on a form DOM element. This command is also valid when the element is a button or input element inside a form element. In this case, the form element containing the button or input element will be submitted. For search forms, prefer using this command instead of clicking the search button/icon if there is any.",
         atomicActions: element => [() => {
-            if(typeof element.submit === "function")
+            if (typeof element.submit === "function")
                 element.submit();
             else {
                 const form = element.querySelector("form");
@@ -169,19 +158,17 @@ const domActions = [
             }
         }]
     },
-    {
-        name: "setValue",
+    setValue: {
         description: "Set the 'value' attribute of a DOM element to a given string (actionParams is a string).",
         action: (element, value) => [() => {
             if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
                 throw new Error(`Element is not an input, textarea or select element.`);
             element.value = value;
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.dispatchEvent(new Event('input', {bubbles: true}));
+            element.dispatchEvent(new Event('change', {bubbles: true}));
         }]
     },
-    {
-        name: "clearInput",
+    clearInput: {
         description: "Clear the input value of a DOM element.",
         atomicActions: (element) => [() => {
             element.value = "";
@@ -189,97 +176,90 @@ const domActions = [
             element.dispatchEvent(new Event('change', {bubbles: true}));
         }]
     },
-    {
-        name: "typeString",
+    typeString: {
         description: "Simulate typing the provided string value into the DOM element character-by-character (actionParams is a string).",
         atomicActions: (element, value) => getStringTypingSimulationSequence(element, value)
     },
-    {
-        name: "setText",
+    setText: {
         description: "Set the textContent of the element to the provided value (actionParams is a string).",
         atomicActions: (element, value) => [() => element.textContent = value]
     },
-    {
-        name: "remove",
+    remove: {
         description: "Remove the element from DOM.",
         atomicActions: (element) => [() => element.remove()]
     },
-    {
-        name: "hide",
+    hide: {
         description: 'Hide the element by setting style as "display: none".',
         atomicActions: (element) => [() => element.style.display = "none"]
     },
-    {
-        name: "setStyle",
+    setStyle: {
         description: "Modify the CSS style attribute of the element according to the provided actionParams. If actionParams is an object, set each key-value pair as a style property. If actionParams is a string, set the complete style attribute equal to the provided string.",
         atomicActions: (element, value) => {
-            if(typeof value === "object")
-                return [() => {for(let attr in value) element.style.setAttribute(attr, value[attr])}]
+            if (typeof value === "object")
+                return [() => {
+                    for (let attr in value) element.style.setAttribute(attr, value[attr])
+                }]
             return [() => element.style = value]
         }
     },
-    {
-        name: "setAttribute",
+    setAttribute: {
         description: "Set the attribute of the element to the provided value. The actionParams is an object whose key-value pairs correspond to the attribute names and values to be set. Do not use this command to set the 'value' of HTML input elements. Use setValue instead.",
-        atomicActions: (element, value) => [() => {for(let attr in value) element.style.setAttribute(attr, value[attr])}]
+        atomicActions: (element, value) => [() => {
+            for (let attr in value) element.style.setAttribute(attr, value[attr])
+        }]
     },
-    {
-        name: "removeAttribute",
+    removeAttribute: {
         description: "Remove the attribute from the element. The actionParams is the attribute name.",
         atomicActions: (element, attribute) => [() => element.removeAttribute(attribute)]
     },
-    {
-        name: "pressEnter",
+    pressEnter: {
         description: "Simulate pressing the Enter key on the element. You can use this command to try submit forms if there is no other obvious way to do it.",
         atomicActions: (element) => [() => pressEnter(element)]
     },
-    {
-        name: "searchForm",
+    searchForm: {
         description: "Search for the provided query in the search form of a webpage. The element for this command is the form's input field. The actionParams is the query string to be searched.",
         atomicActions: (element, query) => [
             () => element.value = "",
             () => {
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
+                element.dispatchEvent(new Event('input', {bubbles: true}));
+                element.dispatchEvent(new Event('change', {bubbles: true}));
             },
             ...getStringTypingSimulationSequence(element, query),
             () => pressEnter(document.activeElement)
         ]
     },
-    {
-        name: "speak",
-        description: "Speak something using browser TTS engine. There are two forms of this action. Firstly, if the elementIndex is non-null, speak the innerText of the corresponding DOM element. Secondly, if the elementIndex is null then speak the string value provided as actionParams. In that second case if in need to speak large paragraph(s) of text, do not cram them in a single speak command, but rather emit multiple speak commands with smaller chunks of text per command. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
+    navigate: {
+        description: "Navigate to the provided URL. The actionParams is a string which is either the URL to navigate to, or \"back\" to navigate to the previous page in the browser history, or \"forward\" to navigate to the next page in the browser history, or \"reload\" to reload the current page.",
+        atomicActions: (_, url) => {
+            if (url === "back")
+                return [() => window.history.back()];
+            if (url === "forward")
+                return [() => window.history.forward()];
+            if (url === "reload")
+                return [() => window.location.reload()];
+            return [() => window.location = url];
+        }
+    }
+}
+
+const globalLlmActions = {
+    speak: {
+        description: "Speak something using browser TTS engine. There are two forms of this action. Firstly, if the elementIndex is non-null, speak the innerText of the corresponding DOM element. Secondly, if the elementIndex is null then speak the string value provided as actionParams. In that second case if in need to speak large paragraph(s) of text, do not cram them into a single speak command, but rather emit multiple speak actions with smaller chunks of text per action. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
         atomicActions: (element, value) => [
             () => chrome.tts.speak(element ? element.innerText : value, {'enqueue': true, 'rate': 1.0})
         ]
     },
-    {
-        name: "navigate",
-        description: "Navigate to the provided URL. The actionParams is the URL to navigate to.",
-        atomicActions: (_, url) => [() => window.location = url]
-    },
-    {
-        name: "back",
-        description: "Navigate to the previous page in the browser history.",
-        atomicActions: () => [() => window.history.back()]
-    },
-    {
-        name: "forward",
-        description: "Navigate to the next page in the browser history.",
-        atomicActions: () => [() => window.history.forward()]
-    },
-    {
-        name: "reload",
-        description: "Reload the current page.",
-        atomicActions: () => [() => window.location.reload()]
+    showInSidePanel: {
+        description: "Show a text message in browser side panel alongside the current tab. The actionParams is the text of the message to show.",
+        atomicActions: (_, value) => [() => chrome.runtime.sendMessage({action: "showInSidePanel", message: value})]
     }
-]
+}
 
 function getPageActionDescriptions() {
-    return domActions.map(action => {
+    return Object.keys({...domLlmActions, ...globalLlmActions}).map(actionName => {
         return {
-            name: action.name,
-            description: action.description
+            name: actionName,
+            description: domLlmActions[actionName].description
         }
     });
 }
@@ -293,14 +273,13 @@ function enqueueAction(actionQueue, action) {
         return errorMessage;
     }
 
-    for (let actionData of domActions){
-        if(actionData.name === actionName){
-            actionQueue.enqueue(actionData.atomicActions(element, actionParams));
-            return;
-        }
+    if (domLlmActions.hasOwnProperty(actionName)) {
+        actionQueue.enqueue(domLlmActions[actionName].atomicActions(element, actionParams));
     }
-    console.log(`Action ${actionName} not found`)
+    else {
+        console.log(`Action ${actionName} not found`)
+    }
 }
 
 
-export {getDocumentSkeleton, enqueueAction, getPageActionDescriptions};
+export {getDocumentSkeleton, enqueueAction, getPageActionDescriptions, findElementByIndex};

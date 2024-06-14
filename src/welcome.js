@@ -12,5 +12,5 @@ const apiKeyInput = document.getElementById("googleApiKey");
 chrome.storage.sync.get([storageKeys.googleApiKey]).then(data => apiKeyInput.value = data[storageKeys.googleApiKey]);
 
 apiKeyInput.addEventListener("change", async (event) => {
-     await chrome.storage.sync.set({[storageKeys.googleApiKey]: event.target.value});
+    await chrome.storage.sync.set({[storageKeys.googleApiKey]: event.target.value});
 });

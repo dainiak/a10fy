@@ -31,13 +31,11 @@ All in all, your response should look like \`\`\`{
     "actionList": [[...], ...]
 }\`\`\`.`
 
-
     if (userRequest.text) {
         userRequest = userRequest.text.trim().replace(/`/g, "'").replace(/\n/g, " ");
 
         return [{text: `The user has the following request: \`\`\`${userRequest}\`\`\`. ${outputDescription}`}]
-    }
-    else if (userRequest.audio) {
+    } else if (userRequest.audio) {
         return [
             {text: "The user has dictated a request using voice input below."},
             getInlineAudioPart(userRequest.audio),
@@ -46,4 +44,4 @@ All in all, your response should look like \`\`\`{
     }
 }
 
-export { getInlineImagePart, getMainPromptParts };
+export {getInlineImagePart, getMainPromptParts};

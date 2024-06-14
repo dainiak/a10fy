@@ -1,12 +1,12 @@
-import { extensionActions, cssPrefix } from "./helpers/constants";
-import { getInlineImagePart, getMainPromptParts } from "./helpers/promptParts";
-import { setupOffscreenDocument } from "./helpers/setupOffscreenDocument";
-import { asyncRequestAndParse } from "./helpers/geminiInterfacing";
+import {extensionActions, cssPrefix} from "./helpers/constants";
+import {getInlineImagePart, getMainPromptParts} from "./helpers/promptParts";
+import {setupOffscreenDocument} from "./helpers/setupOffscreenDocument";
+import {asyncRequestAndParse} from "./helpers/geminiInterfacing";
 
 
 setupOffscreenDocument().finally();
 
-async function submitUserRequest(websiteData, userRequest, tab){
+async function submitUserRequest(websiteData, userRequest, tab) {
     let requestParts = [
         {
             text: "Here is a screenshot of a webpage:"
@@ -39,32 +39,33 @@ async function submitUserRequest(websiteData, userRequest, tab){
         else
             [command, index, val] = value;
 
-        if(command === "speak") {
-            chrome.tts.speak(val, {lang: "en-US", rate: 1.0, enqueue: true});
-            return;
+        if (command === "speak") {
+            if (index === null)
+                chrome.tts.speak(val, {lang: "en-US", rate: 1.0, enqueue: true});
+            else {
+                chrome.tabs.sendMessage(tab.id, {
+                    action: extensionActions.getDomElementProperties,
+                    elementIndex: index,
+                    propertyNames: ["innerText"]
+                }).then((response) => {
+                    if (response.innerText)
+                        chrome.tts.speak(response.innerText, {lang: "en-US", rate: 1.0, enqueue: true});
+                });
+            }
         } else {
             chrome.tabs.sendMessage(tab.id, {
                 action: extensionActions.performCommand,
-                index: index,
+                elementIndex: index,
                 command: command,
                 value: val
             })
         }
     });
-
-    // then((response) => {
-    //     return response.json();
-    // }).then((data) => {
-    //     // console.log(data);
-    //     let geminiResponse = data.candidates[0].content.parts[0].text;
-    //     // chrome.tts.speak(geminiResponse, {"lang": "en-US", "rate": 1.0});
-    //     console.log(geminiResponse);
-    // });
 }
 
 chrome.runtime.onMessage.addListener(
     async function (request, sender) {
-        if(!sender.tab && request.action === extensionActions.processUserAudioQuery && request.audio) {
+        if (!sender.tab && request.action === extensionActions.processUserAudioQuery && request.audio) {
             console.log("Audio query received.", request.audio);
 
             const [tab] = await chrome.tabs.query({
@@ -103,21 +104,20 @@ async function textBasedCommandOnPage() {
     }
 }
 
-
 chrome.commands.onCommand.addListener(async (command) => {
-    if(command === "analysePage")
+    if (command === "analysePage")
         return textBasedCommandOnPage();
-    if(command === "voiceCommandRecord") {
+    if (command === "voiceCommandRecord") {
         await setupOffscreenDocument();
         chrome.tts.stop();
         await chrome.runtime.sendMessage({action: extensionActions.startAudioCapture});
         return;
     }
-    if(command === "voiceCommandExecute") {
+    if (command === "voiceCommandExecute") {
         await setupOffscreenDocument();
         await chrome.runtime.sendMessage({action: extensionActions.stopAudioCapture});
     }
-    if(command === "showWelcomeScreen"){
+    if (command === "showWelcomeScreen") {
         await chrome.tabs.create({
             url: chrome.runtime.getURL("welcome.html"),
             active: true

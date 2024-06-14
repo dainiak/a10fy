@@ -4,7 +4,8 @@ const extensionActions = {
     getUserQuery: "getUserQuery",
     startAudioCapture: "startAudioCapture",
     stopAudioCapture: "stopAudioCapture",
-    processUserAudioQuery: "processUserAudioQuery"
+    processUserAudioQuery: "processUserAudioQuery",
+    getDomElementProperties: "getDomElementProperties"
 }
 
 const storageKeys = {
