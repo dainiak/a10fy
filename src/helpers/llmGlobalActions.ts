@@ -1,15 +1,29 @@
 import {extensionActions} from "./constants";
+import {llmPageActionNames} from "./llmPageActions";
 
 const llmGlobalActionNames = {
     speak: "speak",
     speakElementText: "speakElementText",
-    showMessage: "showMessage"
+    showMessage: "showMessage",
+    copyTextToClipboard: "copyTextToClipboard",
+    copyElementPropertyToClipboard: "copyElementPropertyToClipboard",
+    setElementPropertyFromClipboard: "setElementPropertyFromClipboard"
 }
 
-const llmGlobalActions = {
+interface LLMGlobalAction {
+    description: string;
+    execute: (elementIndex: number | null, actionParams: any, tab: chrome.tabs.Tab) => void;
+}
+
+interface LlmGlobalActions {
+    [key: string]: LLMGlobalAction;
+}
+
+
+const llmGlobalActions: LlmGlobalActions = {
     [llmGlobalActionNames.speak]: {
         description: "Speak a given text using browser TTS engine. The elementIndex is null in this case. The actionParams is an object with two keys: \"content\" (what to speak) and \"lang\" (the language of the speech, assumed to be \"en-US\" if omitted). If in need to speak large paragraph(s) of text, do not cram them into the content of a single speak action, but rather emit multiple speak actions with smaller chunks of text per action. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
-        execute: (elementIndex, actionParams) => {
+        execute: (_1, actionParams, _2) => {
             if (actionParams?.content)
                 chrome.tts.speak(actionParams.content, {
                     lang: actionParams?.lang || "en-US",
@@ -21,11 +35,14 @@ const llmGlobalActions = {
     [llmGlobalActionNames.speakElementText]: {
         description: "Use browser TTS engine to speak the innerText of some DOM element identified by elementIndex. The actionParams is an object with a single key \"lang\" (the language of the speech, assumed to be \"en-US\" if omitted).",
         execute: (elementIndex, actionParams, tab) => {
+            if (!tab.id)
+                return;
+
             chrome.tabs.sendMessage(tab.id, {
                 action: extensionActions.getDomElementProperties,
                 elementIndex: elementIndex,
                 propertyNames: ["innerText"]
-            }).then((response) => {
+            }).then((response: any) => {
                 if (response?.innerText)
                     chrome.tts.speak(response.innerText, {
                         lang: actionParams?.lang || "en-US",
@@ -37,7 +54,73 @@ const llmGlobalActions = {
     },
     [llmGlobalActionNames.showMessage]: {
         description: "Use to display a given message for the user to see. Technically this is shown in browser Side Panel alongside the current tab. The elementIndex is null and the actionParams is a string hosting the HTML content of the message to show. You can only use the following tags: h3, h4, h5, a, pre, code, ul, ol, li, p, em, strong, table, tbody, thead, tfoot, tr, td. No other tags are allowed. Use this action whenever you need to answer some generic user question or provide some additional information to the user in a non-spoken form. If the user request was in textual form, prefer using this action instead of \"speak\".",
-        execute: (_, actionParams) => chrome.storage.session.set({llmMessage: actionParams})
+        execute: (_1, actionParams, _2) => chrome.storage.session.set({llmMessage: actionParams})
+    },
+    [llmGlobalActionNames.copyTextToClipboard]: {
+        description: "Copy the provided text to the clipboard. The elementIndex is null and the actionParams is a string to be copied.",
+        execute: (_1, actionParams, _2) => {
+            chrome.runtime.sendMessage({
+                action: extensionActions.copyTextToClipboard,
+                text: actionParams
+            })
+        }
+    },
+    [llmGlobalActionNames.copyElementPropertyToClipboard]: {
+        description: "Copy the provided property of the element identified by elementIndex to the clipboard. The actionParams is a string taking one of values \"value\", \"innerText\", \"innerHTML\".",
+        execute: (elementIndex, actionParams, tab) => {
+            if (!tab.id || !["value", "innerText", "innerHTML"].includes(actionParams))
+                return;
+
+            chrome.tabs.sendMessage(tab.id, {
+                action: extensionActions.getDomElementProperties,
+                elementIndex: elementIndex,
+                propertyNames: [actionParams]
+            }).then((response: any) => {
+                if (response?.[actionParams])
+                    chrome.runtime.sendMessage({
+                        action: extensionActions.copyTextToClipboard,
+                        text: response[actionParams?.propertyType || "innerText"]
+                    })
+            });
+        }
+    },
+    [llmGlobalActionNames.setElementPropertyFromClipboard]: {
+        description: "Set the provided property of the element identified by elementIndex to the value copied to the clipboard. The actionParams is a string taking one of values \"value\", \"innerText\", \"innerHTML\".",
+        execute: (elementIndex, actionParams, tab) => {
+            if (!tab.id || !["value", "innerText", "innerHTML"].includes(actionParams))
+                return;
+
+            const tabId: number = tab.id;
+
+            chrome.runtime.sendMessage({
+                action: extensionActions.getTextFromClipboard
+            }, (response: {text?: string}) => {
+                if (!response?.text)
+                    return;
+
+                if (actionParams === "value")
+                    chrome.tabs.sendMessage(tabId, {
+                        action: extensionActions.executePageAction,
+                        actionName: llmPageActionNames.setValue,
+                        elementIndex: elementIndex,
+                        actionParams: response.text
+                    })
+                else if (actionParams === "innerText")
+                    chrome.tabs.sendMessage(tabId, {
+                        action: extensionActions.executePageAction,
+                        actionName: llmPageActionNames.setText,
+                        elementIndex: elementIndex,
+                        actionParams: response.text
+                    })
+                else if (actionParams === "innerHTML")
+                    chrome.tabs.sendMessage(tabId, {
+                        action: extensionActions.executePageAction,
+                        actionName: llmPageActionNames.setHTML,
+                        elementIndex: elementIndex,
+                        actionParams: response.text
+                    })
+            })
+        }
     }
 }
 

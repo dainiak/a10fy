@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "lib": ["dom", "esnext"],
+    "target": "es2022",
+    "module": "es2022",
+    "lib": ["dom", "es2022"],
     "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./tmp"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*.ts"]
 }

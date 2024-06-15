@@ -3,8 +3,13 @@
   "name": "Accessibilify",
   "version": "1.0",
   "description": "Turn any website into an accessible one.",
+  "icons": {
+    "128": "icon.png"
+  },
   "permissions": [
     "activeTab",
+    "clipboardRead",
+    "clipboardWrite",
     "offscreen",
     "scripting",
     "sidePanel",
@@ -16,7 +21,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "js/serviceWorker.js"
+    "service_worker": "js/background.js"
   },
   "action": {
     "default_popup": "popup.html",

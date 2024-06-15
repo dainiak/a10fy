@@ -9,14 +9,16 @@ chrome.storage.session.onChanged.addListener((changes) => {
 });
 
 document.addEventListener("load", () => {
-    const llmMessage = chrome.storage.session.get(["llmMessage"])["llmMessage"];
-    if (llmMessage) {
-        updateLlmMessage(llmMessage);
-    }
+    chrome.storage.session.get(["llmMessage"]).then((result) => {
+        if (result) {
+            updateLlmMessage(result["llmMessage"]);
+        }
+    });
 });
 
-function updateLlmMessage(message) {
-    if (!message) return;
-    const llmMessageContainer = document.getElementById("llmMessageContainer");
+function updateLlmMessage(message: string) {
+    if (!message)
+        return;
+    const llmMessageContainer = document.getElementById("llmMessageContainer") as HTMLDivElement;
     llmMessageContainer.innerHTML = message;
 }

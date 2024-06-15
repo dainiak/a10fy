@@ -4,7 +4,7 @@
   "description": "Chrome/Edge extension to make websites more accessible for any user.",
   "main": "rollup.config.mjs",
   "scripts": {
-    "build": "rollup -c"
+    "build": "tsc && rollup -c"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@streamparser/json": "^0.0.21",
-    "@types/chrome": "^0.0.268"
+    "@types/chrome": "^0.0.268",
+    "chrome-types": "^0.1.287"
   }
 }

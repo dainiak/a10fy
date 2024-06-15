@@ -1,48 +1,48 @@
-import {extensionActions, cssPrefix} from "./helpers/constants";
+import {extensionActions, cssPrefix, UserRequest, TabDocumentInfo} from "./helpers/constants";
 import {getInlineDataPart, getMainPromptParts} from "./helpers/promptParts";
 import {setupOffscreenDocument} from "./helpers/setupOffscreenDocument";
 import {asyncRequestAndParse} from "./helpers/geminiInterfacing";
 import {llmGlobalActions} from "./helpers/llmGlobalActions";
-import {llmPageActions} from "./helpers/domManipulation";
+import {llmPageActions} from "./helpers/llmPageActions";
+import {GenerateContentRequest, Part} from "@google/generative-ai";
 
 
-setupOffscreenDocument().finally();
+setupOffscreenDocument();
 
-async function submitUserRequest(websiteData, userRequest, tab) {
-    let requestParts = [
+async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: UserRequest, tab: chrome.tabs.Tab) {
+    let requestParts: Part[] = [
         {
-            text: "Here is a screenshot of a webpage:"
+            text: "Here is a screenshot of a webpage that the user is currently on:"
         },
         getInlineDataPart(websiteData.screenshot),
         {
             text: (
-                `The webpage title is \`\`\`${websiteData.title}\`\`\`.\n` +
                 `The webpage URL is \`\`\`${websiteData.url}\`\`\`.\n` +
-                `The simplified representation of the DOM structure of the webpage is as follows (with removed styles and scripts, and injected "${cssPrefix}..." classes for identifying the DOM elements): \n` +
-                `\`\`\`${websiteData.html}\`\`\``
+                `The simplified HTML of the webpage is as follows (with removed styles and scripts, and injected "${cssPrefix}..." classes for identifying the DOM elements): \n` +
+                `\`\`\`\n\n\n${websiteData.html}\n\n\n\`\`\`\n`
             )
         },
         ...getMainPromptParts(userRequest)
     ];
 
-    let requestData = {
+    let requestData: GenerateContentRequest = {
         contents: [{
             role: "user",
             parts: requestParts
         }]
     }
 
-    console.log(requestData);
-
     await asyncRequestAndParse(requestData, ["$.actionList.*"], ({value, key, parent, stack}) => {
         console.log(key, parent, stack, value);
         let elementIndex, actionName, actionParams;
-        if (value.length === 2)
+        if (value instanceof Array && value.length === 2)
             [actionName, elementIndex] = value;
-        else
+        else if(value instanceof Array && value.length === 3)
             [actionName, elementIndex, actionParams] = value;
+        else
+            return;
 
-        if (llmPageActions.hasOwnProperty(actionName)) {
+        if (llmPageActions.hasOwnProperty(actionName as string) && tab.id) {
             chrome.tabs.sendMessage(tab.id, {
                 action: extensionActions.executePageAction,
                 elementIndex: elementIndex,
@@ -50,10 +50,10 @@ async function submitUserRequest(websiteData, userRequest, tab) {
                 actionParams: actionParams
             })
         }
-        else if (llmGlobalActions.hasOwnProperty(actionName)) {
-            llmGlobalActions[actionName].execute(elementIndex, actionParams, tab)
+        else if (llmGlobalActions.hasOwnProperty(actionName as string)) {
+            llmGlobalActions[actionName as string].execute(elementIndex as number|null, actionParams, tab)
         } else {
-            console.error(`Unknown command: ${command}`);
+            console.error(`Unknown actionName: ${actionName}`);
         }
     });
 }
@@ -61,8 +61,6 @@ async function submitUserRequest(websiteData, userRequest, tab) {
 chrome.runtime.onMessage.addListener(
     async function (request, sender) {
         if (!sender.tab && request.action === extensionActions.processUserAudioQuery && request.audio) {
-            console.log("Audio query received.", request.audio);
-
             const [tab] = await chrome.tabs.query({
                 active: true,
                 lastFocusedWindow: true
@@ -73,7 +71,10 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
-async function getTabDocumentInfo(tab) {
+async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
+    if (!tab.id)
+        return {};
+
     const tabScreenshot = await chrome.tabs.captureVisibleTab(
         {
             "format": "jpeg",
@@ -81,7 +82,7 @@ async function getTabDocumentInfo(tab) {
         }
     );
 
-    const tabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDocumentInfo});
+    const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDocumentInfo});
     tabDocumentInfo.screenshot = tabScreenshot;
     return tabDocumentInfo;
 }
@@ -92,7 +93,9 @@ async function textBasedCommandOnPage() {
         lastFocusedWindow: true
     });
 
-    const query = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getUserQuery});
+    // @ts-ignore
+    // noinspection JSVoidFunctionReturnValueUsed
+    const query = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getUserQuery}) as string|null;
     if (query !== null && query !== "") {
         const tabDocumentInfo = await getTabDocumentInfo(tab);
         await submitUserRequest(tabDocumentInfo, {text: query}, tab);

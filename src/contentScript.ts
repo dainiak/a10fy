@@ -1,12 +1,12 @@
-import {extensionActions} from "./helpers/constants";
-import {getDocumentSkeleton, enqueueAction, findElementByIndex} from "./helpers/domManipulation";
+import {extensionActions, ElementPropertiesResult} from "./helpers/constants";
+import {getDocumentSkeleton, enqueuePageAction, findElementByIndex} from "./helpers/domManipulation";
 
 import ActionQueue from "./helpers/actionQueue";
 
 
 const pageActionQueue = new ActionQueue();
 setInterval(
-    pageActionQueue.executeNext,
+    () => pageActionQueue.executeNext(),
     20
 );
 
@@ -17,13 +17,13 @@ chrome.runtime.onMessage.addListener(
             return;
         if (request.action === extensionActions.getDocumentInfo) {
             sendResponse({
-                html: getDocumentSkeleton(document.body.innerHTML),
+                html: `<html><head><title>${document.title}</title></head>${getDocumentSkeleton(document.body)}</html>`,
                 text: document.body.innerText,
                 url: document.location.href,
                 title: document.title
             });
         } else if (request.action === extensionActions.executePageAction)
-            enqueueAction(
+            enqueuePageAction(
                 pageActionQueue,
                 {
                     actionName: request.actionName,
@@ -42,9 +42,10 @@ chrome.runtime.onMessage.addListener(
                 return;
             }
 
-            const properties = {};
+            const properties: ElementPropertiesResult = {};
             for (const propertyName of request.propertyNames)
                 switch(propertyName) {
+                    case "value": properties.value = (element as HTMLInputElement).value; break;
                     case "style": properties.style = element.style; break;
                     case "computedStyle": properties.computedStyle = window.getComputedStyle(element); break;
                     case "id": properties.id = element.id; break;

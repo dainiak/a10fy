@@ -1,13 +1,13 @@
 const mediaRecorderOptions = {
-    audioBitsPerSecond: 96000,
-    mimeType: "audio/ogg",
+    audioBitsPerSecond: 48000,
+    // mimeType: "audio/ogg;codecs=opus"
 };
 
-let audioRecorder = null;
-let mediaStream = null;
+let audioRecorder: MediaRecorder | null = null;
+let mediaStream: MediaStream | null = null;
 
-function startRecording(responseCallback) {
-    if (!navigator.mediaDevices) {
+function startRecording(responseCallback?: CallableFunction) {
+    if (!navigator.mediaDevices && responseCallback) {
         responseCallback({error: "Media devices not supported"});
     }
     else {
@@ -16,22 +16,22 @@ function startRecording(responseCallback) {
             audioRecorder?.stop();
             audioRecorder = new MediaRecorder(stream, mediaRecorderOptions);
             audioRecorder.start();
-            responseCallback({message: "Recording started"});
+            responseCallback && responseCallback({message: "Recording started"});
         }).catch((err) => {
             console.error(`The following error occurred: ${err}`);
             mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
-            responseCallback({error: err});
+            responseCallback && responseCallback({error: err});
         });
     }
 }
 
-function stopRecording(responseCallback) {
+function stopRecording(responseCallback: CallableFunction | null) {
     if (audioRecorder) {
         audioRecorder.addEventListener("dataavailable", (blobEvent) => {
             const reader = new FileReader();
             reader.readAsDataURL(blobEvent.data);
             reader.addEventListener("loadend", () => {
-                responseCallback(reader.result);
+                responseCallback && responseCallback(reader.result);
             });
         });
         audioRecorder.stop();
