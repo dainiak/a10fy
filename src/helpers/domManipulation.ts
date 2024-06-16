@@ -1,8 +1,10 @@
 import {cssPrefix, cssPrefixFallbackSymbol, ActionRequest} from "./constants";
 import ActionQueue from "./actionQueue";
 import {llmPageActions} from "./llmPageActions";
+import {standardHTMLAttributes} from "./standardHtmlAttributes";
 
 const elementMap = new Map();
+
 
 function findElementByIndex(index: number | string | null) {
     if (index === null || index === undefined)
@@ -27,11 +29,13 @@ function findElementByIndex(index: number | string | null) {
 type DocumentSkeletonizationOptions = {
     wrapTextNodes?: boolean;
     revealPseudoElements?: boolean;
+    attributesToKeep?: string[];
 }
 
 function getDocumentSkeleton(rootElement: HTMLElement, options: DocumentSkeletonizationOptions = {}): string {
     const wrapTextNodes = options?.wrapTextNodes || false;
     const revealPseudoElements = options?.revealPseudoElements || false;
+    const attributesToKeep = options?.attributesToKeep || ["standard", "aria", "style", "id"];
 
     elementMap.clear();
     let nodeIndex = 0;
@@ -76,7 +80,10 @@ function getDocumentSkeleton(rootElement: HTMLElement, options: DocumentSkeleton
             }
 
             ++nodeIndex;
-            resultNode.setAttribute("class", `${cssPrefix}${nodeIndex}`);
+            if (attributesToKeep.includes("class"))
+                resultNode.classList.add(`${cssPrefix}${nodeIndex}`);
+            else
+                resultNode.setAttribute("class", `${cssPrefix}${nodeIndex}`);
             Object.assign(node, {[cssPrefixFallbackSymbol]: nodeIndex});
             elementMap.set(nodeIndex, node);
 
@@ -85,9 +92,23 @@ function getDocumentSkeleton(rootElement: HTMLElement, options: DocumentSkeleton
                 resultNode.removeAttribute("src");
             }
 
-            Array.from(resultNode.attributes).forEach(
-                attr => attr.name.startsWith("data-") && resultNode.removeAttribute(attr.name)
-            );
+            Array.from(resultNode.attributes).forEach((attribute) => {
+                const tagName = node.tagName.toLowerCase();
+                const attrName = attribute.name;
+                const needToKeep = (
+                    attributesToKeep.includes("style") && attrName === "style"
+                    || attributesToKeep.includes("class") && attrName === "class"
+                    || attributesToKeep.includes("id") && attrName === "id"
+                    || attributesToKeep.includes("non-data") && !attrName.startsWith("data-")
+                    || attributesToKeep.includes("data") && attrName.startsWith("data-")
+                    || attributesToKeep.includes("aria") && attrName.startsWith("aria-")
+                    || attributesToKeep.includes("essential") && standardHTMLAttributes.hasOwnProperty(tagName) && standardHTMLAttributes[tagName].essential.includes(attrName)
+                    || attributesToKeep.includes("standard") && standardHTMLAttributes.hasOwnProperty(tagName) && (standardHTMLAttributes[tagName].essential.includes(attrName) || standardHTMLAttributes[tagName].other.includes(attrName))
+                );
+                if (needToKeep)
+                    return;
+                resultNode.removeAttribute(attrName);
+            });
 
             if (["svg"].includes(node.tagName.toLowerCase()))
                 return result;
@@ -95,13 +116,21 @@ function getDocumentSkeleton(rootElement: HTMLElement, options: DocumentSkeleton
             keepWhitespace ||= ["preserve", "preserve-spaces"].includes(nodeStyle.getPropertyValue("white-space-collapse"));
             keepWhitespace ||= node.tagName.toLowerCase() === "pre";
 
+            let styleToSet = "";
             if (nodeStyle.getPropertyValue("display") === "none")
-                resultNode.setAttribute("style", "display: none");
+                styleToSet = "display: none;";
             else if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility")))
-                resultNode.setAttribute("style", "visibility: hidden");
+                styleToSet = "visibility: hidden;";
             else if (nodeStyle.getPropertyValue("opacity") === "0")
-                resultNode.setAttribute("style", "opacity: 0");
-            else resultNode.setAttribute("style", "");
+                styleToSet = "opacity: 0;";
+
+            if (styleToSet) {
+                const existingStyleString = resultNode.getAttribute("style");
+                if(attributesToKeep.includes("style") && existingStyleString)
+                    resultNode.setAttribute("style", `${existingStyleString};${styleToSet}`);
+                else
+                    resultNode.setAttribute("style", styleToSet);
+            }
 
             const nChildren = node.childNodes.length;
             node.childNodes.forEach((child, idx) => {
