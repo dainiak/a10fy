@@ -19,17 +19,45 @@ interface LlmGlobalActions {
     [key: string]: LLMGlobalAction;
 }
 
+async function speak(content: string, lang: string = "en-US") {
+    const ttsSettings = await chrome.storage.sync.get(["ttsRate", "ttsVoices"]);
+    const options: {rate?: number; voiceName?: string; enqueue?: boolean; lang?: string;} = {enqueue: true};
+    if(ttsSettings.ttsRate)
+        options.rate = ttsSettings.ttsRate;
+
+    const voicesSettings: {[key: string]: string} = ttsSettings.ttsVoices || {};
+    const stockVoices = await chrome.tts.getVoices();
+    let stockVoiceForLang = stockVoices.find((v) => v.lang === lang);
+    if (!stockVoiceForLang) {
+        stockVoiceForLang = stockVoices.find((v) => (v.lang || "").toLowerCase().split(/[_-]/)[0] === lang.toLowerCase().split(/[_-]/)[0]);
+        lang = ""
+        if(stockVoiceForLang && stockVoiceForLang.lang)
+            lang = stockVoiceForLang.lang;
+    }
+    if(lang)
+        options.lang = lang;
+
+    let preferredVoiceName = voicesSettings.hasOwnProperty(lang) ? voicesSettings[lang] : "";
+    if(preferredVoiceName) {
+        const preferredVoiceForLang = stockVoices.find((v) => v.voiceName === preferredVoiceName);
+        if (preferredVoiceForLang)
+            options.voiceName = preferredVoiceName;
+        else if(stockVoiceForLang && stockVoiceForLang.voiceName){
+            voicesSettings[lang] = stockVoiceForLang.voiceName;
+            await chrome.storage.sync.set({ttsVoices: voicesSettings});
+        }
+    }
+
+    chrome.tts.speak(content, options);
+}
+
 
 const llmGlobalActions: LlmGlobalActions = {
     [llmGlobalActionNames.speak]: {
         description: "Speak a given text using browser TTS engine. The elementIndex is null in this case. The actionParams is an object with two keys: \"content\" (what to speak) and \"lang\" (the language of the speech, assumed to be \"en-US\" if omitted). If in need to speak large paragraph(s) of text, do not cram them into the content of a single speak action, but rather emit multiple speak actions with smaller chunks of text per action. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
         execute: (_1, actionParams, _2) => {
             if (actionParams?.content)
-                chrome.tts.speak(actionParams.content, {
-                    lang: actionParams?.lang || "en-US",
-                    rate: 1.0,
-                    enqueue: true
-                });
+                speak(actionParams.content, actionParams?.lang || "en-US");
         }
     },
     [llmGlobalActionNames.speakElementText]: {
@@ -44,11 +72,7 @@ const llmGlobalActions: LlmGlobalActions = {
                 propertyNames: ["innerText"]
             }).then((response: any) => {
                 if (response?.innerText)
-                    chrome.tts.speak(response.innerText, {
-                        lang: actionParams?.lang || "en-US",
-                        rate: 1.0,
-                        enqueue: true
-                    });
+                    speak(response.innerText, actionParams?.lang || "en-US");
             });
         }
     },

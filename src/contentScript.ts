@@ -17,7 +17,7 @@ chrome.runtime.onMessage.addListener(
             return;
         if (request.action === extensionActions.getDocumentInfo) {
             sendResponse({
-                html: `<html><head><title>${document.title}</title></head>${getDocumentSkeleton(document.body)}</html>`,
+                html: getDocumentSkeleton(),
                 text: document.body.innerText,
                 url: document.location.href,
                 title: document.title

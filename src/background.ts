@@ -117,7 +117,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
     if (command === "showWelcomeScreen") {
         await chrome.tabs.create({
-            url: chrome.runtime.getURL("welcome.html"),
+            url: chrome.runtime.getURL("settings.html"),
             active: true
         })
     }
@@ -131,7 +131,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     if (details.reason.search(/install/g) === -1)
         return;
     await chrome.tabs.create({
-        url: chrome.runtime.getURL("welcome.html"),
+        url: chrome.runtime.getURL("settings.html"),
         active: true
     })
 })

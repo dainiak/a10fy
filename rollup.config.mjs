@@ -54,6 +54,6 @@ export default [
     constructJsConfig('contentScript', jsPluginConfigs),
     constructJsConfig('sidePanel', jsPluginConfigs),
     constructJsConfig('offscreen', jsPluginConfigs),
-    constructJsConfig('welcome', jsPluginConfigs),
+    constructJsConfig('settings', jsPluginConfigs),
     constructJsConfig('popup', [...jsPluginConfigs, copyPluginConfig])
 ];

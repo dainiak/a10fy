@@ -30,12 +30,16 @@ type DocumentSkeletonizationOptions = {
     wrapTextNodes?: boolean;
     revealPseudoElements?: boolean;
     attributesToKeep?: string[];
+    keepMetaTags?: boolean;
+    includeTitle?: boolean;
 }
 
-function getDocumentSkeleton(rootElement: HTMLElement, options: DocumentSkeletonizationOptions = {}): string {
+function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): string {
     const wrapTextNodes = options?.wrapTextNodes || false;
     const revealPseudoElements = options?.revealPseudoElements || false;
     const attributesToKeep = options?.attributesToKeep || ["standard", "aria", "style", "id"];
+    const keepMetaTags = options?.keepMetaTags !== false;
+    const includeTitle = options?.includeTitle !== false;
 
     elementMap.clear();
     let nodeIndex = 0;
@@ -151,11 +155,17 @@ function getDocumentSkeleton(rootElement: HTMLElement, options: DocumentSkeleton
         return [];
     }
 
-    const simplifiedDomBody = getSimplifiedDomRecursive(rootElement, false);
-    if (simplifiedDomBody)
-        return simplifiedDomBody.map(
+    const simplifiedDomBody = getSimplifiedDomRecursive(document.body, false);
+    if (simplifiedDomBody) {
+        const bodyHTML = simplifiedDomBody.map(
             element => (element instanceof HTMLElement) ? element.outerHTML : element instanceof Text ? element.textContent : ""
         ).join("");
+        const metaTagsHTML = !keepMetaTags ? "" : Array.from(document.getElementsByTagName("meta")).map(
+            (element) => element.outerHTML
+        ).join("");
+        const titleHTML = !includeTitle ? "" : `<title>${document.title}</title>`;
+        return `<html><head>${metaTagsHTML}${titleHTML}</head>${bodyHTML}</html>`
+    }
     return "";
 }
 
