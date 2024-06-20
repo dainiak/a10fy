@@ -1,13 +1,15 @@
 import {extensionActions} from "./constants";
 import {llmPageActionNames} from "./llmPageActions";
 
+
 const llmGlobalActionNames = {
     speak: "speak",
     speakElementText: "speakElementText",
     showMessage: "showMessage",
     copyTextToClipboard: "copyTextToClipboard",
     copyElementPropertyToClipboard: "copyElementPropertyToClipboard",
-    setElementPropertyFromClipboard: "setElementPropertyFromClipboard"
+    setElementPropertyFromClipboard: "setElementPropertyFromClipboard",
+    pageTour: "pageTour",
 }
 
 interface LLMGlobalAction {
@@ -144,6 +146,24 @@ const llmGlobalActions: LlmGlobalActions = {
                         actionParams: response.text
                     })
             })
+        }
+    },
+    [llmGlobalActionNames.pageTour]: {
+        description: "Start the tour around the page.",
+        execute: async (elementIndex, actionParams, tab) => {
+            if (tab.id) {
+                await chrome.scripting.insertCSS({
+                    target: {tabId : tab.id},
+                    files: ["css/tour.css"]
+                })
+
+                await chrome.scripting.executeScript({
+                    target: {tabId : tab.id},
+                    files: ["js/contentScriptTour.js"],
+                    injectImmediately: true
+                })
+            }
+
         }
     }
 }

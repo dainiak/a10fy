@@ -2,6 +2,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from "rollup-plugin-copy";
 import terser from '@rollup/plugin-terser';
+import scss from 'rollup-plugin-scss';
 
 const enableTerser = false;
 
@@ -42,6 +43,22 @@ function constructJsConfig(input, pluginsList) {
     };
 }
 
+function constructScssConfig(input) {
+    return {
+        input: `src/styles/${input}.scss`,
+        output: {
+            dir: 'dist/css',
+        },
+        plugins: [
+            scss({
+                fileName: `${input}.css`,
+                outputStyle: 'compressed'
+            })
+        ]
+    };
+
+}
+
 const copyPluginConfig = copy({
     targets: [
         { src: 'src/assets/*', dest: 'dist' }
@@ -50,10 +67,12 @@ const copyPluginConfig = copy({
 
 
 export default [
+    constructScssConfig('tour'),
     constructJsConfig('background', jsPluginConfigs),
     constructJsConfig('contentScript', jsPluginConfigs),
+    constructJsConfig('contentScriptTour', jsPluginConfigs),
     constructJsConfig('sidePanel', jsPluginConfigs),
     constructJsConfig('offscreen', jsPluginConfigs),
     constructJsConfig('settings', jsPluginConfigs),
-    constructJsConfig('popup', [...jsPluginConfigs, copyPluginConfig])
+    constructJsConfig('popup', [...jsPluginConfigs, copyPluginConfig]),
 ];

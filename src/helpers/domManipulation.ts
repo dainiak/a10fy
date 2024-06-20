@@ -84,10 +84,10 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
             }
 
             ++nodeIndex;
+            const a10fyClass = `${cssPrefix}${nodeIndex}`;
             if (attributesToKeep.includes("class"))
-                resultNode.classList.add(`${cssPrefix}${nodeIndex}`);
-            else
-                resultNode.setAttribute("class", `${cssPrefix}${nodeIndex}`);
+                resultNode.classList.add(a10fyClass);
+
             Object.assign(node, {[cssPrefixFallbackSymbol]: nodeIndex});
             elementMap.set(nodeIndex, node);
 
@@ -113,6 +113,8 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
                     return;
                 resultNode.removeAttribute(attrName);
             });
+            if (!attributesToKeep.includes("class"))
+                resultNode.setAttribute("class", a10fyClass);
 
             if (["svg"].includes(node.tagName.toLowerCase()))
                 return result;

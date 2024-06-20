@@ -1,7 +1,7 @@
 import {GenerateContentRequest, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory} from "@google/generative-ai";
+import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
 import {cssPrefix, storageKeys} from "./constants";
-import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {getOutputFormatDescription} from "./promptParts";
 
 async function getJsonGeminiModel() {
@@ -17,7 +17,7 @@ async function getJsonGeminiModel() {
         }
     );
     gemini.generationConfig.responseMimeType = "application/json";
-    gemini.safetySettings = [
+    /*gemini.safetySettings = [
         {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
             threshold: HarmBlockThreshold.BLOCK_NONE
@@ -38,7 +38,7 @@ async function getJsonGeminiModel() {
             category: HarmCategory.HARM_CATEGORY_UNSPECIFIED,
             threshold: HarmBlockThreshold.BLOCK_NONE
         }
-    ]
+    ]*/
 
     return gemini;
 }
