@@ -44,7 +44,7 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
     elementMap.clear();
     let nodeIndex = 0;
 
-    function getSimplifiedDomRecursive(node: Node, keepWhitespace: boolean): Node[] {
+    function getSimplifiedDomRecursive(node: Node, keepWhitespace: boolean, isInsideInvisible: boolean): Node[] {
         if (!(node instanceof Text || node instanceof HTMLElement || node instanceof Comment))
             return [];
         keepWhitespace ||= false;
@@ -121,12 +121,19 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
             keepWhitespace ||= node.tagName.toLowerCase() === "pre";
 
             let styleToSet = "";
-            if (nodeStyle.getPropertyValue("display") === "none")
+            let nodeIsInvisible = false;
+            if (nodeStyle.getPropertyValue("display") === "none") {
+                nodeIsInvisible = true;
                 styleToSet = "display: none;";
-            else if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility")))
+            }
+            else if (["hidden", "collapse"].includes(nodeStyle.getPropertyValue("visibility"))) {
+                nodeIsInvisible = true;
                 styleToSet = "visibility: hidden;";
-            else if (nodeStyle.getPropertyValue("opacity") === "0")
+            }
+            else if (nodeStyle.getPropertyValue("opacity") === "0") {
+                nodeIsInvisible = true;
                 styleToSet = "opacity: 0;";
+            }
 
             if (styleToSet) {
                 const existingStyleString = resultNode.getAttribute("style");
@@ -135,10 +142,13 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
                 else
                     resultNode.setAttribute("style", styleToSet);
             }
+            if(isInsideInvisible) {
+                resultNode.setAttribute("style", "");
+            }
 
             const nChildren = node.childNodes.length;
             node.childNodes.forEach((child, idx) => {
-                const childResult = getSimplifiedDomRecursive(child, keepWhitespace);
+                const childResult = getSimplifiedDomRecursive(child, keepWhitespace, nodeIsInvisible || isInsideInvisible);
                 if (!childResult.length)
                     return;
                 for (const childNode of childResult) {
@@ -155,7 +165,7 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
         return [];
     }
 
-    const simplifiedDomBody = getSimplifiedDomRecursive(document.body, false);
+    const simplifiedDomBody = getSimplifiedDomRecursive(document.body, false, false);
     if (simplifiedDomBody) {
         const bodyHTML = simplifiedDomBody.map(
             element => (element instanceof HTMLElement) ? element.outerHTML : element instanceof Text ? element.textContent : ""
@@ -163,7 +173,7 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
         const metaTagsHTML = !keepMetaTags ? "" : Array.from(document.getElementsByTagName("meta")).map(
             (element) => element.outerHTML
         ).join("");
-        const titleHTML = !includeTitle ? "" : `<title>${document.title}</title>`;
+        const titleHTML = includeTitle ? `<title>${document.title}</title>` : "";
         return `<html><head>${metaTagsHTML}${titleHTML}</head>${bodyHTML}</html>`
     }
     return "";

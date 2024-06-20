@@ -40,24 +40,6 @@ async function getJsonGeminiModel() {
         }
     ]
 
-    // TODO: try this out, as well as batchEmbedContent
-    // const geminiEmbed = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
-    //     {
-    //         model: "text-embedding-004",
-    //         systemInstruction: systemInstruction
-    //     }
-    // );
-    // geminiEmbed.embedContent({
-    //     content: {
-    //         role: "user",
-    //         parts: [
-    //             {
-    //                 text: systemInstruction
-    //             }
-    //         ]
-    //     },
-    //     taskType: TaskType.RETRIEVAL_DOCUMENT
-    // }).then(console.log);
     return gemini;
 }
 
@@ -88,4 +70,21 @@ async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPat
     }
 }
 
-export {asyncRequestAndParse};
+async function getTextEmbedding(data: string | string[]) {
+    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
+    const geminiEmbed = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({model: "text-embedding-004"});
+    if (data instanceof String) {
+        const embedding = await geminiEmbed.embedContent(data);
+        return embedding.embedding.values;
+    }
+    else if(Array.isArray(data)) {
+        const embeddings = await geminiEmbed.batchEmbedContents(
+            {
+                requests: data.map((text) => ({content: {role: "user", parts: [{text:text}]}}))
+            }
+        );
+        return embeddings.embeddings.map((embedding) => embedding.values);
+    }
+}
+
+export {asyncRequestAndParse, getTextEmbedding};
