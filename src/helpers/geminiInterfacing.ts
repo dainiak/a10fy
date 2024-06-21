@@ -10,14 +10,15 @@ async function getJsonGeminiModel() {
     console.log("Gemini system instruction: ", systemInstruction);
 
     const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
-    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
-        {
-            model: "gemini-1.5-flash",
-            systemInstruction: systemInstruction
-        }
-    );
-    gemini.generationConfig.responseMimeType = "application/json";
-    /*gemini.safetySettings = [
+    const generationConfig = {
+        temperature: 0,
+        // topP: 0.95,
+        // topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json'
+    };
+
+    const safetySettings = [
         {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
             threshold: HarmBlockThreshold.BLOCK_NONE
@@ -33,12 +34,19 @@ async function getJsonGeminiModel() {
         {
             category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
             threshold: HarmBlockThreshold.BLOCK_NONE
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_UNSPECIFIED,
-            threshold: HarmBlockThreshold.BLOCK_NONE
         }
-    ]*/
+    ];
+
+    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
+        {
+            model: "gemini-1.5-flash-latest",
+            generationConfig: generationConfig,
+            safetySettings: safetySettings,
+            systemInstruction: systemInstruction
+        }
+    );
+    // gemini.generationConfig.responseMimeType = "application/json";
+
 
     return gemini;
 }
