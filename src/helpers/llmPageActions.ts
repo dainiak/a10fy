@@ -1,3 +1,11 @@
+import {TourGuideClient} from "@sjmc11/tourguidejs";
+import {TourGuideStep} from "@sjmc11/tourguidejs/src/types/TourGuideStep";
+import {findElementByIndex} from "./domManipulation";
+import {tourGuideStyleString} from "./tourGuideStyleString";
+import ActionQueue from "./actionQueue";
+import {ActionRequest} from "./constants";
+
+
 const llmPageActionNames = {
     click: "click",
     focus: "focus",
@@ -15,13 +23,14 @@ const llmPageActionNames = {
     removeAttribute: "removeAttribute",
     pressEnter: "pressEnter",
     searchForm: "searchForm",
-    navigate: "navigate"
+    navigate: "navigate",
+    pageTour: "pageTour"
 }
 
 
 interface LLMPageAction {
     description: string;
-    atomicActions: (element: Node, actionParams?: any) => (() => void)[];
+    atomicActions: (element: Node | null, actionParams?: any) => (() => void)[];
 }
 
 interface LLMPageActions {
@@ -105,21 +114,22 @@ const llmPageActions: LLMPageActions = {
         }]
     },
     [llmPageActionNames.clearInput]: {
-        description: "Clear the input value of a DOM element.",
+        description: "Clear the value of an input/textarea DOM element.",
         atomicActions: (element) => [() => {
-            if(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)
+            if(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
                 element.value = "";
-            element.dispatchEvent(new Event('input', {bubbles: true}));
-            element.dispatchEvent(new Event('change', {bubbles: true}));
+                element.dispatchEvent(new Event('input', {bubbles: true}));
+                element.dispatchEvent(new Event('change', {bubbles: true}));
+            }
         }]
     },
     [llmPageActionNames.typeString]: {
         description: "Simulate typing the provided string value into the DOM element character-by-character (actionParams is a string).",
-        atomicActions: (element, value) => getStringTypingSimulationSequence(element, value)
+        atomicActions: (element, value) => element ? getStringTypingSimulationSequence(element, value) : []
     },
     [llmPageActionNames.setText]: {
         description: "Set the textContent of the element to the provided value (actionParams is a string).",
-        atomicActions: (element, value) => [() => element.textContent = value]
+        atomicActions: (element, value) => element ? [() => element.textContent = value] : []
     },
     [llmPageActionNames.setHTML] : {
         description: "Set the innerHTML of the element to the provided value (actionParams is a string).",
@@ -162,10 +172,10 @@ const llmPageActions: LLMPageActions = {
         atomicActions: (element, query) => [
             () => {if (element instanceof HTMLInputElement) element.value = ""},
             () => {
-                element.dispatchEvent(new Event('input', {bubbles: true}));
-                element.dispatchEvent(new Event('change', {bubbles: true}));
+                element && element.dispatchEvent(new Event('input', {bubbles: true}));
+                element && element.dispatchEvent(new Event('change', {bubbles: true}));
             },
-            ...getStringTypingSimulationSequence(element, query),
+            ...(element ? getStringTypingSimulationSequence(element, query) : []),
             () => pressEnter(document.activeElement)
         ]
     },
@@ -180,7 +190,49 @@ const llmPageActions: LLMPageActions = {
                 return [() => window.location.reload()];
             return [() => window.location = url];
         }
+    },
+    [llmPageActionNames.pageTour]: {
+        description: "Start a guided tour around the page. The actionParams is an array of triples of form [stepTitle, stepText, targetIndex], each triple representing a single step of a tour. The stepTitle is a string containing the title of the step, and stepText is a non-empty string with the message shown to the user in the step. The targetIndex is the index of the element to highlight in the particular step; if targetIndex is null then the step message is shown globally centered on the page. Typically targetIndex values are non-null except for the first step of the tour.",
+        atomicActions: (_, actionParams) => {
+            const styleId = "a10fyTourGuideStylesheet";
+            if (!document.getElementById(styleId)) {
+                const style = document.createElement("style");
+                style.id = styleId;
+                style.textContent = tourGuideStyleString;
+                document.head.appendChild(style);
+            }
+
+            if (!Array.isArray(actionParams))
+                return [];
+            const steps: TourGuideStep[] = [];
+            actionParams.forEach(([title, text, targetIndex]) => {
+                const target = findElementByIndex(targetIndex);
+                if (text && (target instanceof HTMLElement || target === null))
+                    steps.push({
+                        title: title,
+                        content: text,
+                        target: target
+                    })
+            });
+            return [() => {
+                const tourGuideClient = new TourGuideClient({steps: steps});
+                tourGuideClient.start();
+            }]
+        }
     }
 }
 
-export {llmPageActions, LLMPageAction, llmPageActionNames};
+
+function enqueuePageAction(actionQueue: ActionQueue, action: ActionRequest) {
+    const {actionName, elementIndex, actionParams} = action;
+    const element = findElementByIndex(elementIndex);
+
+    if (llmPageActions.hasOwnProperty(actionName)) {
+        actionQueue.enqueue(llmPageActions[actionName].atomicActions(element, actionParams));
+    } else {
+        console.log(`Action ${actionName} not found`)
+    }
+}
+
+
+export {llmPageActions, LLMPageAction, llmPageActionNames, enqueuePageAction};

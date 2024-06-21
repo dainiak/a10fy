@@ -67,7 +67,7 @@ const copyPluginConfig = copy({
 
 
 export default [
-    constructScssConfig('tour'),
+    // constructScssConfig('tour'),
     constructJsConfig('background', jsPluginConfigs),
     constructJsConfig('contentScript', jsPluginConfigs),
     constructJsConfig('contentScriptTour', jsPluginConfigs),

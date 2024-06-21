@@ -1,12 +1,11 @@
 import {cssPrefix, cssPrefixFallbackSymbol, ActionRequest} from "./constants";
 import ActionQueue from "./actionQueue";
-import {llmPageActions} from "./llmPageActions";
 import {standardHTMLAttributes} from "./standardHtmlAttributes";
 
 const elementMap = new Map();
 
 
-function findElementByIndex(index: number | string | null) {
+function findElementByIndex(index: number | string | null): null | Node {
     if (index === null || index === undefined)
         return null;
 
@@ -181,16 +180,5 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
     return "";
 }
 
-function enqueuePageAction(actionQueue: ActionQueue, action: ActionRequest) {
-    const {actionName, elementIndex, actionParams} = action;
-    const element = findElementByIndex(elementIndex);
 
-    if (llmPageActions.hasOwnProperty(actionName)) {
-        actionQueue.enqueue(llmPageActions[actionName].atomicActions(element, actionParams));
-    } else {
-        console.log(`Action ${actionName} not found`)
-    }
-}
-
-
-export {getDocumentSkeleton, enqueuePageAction, findElementByIndex};
+export {getDocumentSkeleton, findElementByIndex};

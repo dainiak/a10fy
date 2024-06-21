@@ -1,5 +1,6 @@
 import {extensionActions, ElementPropertiesResult} from "./helpers/constants";
-import {getDocumentSkeleton, enqueuePageAction, findElementByIndex} from "./helpers/domManipulation";
+import {getDocumentSkeleton, findElementByIndex} from "./helpers/domManipulation";
+import {enqueuePageAction} from "./helpers/llmPageActions";
 
 import ActionQueue from "./helpers/actionQueue";
 
@@ -46,14 +47,14 @@ chrome.runtime.onMessage.addListener(
             for (const propertyName of request.propertyNames)
                 switch(propertyName) {
                     case "value": properties.value = (element as HTMLInputElement).value; break;
-                    case "style": properties.style = element.style; break;
-                    case "computedStyle": properties.computedStyle = window.getComputedStyle(element); break;
-                    case "id": properties.id = element.id; break;
-                    case "innerHTML": properties.innerHTML = element.innerHTML; break;
-                    case "outerHTML": properties.outerHTML = element.outerHTML; break;
-                    case "innerText": properties.innerText = element.innerText; break;
+                    case "style": properties.style = (element as HTMLElement).style; break;
+                    case "computedStyle": properties.computedStyle = window.getComputedStyle(element as HTMLElement); break;
+                    case "id": properties.id = (element as HTMLElement).id; break;
+                    case "innerHTML": properties.innerHTML = (element as HTMLElement).innerHTML; break;
+                    case "outerHTML": properties.outerHTML = (element as HTMLElement).outerHTML; break;
+                    case "innerText": properties.innerText = (element as HTMLElement).innerText; break;
                     case "textContent": properties.textContent = element.textContent; break;
-                    default: properties[propertyName] = element.getAttribute(propertyName); break;
+                    default: properties[propertyName] = (element as HTMLElement).getAttribute(propertyName); break;
                 }
 
             sendResponse(properties);

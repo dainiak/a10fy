@@ -147,24 +147,6 @@ const llmGlobalActions: LlmGlobalActions = {
                     })
             })
         }
-    },
-    [llmGlobalActionNames.pageTour]: {
-        description: "Start the tour around the page.",
-        execute: async (elementIndex, actionParams, tab) => {
-            if (tab.id) {
-                await chrome.scripting.insertCSS({
-                    target: {tabId : tab.id},
-                    files: ["css/tour.css"]
-                })
-
-                await chrome.scripting.executeScript({
-                    target: {tabId : tab.id},
-                    files: ["js/contentScriptTour.js"],
-                    injectImmediately: true
-                })
-            }
-
-        }
     }
 }
 

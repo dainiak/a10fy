@@ -36,7 +36,7 @@ interface ElementPropertiesResult {
     innerHTML?: string;
     outerHTML?: string;
     innerText?: string;
-    textContent?: string;
+    textContent?: string | null;
     [key: string]: any;
 }
 
