@@ -1,7 +1,6 @@
 import {TourGuideClient} from "@sjmc11/tourguidejs";
-import {TourGuideStep} from "@sjmc11/tourguidejs/src/types/TourGuideStep";
 import {findElementByIndex} from "./domManipulation";
-import {tourGuideStyleString} from "./tourGuideStyleString";
+import {tourGuideStyleContent} from "./styleStrings";
 import ActionQueue from "./actionQueue";
 import {ActionRequest} from "./constants";
 
@@ -24,7 +23,8 @@ const llmPageActionNames = {
     pressEnter: "pressEnter",
     searchForm: "searchForm",
     navigate: "navigate",
-    pageTour: "pageTour"
+    pageTourStart: "pageTourStart",
+    pageTourStep: "pageTourStep",
 }
 
 
@@ -191,32 +191,47 @@ const llmPageActions: LLMPageActions = {
             return [() => window.location = url];
         }
     },
-    [llmPageActionNames.pageTour]: {
-        description: "Start a guided tour around the page. The actionParams is an array of triples of form [stepTitle, stepText, targetIndex], each triple representing a single step of a tour. The stepTitle is a string containing the title of the step, and stepText is a non-empty string with the message shown to the user in the step. The targetIndex is the index of the element to highlight in the particular step; if targetIndex is null then the step message is shown globally centered on the page. Typically targetIndex values are non-null except for the first step of the tour.",
-        atomicActions: (_, actionParams) => {
+    [llmPageActionNames.pageTourStart]: {
+        description: "Start a guided tour around the page. The actionParams is an object with two keys: stepTitle which is a string containing the title of the first tour step, and stepText which is a non-empty string with the message shown to the user in the first tour step. The elementIndex is the index of the element to highlight in the first step of the tour; if elementIndex is null then the step message is shown globally centered on the page. Typically elementIndex values are non-null except for the first step of the tour. Every subsequent step in the tour is defined by a separate pageTourStep action. There should be no more than one pageTourStart action in the actionList; and immediately after the pageTourStart there should be zero or more pageTourStep actions.",
+        atomicActions: (element, actionParams) => {
             const styleId = "a10fyTourGuideStylesheet";
             if (!document.getElementById(styleId)) {
                 const style = document.createElement("style");
                 style.id = styleId;
-                style.textContent = tourGuideStyleString;
+                style.textContent = tourGuideStyleContent;
                 document.head.appendChild(style);
             }
 
-            if (!Array.isArray(actionParams))
+            if (!actionParams || !actionParams.stepText)
                 return [];
-            const steps: TourGuideStep[] = [];
-            actionParams.forEach(([title, text, targetIndex]) => {
-                const target = findElementByIndex(targetIndex);
-                if (text && (target instanceof HTMLElement || target === null))
-                    steps.push({
-                        title: title,
-                        content: text,
-                        target: target
-                    })
-            });
+
             return [() => {
-                const tourGuideClient = new TourGuideClient({steps: steps});
+                // @ts-ignore
+                window.tourGuideClient = new TourGuideClient({steps: [{
+                    title: actionParams.stepTitle,
+                    content: actionParams.stepText,
+                    target: element ? element as HTMLElement : undefined
+                }]});
+                // @ts-ignore
                 tourGuideClient.start();
+            }]
+        }
+    },
+    [llmPageActionNames.pageTourStep]: {
+        description: "Add yet another step into an on-going guided tour around the page. The actionParams is an object with two keys: stepTitle which is a string containing the title of the step, and stepText which is a non-empty string with the message shown to the user in the step. The elementIndex is the index of the element to highlight in the current step of the tour; if elementIndex is null then the step message is shown globally centered on the page. Typically elementIndex values are non-null except for the first step of the tour. The pageTourStep action should follow either pageTourStart or another pageTourStep action.",
+        atomicActions: (element, actionParams) => {
+            if (!actionParams || !actionParams.stepText)
+                return [];
+
+            return [() => {
+                // @ts-ignore
+                window.tourGuideClient.addSteps([{
+                    title: actionParams.stepTitle,
+                    content: actionParams.stepText,
+                    target: element ? element as HTMLElement : undefined
+                }]);
+                // @ts-ignore
+                tourGuideClient.refreshDialog();
             }]
         }
     }

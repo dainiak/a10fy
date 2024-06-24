@@ -1,8 +1,15 @@
-import {GenerateContentRequest, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory} from "@google/generative-ai";
+import {
+    Content,
+    GenerateContentRequest,
+    GoogleGenerativeAI,
+    HarmBlockThreshold,
+    HarmCategory, Part, Tool, ToolConfig
+} from "@google/generative-ai";
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
 import {cssPrefix, storageKeys} from "./constants";
 import {getOutputFormatDescription} from "./promptParts";
+import * as stream from "node:stream";
 
 async function getJsonGeminiModel() {
     const outputDescription = getOutputFormatDescription();
@@ -93,6 +100,17 @@ async function getTextEmbedding(data: string | string[]) {
         );
         return embeddings.embeddings.map((embedding) => embedding.values);
     }
+}
+
+async function getGeminiChatModel() {
+    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
+    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({model: "gemini-1.5-flash-latest"});
+    const chat = gemini.startChat({
+        history: [],
+        tools: [],
+        systemInstruction: ""
+    });
+    chat.sendMessageStream("Hello!");
 }
 
 export {asyncRequestAndParse, getTextEmbedding};
