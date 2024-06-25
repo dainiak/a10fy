@@ -14,6 +14,7 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/markdown-it": "^14.1.1",
+    "katex": "^0.16.10",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-scss": "^4.0.0",
     "tslib": "^2.6.3",
@@ -30,8 +31,10 @@
     "@sjmc11/tourguidejs": "^0.0.16",
     "@streamparser/json": "^0.0.21",
     "@types/chrome": "^0.0.268",
+    "@types/katex": "^0.16.7",
     "chrome-types": "^0.1.287",
     "highlight.js": "^11.9.0",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.1.0",
+    "pyodide": "^0.26.1"
   }
 }
