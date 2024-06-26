@@ -4,7 +4,7 @@ import {hljsDarkStyleContent} from "./helpers/styleStrings";
 import {getGeminiChat} from "./helpers/geminiInterfacing";
 import {ChatSession} from "@google/generative-ai";
 import katex from "katex";
-import {loadPyodide} from "pyodide";
+import {loadPyodide, version as pyodidePythonVersion} from "pyodide";
 
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 hljsStyle.textContent = hljsDarkStyleContent;
@@ -26,7 +26,7 @@ const markdownRenderer: any  = markdownit({
             } catch (__) {}
         }
 
-        return '<pre><code class="hljs">' + markdownRenderer.utils.escapeHtml(str) + '</code></pre>';
+        return '<pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs">' + markdownRenderer.utils.escapeHtml(str) + '</code></pre>';
     }
 });
 
@@ -116,32 +116,46 @@ function sendMessageToChat(chat: ChatSession){
         );
 
         Array.from(cardText.querySelectorAll("pre.hljs.python")).forEach(
-            (element) => {
-                element.classList.add("card-body");
-                const codeCard = document.createElement("div");
-                codeCard.className = "card mb-3 message-model";
-                codeCard.innerHTML = `<div class="card-header">
+            (pythonCodePreElement) => {
+                pythonCodePreElement.classList.add("card-body");
+                const pythonCodeCard = document.createElement("div");
+                pythonCodeCard.className = "card mb-3 message-model";
+                pythonCodeCard.innerHTML = `<div class="card-header">
                         <span>Python code</span>
                         <div class="header-buttons">
                             <button class="btn btn-sm btn-outline-secondary run-code"><i class="bi bi-play-fill"></i></button>
                             <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
                         </div>
                     </div>
-                    ${element.outerHTML}`;
+                    ${pythonCodePreElement.outerHTML}`;
 
-                element.replaceWith(codeCard);
-                const code = element.textContent || "";
-                const runCodeButton = codeCard.querySelector(".run-code") as HTMLButtonElement;
+                pythonCodePreElement.replaceWith(pythonCodeCard);
+                pythonCodePreElement = pythonCodeCard.querySelector("pre") as HTMLPreElement;
+
+                const code = pythonCodePreElement.textContent || "";
+                const runCodeButton = pythonCodeCard.querySelector(".run-code") as HTMLButtonElement;
 
                 (runCodeButton as HTMLButtonElement).addEventListener("click", async () => {
-                    const outputElement = document.createElement("div");
-                    codeCard.after(outputElement);
-                    outputElement.style.setProperty("white-space", "pre-wrap");
-                    const pyodide = await loadPyodide({
-                        stdout: (text) => {outputElement.textContent += text + "\n";},
-                        stderr: (text) => {outputElement.textContent += text + "\n";}
+                    const outputElement = document.createElement("div") as HTMLDivElement;
+                    outputElement.innerHTML = '<pre class="rounded-2 p-3 mt-2 mb-0 hljs"><code class="hljs"></code></pre>';
+                    const pyodideOutputElement = outputElement.querySelector("code") as HTMLElement;
+                    pythonCodePreElement.after(outputElement);
+                    pyodideOutputElement.textContent = `Loading Python ${pyodidePythonVersion} interpreter (Pyodide 0.26.1)...`;
+                    loadPyodide({
+                        stdout: (text) => {pyodideOutputElement.textContent += text + "\n";},
+                        stderr: (text) => {pyodideOutputElement.textContent += text + "\n";}
+                    }).then((pyodide) => {
+                        pyodideOutputElement.textContent += "done.\n";
+                        try {
+                            pyodide.runPython(code);
+                        }
+                        catch (e) {
+                            if(pyodideOutputElement.textContent)
+                                pyodideOutputElement.textContent += `\n${e}`;
+                        }
+                    }).catch((e) => {
+                        pyodideOutputElement.textContent += `failed due to error:\n${e}`;
                     });
-                    pyodide.runPython(code);
                 });
             }
         );
