@@ -5,7 +5,7 @@ import {oneDark} from "@codemirror/theme-one-dark";
 import {closeBrackets, closeBracketsKeymap} from '@codemirror/autocomplete';
 import {defaultKeymap, history, historyKeymap} from '@codemirror/commands';
 import {highlightSelectionMatches, searchKeymap} from '@codemirror/search';
-import {EditorState} from '@codemirror/state';
+import {EditorState, Prec} from '@codemirror/state';
 import {
     bracketMatching,
     defaultHighlightStyle,
@@ -27,7 +27,7 @@ import {
     crosshairCursor
 } from '@codemirror/view';
 
-function createCodeMirror(targetElement: HTMLElement, initialText: string, themeType: "light" | "dark") {
+function createCodeMirror(targetElement: HTMLElement, initialText: string, saveCommand: (_: EditorView) => void, themeType: "light" | "dark") {
     const extensions = [
         markdown({codeLanguages: languages}),
         lineNumbers(),
@@ -52,7 +52,12 @@ function createCodeMirror(targetElement: HTMLElement, initialText: string, theme
             ...searchKeymap,
             ...historyKeymap,
             ...foldKeymap,
-        ])
+        ]),
+        Prec.highest(
+            keymap.of([
+                { key: "Mod-Enter", run: (editorView) =>{ saveCommand(editorView); return true; }}
+            ])
+        )
     ];
     if (themeType === "dark") {
         extensions.push(oneDark);

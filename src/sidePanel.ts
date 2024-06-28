@@ -28,13 +28,13 @@ const markdownRenderer: any  = markdownit({
         }
         if (lang && hljs.getLanguage(hljsLang)) {
             try {
-                return `<pre class="rounded-2 p-3 mb-0 hljs language-${lang} code-block"><code>` +
+                return `<pre class="rounded-2 p-3 hljs language-${lang} code-block"><code>` +
                     hljs.highlight(str, { language: hljsLang, ignoreIllegals: true }).value +
                     '</code></pre>';
             } catch (__) {}
         }
 
-        return `<pre class="rounded-2 p-3 mb-0 hljs language-${lang} code-block"><code class="hljs">` + markdownRenderer.utils.escapeHtml(str) + '</code></pre>';
+        return `<pre class="rounded-2 p-3 hljs language-${lang} code-block"><code class="hljs">` + markdownRenderer.utils.escapeHtml(str) + '</code></pre>';
     }
 });
 
@@ -82,9 +82,11 @@ function createMessageCard(messageType: ChatMessageType) {
     const chatArea = document.querySelector('.chat-area') as HTMLDivElement;
     const card = document.createElement('div');
     card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"}`;
+    const regenerateButtonHTML = messageType === "model" ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>` : "";
     card.innerHTML = `
 <div class="card-header"><span>${messageType === "user" ? "User" : "Model"}</span><div class="header-buttons">
-<button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-cursor-text"></i></button>
+${regenerateButtonHTML}
+<button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-pencil-square"></i></button>
 </div></div><div class="card-body"></div>`;
 
 
@@ -96,18 +98,25 @@ function createMessageCard(messageType: ChatMessageType) {
 function activateEditMessageTextButton(messageCard: HTMLElement, message: string) {
     const cardBodyElement = messageCard.querySelector('.card-body') as HTMLElement;
     let cmView: EditorView | null = null;
+    const editButton = messageCard.querySelector('button.edit-message-text') as HTMLButtonElement;
+    const saveMessage = (editorView: EditorView) => {
+        message = editorView.state.doc.toString();
+        editorView.destroy();
+        cmView = null;
+        cardBodyElement.innerHTML = markdownRenderer.render(message);
+        addBootstrapStyling(cardBodyElement);
+        addPlayers(cardBodyElement);
+        editButton.innerHTML = '<i class="bi bi-pencil-square"></i>';
+    }
 
-    messageCard.querySelector('button.edit-message-text')?.addEventListener('click', () => {
+    editButton?.addEventListener('click', () => {
         if (cmView) {
-            message = cmView.state.doc.toString();
-            cmView.destroy();
-            cmView = null;
-            cardBodyElement.innerHTML = markdownRenderer.render(message);
-            addPlayers(cardBodyElement);
+            saveMessage(cmView);
             return;
         }
         cardBodyElement.innerHTML = '';
-        cmView = createCodeMirror(cardBodyElement, message, themeType);
+        cmView = createCodeMirror(cardBodyElement, message, saveMessage, themeType);
+        editButton.innerHTML = '<i class="bi bi-floppy"></i>';
     });
 }
 
@@ -126,6 +135,7 @@ function replacePreWithCodeCard(preElement: HTMLElement) {
         }
     }
     preElement.classList.add("card-body");
+    preElement.classList.add("mb-0");
     const code = preElement.textContent || "";
     const codeCard = document.createElement("div");
     codeCard.className = "card mb-3";
@@ -211,6 +221,8 @@ function playMermaid(code: string, outputElement: HTMLElement) {
     });
     mermaid.render(tempElement.id, code).then((renderResult) => {
         outputElement.innerHTML = renderResult.svg;
+    }).catch((e) => {
+        outputElement.textContent = `Failed to render the diagram: ${e}`;
     });
 }
 
@@ -262,6 +274,22 @@ function addPlayers(messageCardTextElement: HTMLElement){
     }
 }
 
+function addBootstrapStyling(messageCardTextElement: HTMLElement) {
+    Array.from(messageCardTextElement.querySelectorAll("p")).forEach(
+        (element) => (element as HTMLParagraphElement).classList.add("card-text")
+    );
+
+    Array.from(messageCardTextElement.querySelectorAll("table")).forEach(
+        (element) => (element as HTMLTableElement).classList.add("table")
+    );
+
+    ["h1", "h2", "h3", "h4", "h5", "h6"].forEach((header) =>
+        Array.from(messageCardTextElement.querySelectorAll(header)).forEach(
+            (element) => (element as HTMLTableElement).classList.add(header)
+        )
+    );
+}
+
 function sendMessageToChat(chat: ChatSession){
     const textarea = document.querySelector('.input-area textarea') as HTMLTextAreaElement;
 
@@ -271,6 +299,8 @@ function sendMessageToChat(chat: ChatSession){
     activateEditMessageTextButton(userMessageCard, message);
 
     cardBody.innerHTML = markdownRenderer.render(message);
+    addBootstrapStyling(cardBody);
+
     textarea.value = '';
     textarea.dispatchEvent(new Event('input'));
 
@@ -285,20 +315,7 @@ function sendMessageToChat(chat: ChatSession){
             llmMessageCardTextElement.innerHTML = markdownRenderer.render(llmMessageText);
         }
 
-        Array.from(llmMessageCardTextElement.querySelectorAll("p")).forEach(
-            (element) => (element as HTMLParagraphElement).classList.add("card-text")
-        );
-
-        Array.from(llmMessageCardTextElement.querySelectorAll("table")).forEach(
-            (element) => (element as HTMLTableElement).classList.add("table")
-        );
-
-        ["h1", "h2", "h3", "h4", "h5", "h6"].forEach((header) =>
-            Array.from(llmMessageCardTextElement.querySelectorAll(header)).forEach(
-                (element) => (element as HTMLTableElement).classList.add(header)
-            )
-        );
-
+        addBootstrapStyling(llmMessageCardTextElement);
         addPlayers(llmMessageCardTextElement);
         activateEditMessageTextButton(llmMessageCardElement, llmMessageText);
     });
@@ -338,10 +355,3 @@ document.addEventListener("DOMContentLoaded", async () => {
     //     }
     // });
 });
-
-function updateLlmMessage(message: string) {
-    if (!message)
-        return;
-    const llmMessageContainer = document.getElementById("llmMessageContainer") as HTMLDivElement;
-    llmMessageContainer.innerHTML = message;
-}
