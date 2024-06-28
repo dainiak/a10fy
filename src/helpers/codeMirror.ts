@@ -1,14 +1,31 @@
-import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { bracketMatching, defaultHighlightStyle, foldGutter, foldKeymap, indentOnInput, syntaxHighlighting } from '@codemirror/language';
-import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
-import { EditorState } from '@codemirror/state';
-import { dropCursor, EditorView, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers, rectangularSelection, drawSelection, crosshairCursor } from '@codemirror/view';
-
 import {markdown} from "@codemirror/lang-markdown";
 import {languages} from "@codemirror/language-data";
 import {oneDark} from "@codemirror/theme-one-dark";
 
+import {closeBrackets, closeBracketsKeymap} from '@codemirror/autocomplete';
+import {defaultKeymap, history, historyKeymap} from '@codemirror/commands';
+import {highlightSelectionMatches, searchKeymap} from '@codemirror/search';
+import {EditorState} from '@codemirror/state';
+import {
+    bracketMatching,
+    defaultHighlightStyle,
+    foldGutter,
+    foldKeymap,
+    indentOnInput,
+    syntaxHighlighting
+} from '@codemirror/language';
+import {
+    dropCursor,
+    EditorView,
+    highlightActiveLine,
+    highlightActiveLineGutter,
+    highlightSpecialChars,
+    keymap,
+    lineNumbers,
+    rectangularSelection,
+    drawSelection,
+    crosshairCursor
+} from '@codemirror/view';
 
 function createCodeMirror(targetElement: HTMLElement, initialText: string) {
     return new EditorView({
@@ -28,7 +45,7 @@ function createCodeMirror(targetElement: HTMLElement, initialText: string) {
                 dropCursor(),
                 EditorState.allowMultipleSelections.of(true),
                 indentOnInput(),
-                syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+                syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
                 bracketMatching(),
                 closeBrackets(),
                 rectangularSelection(),

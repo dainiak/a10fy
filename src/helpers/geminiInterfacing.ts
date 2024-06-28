@@ -1,20 +1,19 @@
 import {
-    Content,
     GenerateContentRequest,
     GoogleGenerativeAI,
     HarmBlockThreshold,
-    HarmCategory, Part, Tool, ToolConfig
+    HarmCategory
 } from "@google/generative-ai";
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
-import {cssPrefix, storageKeys} from "./constants";
+import {storageKeys} from "./constants";
+import {GOOGLE_API_KEY_TEMP} from "../_secrets";
 import {getOutputFormatDescription} from "./promptParts";
-import * as stream from "node:stream";
+import {getAssistantSystemPrompt, getChatSystemPrompt} from "./prompts";
 
 async function getJsonGeminiModel() {
     const outputDescription = getOutputFormatDescription();
-    const systemInstruction = `You are an AI assistant in the form of a Google Chrome extension. You fulfill user requests provided in form of text or voice audio recording. With the user's request you are usually given some details about the webpage the user is currently on (both screenshot of the webpage, as well as a simplified HTML representation of the webpage with ${cssPrefix}-prefixed CSS classes for HTML elements identification). You can use this context to provide the user with the information they need. You can also ask the user for more information if you need it. Your response should always be a ${outputDescription}`;
-    console.log("Gemini system instruction: ", systemInstruction);
+    const systemInstruction = getAssistantSystemPrompt();
 
     const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
     const generationConfig = {
@@ -52,7 +51,7 @@ async function getJsonGeminiModel() {
             systemInstruction: systemInstruction
         }
     );
-    // gemini.generationConfig.responseMimeType = "application/json";
+    // gemini.generationConfig.responseMimeType = "application/json" or "text/plain";
 
 
     return gemini;
@@ -102,15 +101,15 @@ async function getTextEmbedding(data: string | string[]) {
     }
 }
 
-async function getGeminiChatModel() {
-    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
-    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({model: "gemini-1.5-flash-latest"});
-    const chat = gemini.startChat({
-        history: [],
-        tools: [],
-        systemInstruction: ""
+async function getGeminiChat() {
+    // const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
+    const GOOGLE_API_KEY = GOOGLE_API_KEY_TEMP;
+    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({
+        model: "gemini-1.5-flash-latest",
+        systemInstruction: getChatSystemPrompt()
     });
-    chat.sendMessageStream("Hello!");
+
+    return gemini.startChat();
 }
 
-export {asyncRequestAndParse, getTextEmbedding};
+export {asyncRequestAndParse, getTextEmbedding, getGeminiChat};
