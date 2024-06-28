@@ -4,7 +4,8 @@ import {hljsDarkStyleContent} from "./helpers/styleStrings";
 import {getGeminiChat} from "./helpers/geminiInterfacing";
 import {ChatSession} from "@google/generative-ai";
 import katex from "katex";
-import {loadPyodide, version as pyodidePythonVersion} from "pyodide";
+import {loadPyodide, version as pyodideVersion} from "pyodide";
+import {createCodeMirror, EditorView} from "./helpers/codeMirror";
 
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 hljsStyle.textContent = hljsDarkStyleContent;
@@ -68,31 +69,52 @@ function markdownInlineMathRule(state: StateInline, silent: boolean) {
 
 markdownRenderer.inline.ruler.after('text', 'escaped_bracket', markdownInlineMathRule);
 
-function createMessageCard(className: string){
+type ChatCardType = "user" | "model";
+
+function createMessageCard(cardType: ChatCardType) {
     const chatArea = document.querySelector('.chat-area') as HTMLDivElement;
     const card = document.createElement('div');
-    card.className = `card mb-3 message-${className}`;
+    card.className = `card mb-3 message-${cardType === "user" ? "user" : "model"}`;
     card.innerHTML = `
-            <div class="card-header">${className === "user" ? "User" : "Model"}</div>
+            <div class="card-header"><span>${cardType === "user" ? "User" : "Model"}</span>
+                        <div class="header-buttons">
+                            <button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-cursor-text"></i></button>
+                        </div>
+                    </div>
             <div class="card-body">
             </div>
         `;
     chatArea.appendChild(card);
     card.scrollIntoView({ behavior: 'smooth' });
-    return card.querySelector('.card-body') as HTMLDivElement;
+    return card as HTMLDivElement;
 }
 
 function sendMessageToChat(chat: ChatSession){
     const textarea = document.querySelector('.input-area textarea') as HTMLTextAreaElement;
 
-    const message = textarea.value.trim();
+    let message = textarea.value.trim();
     const userMessageCard = createMessageCard("user");
-    userMessageCard.textContent = message;
+    const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
+    let cmView: EditorView | null = null;
+
+    userMessageCard.querySelector('.edit-message-text')?.addEventListener('click', () => {
+        if (cmView) {
+            message = cmView.state.doc.toString();
+            cmView.destroy();
+            cmView = null;
+            cardBody.innerHTML = markdownRenderer.render(message);
+            return;
+        }
+        cardBody.innerHTML = '';
+        cmView = createCodeMirror(cardBody, message);
+    });
+
+    cardBody.innerHTML = markdownRenderer.render(message);
     textarea.value = '';
     textarea.dispatchEvent(new Event('input'));
 
     chat.sendMessageStream(message).then(async (result) => {
-        const cardText = createMessageCard("model");
+        const cardText = createMessageCard("model").querySelector('.card-body') as HTMLElement;
         let completeText = "";
 
         for await (const chunk of result.stream) {
@@ -140,7 +162,7 @@ function sendMessageToChat(chat: ChatSession){
                     outputElement.innerHTML = '<pre class="rounded-2 p-3 mt-2 mb-0 hljs"><code class="hljs"></code></pre>';
                     const pyodideOutputElement = outputElement.querySelector("code") as HTMLElement;
                     pythonCodePreElement.after(outputElement);
-                    pyodideOutputElement.textContent = `Loading Python ${pyodidePythonVersion} interpreter (Pyodide 0.26.1)...`;
+                    pyodideOutputElement.textContent = `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`;
                     loadPyodide({
                         stdout: (text) => {pyodideOutputElement.textContent += text + "\n";},
                         stderr: (text) => {pyodideOutputElement.textContent += text + "\n";}
