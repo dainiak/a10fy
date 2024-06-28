@@ -27,39 +27,41 @@ import {
     crosshairCursor
 } from '@codemirror/view';
 
-function createCodeMirror(targetElement: HTMLElement, initialText: string) {
+function createCodeMirror(targetElement: HTMLElement, initialText: string, themeType: "light" | "dark") {
+    const extensions = [
+        markdown({codeLanguages: languages}),
+        lineNumbers(),
+        highlightActiveLineGutter(),
+        highlightSpecialChars(),
+        history(),
+        foldGutter(),
+        drawSelection(),
+        dropCursor(),
+        EditorState.allowMultipleSelections.of(true),
+        indentOnInput(),
+        syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+        bracketMatching(),
+        closeBrackets(),
+        rectangularSelection(),
+        crosshairCursor(),
+        highlightActiveLine(),
+        highlightSelectionMatches(),
+        keymap.of([
+            ...closeBracketsKeymap,
+            ...defaultKeymap,
+            ...searchKeymap,
+            ...historyKeymap,
+            ...foldKeymap,
+        ])
+    ];
+    if (themeType === "dark") {
+        extensions.push(oneDark);
+    }
     return new EditorView({
         parent: targetElement,
         state: EditorState.create({
             doc: initialText,
-            extensions: [
-                markdown({codeLanguages: languages}),
-                oneDark,
-
-                lineNumbers(),
-                highlightActiveLineGutter(),
-                highlightSpecialChars(),
-                history(),
-                foldGutter(),
-                drawSelection(),
-                dropCursor(),
-                EditorState.allowMultipleSelections.of(true),
-                indentOnInput(),
-                syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
-                bracketMatching(),
-                closeBrackets(),
-                rectangularSelection(),
-                crosshairCursor(),
-                highlightActiveLine(),
-                highlightSelectionMatches(),
-                keymap.of([
-                    ...closeBracketsKeymap,
-                    ...defaultKeymap,
-                    ...searchKeymap,
-                    ...historyKeymap,
-                    ...foldKeymap,
-                ])
-            ],
+            extensions: extensions,
         }),
     })
 }

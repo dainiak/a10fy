@@ -1,6 +1,6 @@
 import markdownit, {StateInline} from "markdown-it";
 import hljs from "highlight.js";
-import {hljsDarkStyleContent} from "./helpers/styleStrings";
+import {hljsDarkStyleContent, hljsLightStyleContent} from "./helpers/styleStrings";
 import {getGeminiChat} from "./helpers/geminiInterfacing";
 import {ChatSession} from "@google/generative-ai";
 import katex from "katex";
@@ -9,7 +9,9 @@ import {createCodeMirror, EditorView} from "./helpers/codeMirror";
 import mermaid from "mermaid";
 
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
-hljsStyle.textContent = hljsDarkStyleContent;
+const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+
+hljsStyle.textContent = themeType === "dark" ? hljsDarkStyleContent : hljsLightStyleContent;
 
 const markdownRenderer: any  = markdownit({
     html:         false,
@@ -20,10 +22,14 @@ const markdownRenderer: any  = markdownit({
     typographer:  true,
     quotes: `“”‘’`,
     highlight: (str, lang) => {
-        if (lang && hljs.getLanguage(lang)) {
+        let hljsLang = lang;
+        if (lang === "json-vega-lite") {
+            hljsLang = "json";
+        }
+        if (lang && hljs.getLanguage(hljsLang)) {
             try {
                 return `<pre class="rounded-2 p-3 mb-0 hljs language-${lang} code-block"><code>` +
-                    hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                    hljs.highlight(str, { language: hljsLang, ignoreIllegals: true }).value +
                     '</code></pre>';
             } catch (__) {}
         }
@@ -97,111 +103,161 @@ function activateEditMessageTextButton(messageCard: HTMLElement, message: string
             cmView.destroy();
             cmView = null;
             cardBodyElement.innerHTML = markdownRenderer.render(message);
+            addPlayers(cardBodyElement);
             return;
         }
         cardBodyElement.innerHTML = '';
-        cmView = createCodeMirror(cardBodyElement, message);
+        cmView = createCodeMirror(cardBodyElement, message, themeType);
     });
 }
 
-function addPythonPlayer(pythonCodePreElement: HTMLElement, autoplay: boolean = false) {
-    pythonCodePreElement.classList.add("card-body");
-    const pythonCodeCard = document.createElement("div");
-    pythonCodeCard.className = "card mb-3 message-model";
-    pythonCodeCard.innerHTML = `<div class="card-header">
-                        <span>Python code</span>
+function replacePreWithCodeCard(preElement: HTMLElement) {
+    const headings = {
+        "language-python": "Python code",
+        "language-mermaid": "Mermaid diagram",
+        "language-json-vega-lite": "Vega-Lite chart",
+    };
+
+    let heading = "Code";
+    for (const [language, headingText] of Object.entries(headings)) {
+        if (preElement.classList.contains(language)) {
+            heading = headingText;
+            break;
+        }
+    }
+    preElement.classList.add("card-body");
+    const code = preElement.textContent || "";
+    const codeCard = document.createElement("div");
+    codeCard.className = "card mb-3";
+    codeCard.innerHTML = `<div class="card-header">
+                        <span>${heading}</span>
                         <div class="header-buttons">
+                            <button class="btn btn-sm btn-outline-secondary toggle-code"><i class="bi bi-code"></i></button>
                             <button class="btn btn-sm btn-outline-secondary run-code"><i class="bi bi-play-fill"></i></button>
-                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
                         </div>
                     </div>
-                    ${pythonCodePreElement.outerHTML}`;
+                    ${preElement.outerHTML}
+                    <div class="player-output mt-2"></div>`;
 
-    pythonCodePreElement.replaceWith(pythonCodeCard);
-    pythonCodePreElement = pythonCodeCard.querySelector("pre") as HTMLPreElement;
+    preElement.replaceWith(codeCard);
+    const codePreElement = codeCard.querySelector("pre") as HTMLPreElement;
+    const outputElement = codeCard.querySelector(".player-output") as HTMLDivElement;
+    outputElement.style.setProperty("display", "none");
 
-    const code = pythonCodePreElement.textContent || "";
-    const runCodeButton = pythonCodeCard.querySelector(".run-code") as HTMLButtonElement;
-
-    (runCodeButton as HTMLButtonElement).addEventListener("click", async () => {
-        const outputElement = document.createElement("div") as HTMLDivElement;
-        outputElement.innerHTML = '<pre class="rounded-2 p-3 mt-2 mb-0 hljs"><code class="hljs"></code></pre>';
-        const pyodideOutputElement = outputElement.querySelector("code") as HTMLElement;
-        pythonCodePreElement.after(outputElement);
-        pyodideOutputElement.textContent = `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`;
-        loadPyodide({
-            stdout: (text) => {
-                pyodideOutputElement.textContent += text + "\n";
-            },
-            stderr: (text) => {
-                pyodideOutputElement.textContent += text + "\n";
-            }
-        }).then((pyodide) => {
-            pyodideOutputElement.textContent += "done.\n";
-            try {
-                pyodide.runPython(code);
-            } catch (e) {
-                if (pyodideOutputElement.textContent)
-                    pyodideOutputElement.textContent += `\n${e}`;
-            }
-        }).catch((e) => {
-            pyodideOutputElement.textContent += `failed due to error:\n${e}`;
-        });
-    });
-
-    if (autoplay) {
-        (runCodeButton as HTMLButtonElement).click();
+    const toggleCode = (show?: boolean) => {
+        if (show === undefined) {
+            show = codePreElement.style.getPropertyValue("display") === "none";
+        }
+        codePreElement.style.setProperty("display", show ? "" : "none");
+        if (show) {
+            outputElement.classList.add("mt-2");
+        }
+        else {
+            outputElement.classList.remove("mt-2");
+        }
     }
+
+    const playButton = codeCard.querySelector(".run-code") as HTMLButtonElement;
+    const toggleCodeButton = codeCard.querySelector(".toggle-code") as HTMLButtonElement;
+    toggleCodeButton.addEventListener("click", () => {toggleCode()});
+
+    return {
+        codePreElement: codePreElement,
+        codeCard: codeCard,
+        outputElement: outputElement,
+        code: code,
+        playButton: playButton,
+        toggleCode: toggleCode,
+    };
 }
 
-function addMermaidPlayer(mermaidCodePreElement: HTMLElement, autoplay: boolean = false) {
-    mermaidCodePreElement.classList.add("card-body");
-    const mermaidCodeCard = document.createElement("div");
-    mermaidCodeCard.className = "card mb-3 message-model";
-    mermaidCodeCard.innerHTML = `<div class="card-header">
-                        <span>Mermaid diagram</span>
-                        <div class="header-buttons">
-                            <button class="btn btn-sm btn-outline-secondary run-code"><i class="bi bi-play-fill"></i></button>
-                        </div>
-                    </div>
-                    ${mermaidCodePreElement.outerHTML}`;
-
-    mermaidCodePreElement.replaceWith(mermaidCodeCard);
-    mermaidCodePreElement = mermaidCodeCard.querySelector("pre") as HTMLPreElement;
-
-    const code = mermaidCodePreElement.textContent || "";
-    const runCodeButton = mermaidCodeCard.querySelector(".run-code") as HTMLButtonElement;
-
-    (runCodeButton as HTMLButtonElement).addEventListener("click", async () => {
-        const outputElement = document.createElement("div") as HTMLDivElement;
-        outputElement.style.setProperty("text-align", "center");
-        outputElement.id = `mermaid-${(crypto.getRandomValues(new Uint32Array(1)).toString()).toString()}`;
-        mermaid.render(outputElement.id, code).then((renderResult) => {
-            outputElement.innerHTML = renderResult.svg;
-            mermaidCodePreElement.after(outputElement);
-        });
+function playPython(code: string, outputElement: HTMLElement) {
+    outputElement.style.setProperty("display", "");
+    outputElement.innerHTML = '<pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
+    const pyodideOutputElement = outputElement.querySelector("code") as HTMLElement;
+    pyodideOutputElement.textContent = `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`;
+    loadPyodide({
+        stdout: (text) => {
+            pyodideOutputElement.textContent += text + "\n";
+        },
+        stderr: (text) => {
+            pyodideOutputElement.textContent += text + "\n";
+        }
+    }).then((pyodide) => {
+        pyodideOutputElement.textContent += "done.\n";
+        try {
+            pyodide.runPython(code);
+        } catch (e) {
+            if (pyodideOutputElement.textContent)
+                pyodideOutputElement.textContent += `\n${e}`;
+        }
+    }).catch((e) => {
+        pyodideOutputElement.textContent += `failed due to error:\n${e}`;
     });
+}
 
-    if (autoplay) {
-        (runCodeButton as HTMLButtonElement).click();
-    }
+function playMermaid(code: string, outputElement: HTMLElement) {
+    outputElement.className = "rounded-2 p-3 mb-0 hljs";
+    outputElement.style.setProperty("display", "");
+    outputElement.style.setProperty("text-align", "center");
+    outputElement.innerHTML = "";
+    const tempElement = document.createElement("div");
+    outputElement.appendChild(tempElement);
+    tempElement.id = `mermaid-${(crypto.getRandomValues(new Uint32Array(1)).toString()).toString()}`;
+    mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'loose',
+        theme: themeType === "light" ? "default" : "dark",
+    });
+    mermaid.render(tempElement.id, code).then((renderResult) => {
+        outputElement.innerHTML = renderResult.svg;
+    });
+}
+
+function playVegaLite(code: string, outputElement: HTMLElement) {
+    outputElement.className = "player-output rounded-2 p-3 mt-2 mb-0 hljs";
+    outputElement.style.setProperty("display", "");
+    outputElement.style.setProperty("text-align", "center");
+    outputElement.innerHTML = "";
+    // @ts-ignore
+    window.vegaEmbed(outputElement, JSON.parse(code), {
+        theme: themeType === "light" ? "ggplot2" : "dark",
+        renderer: "svg",
+        actions: {
+            export: true,
+            source: false,
+            compiled: false,
+            editor: false,
+        }
+    });
 }
 
 function addPlayers(messageCardTextElement: HTMLElement){
     const players = {
         "python": {
-            player: addPythonPlayer,
+            player: playPython,
             autoplay: false
         },
         "mermaid": {
-            player: addMermaidPlayer,
+            player: playMermaid,
+            autoplay: true
+        },
+        "json-vega-lite": {
+            player: playVegaLite,
             autoplay: true
         }
     }
 
     for (const [language, {player, autoplay}] of Object.entries(players)) {
         Array.from(messageCardTextElement.querySelectorAll(`pre.code-block.language-${language}`)).forEach(
-            (element) => player(element as HTMLElement, autoplay)
+            (element) => {
+                const {outputElement, code, playButton, toggleCode} = replacePreWithCodeCard(element as HTMLElement);
+                playButton.addEventListener("click", () => player(code, outputElement));
+                if (autoplay) {
+                    player(code, outputElement);
+                    toggleCode(false);
+                }
+            }
         );
     }
 }
