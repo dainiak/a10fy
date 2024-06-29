@@ -134,4 +134,29 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         url: chrome.runtime.getURL("settings.html"),
         active: true
     })
-})
+});
+
+chrome.contextMenus.create({
+    title: "A test menu parent item 1",
+    id: "testParentItem",
+    contexts:["selection"]
+});
+chrome.contextMenus.create({
+    title: "A test menu parent item 2",
+    id: "testParentItem2",
+    contexts:["selection"]
+});
+
+chrome.contextMenus.create({
+    title: "A test menu item",
+    id: "testMenuItem",
+    contexts:["selection"],
+    parentId: "testParentItem"
+});
+
+
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    info.menuItemId,
+    info.selectionText
+});

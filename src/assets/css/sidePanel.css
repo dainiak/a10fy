@@ -1,0 +1,43 @@
+body, html {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+.sidebar {
+    width: 100vw;
+    height: 100vh;
+    border-right: 1px solid #dee2e6;
+}
+.chat-area {
+    height: calc(100vh - 110px);
+    overflow-y: scroll;
+}
+.input-area {
+    height: 60px;
+}
+.input-area textarea {
+    height: 38px;
+}
+.message-user {
+    background-color: rgba(222, 226, 200, 0.15);
+}
+.message-model {
+    background-color: rgba(222, 200, 230, 0.15);
+}
+.auto-expand {
+    min-height: 38px;
+    max-height: 180px;
+    overflow-y: auto;
+    resize: none;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header-buttons {
+    display: flex;
+    gap: 5px;
+}

@@ -13,6 +13,9 @@ const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: 
 
 hljsStyle.textContent = themeType === "dark" ? hljsDarkStyleContent : hljsLightStyleContent;
 
+const mainChatUserInputTextArea = document.querySelector('.a10fy-input-area textarea') as HTMLTextAreaElement;
+
+
 const markdownRenderer: any  = markdownit({
     html:         false,
     xhtmlOut:     false,
@@ -78,7 +81,7 @@ markdownRenderer.inline.ruler.after('text', 'escaped_bracket', markdownInlineMat
 type ChatMessageType = "user" | "model";
 
 function createMessageCard(messageType: ChatMessageType) {
-    const chatArea = document.querySelector('.chat-area') as HTMLDivElement;
+    const chatArea = document.querySelector('.a10fy-chat-area') as HTMLDivElement;
     const card = document.createElement('div');
     card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"}`;
     const regenerateButtonHTML = (
@@ -212,9 +215,13 @@ function playMermaid(code: string, outputElement: HTMLElement) {
     tempElement.id = `mermaid-${(crypto.getRandomValues(new Uint32Array(1)).toString()).toString()}`;
     mermaid.initialize({
         startOnLoad: false,
+        // suppressErrorRendering: true, – likely to be available in the next Mermaid version
         securityLevel: 'loose',
         theme: themeType === "light" ? "default" : "dark",
     });
+
+    if(!mermaid.parse(code, { suppressErrors: true }))
+        return;
     mermaid.render(tempElement.id, code).then((renderResult) => {
         outputElement.innerHTML = renderResult.svg;
     }).catch((e) => {
@@ -286,10 +293,10 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
     );
 }
 
-function sendMessageToChat(chat: ChatSession){
-    const textarea = document.querySelector('.input-area textarea') as HTMLTextAreaElement;
 
-    let message = textarea.value.trim();
+
+function sendMessageToChat(chat: ChatSession){
+    let message = mainChatUserInputTextArea.value.trim();
     const userMessageCard = createMessageCard("user");
     const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
     activateEditMessageTextButton(userMessageCard, message);
@@ -297,8 +304,8 @@ function sendMessageToChat(chat: ChatSession){
     cardBody.innerHTML = markdownRenderer.render(message);
     addBootstrapStyling(cardBody);
 
-    textarea.value = '';
-    textarea.dispatchEvent(new Event('input'));
+    mainChatUserInputTextArea.value = '';
+    mainChatUserInputTextArea.dispatchEvent(new Event('input'));
 
     chat.sendMessageStream(message).then(async (result) => {
         const llmMessageCardElement = createMessageCard("model");
@@ -328,11 +335,25 @@ function sendMessageToChat(chat: ChatSession){
 //     updateLlmMessage(llmMessageChange.newValue);
 // });
 
+function makeUserInputAreaAutoexpandable() {
+    const chatArea = document.querySelector('.a10fy-chat-area') as HTMLDivElement;
+    function updateInputArea() {
+        mainChatUserInputTextArea.style.setProperty("height", "auto");
+        const newHeight = Math.min(mainChatUserInputTextArea.scrollHeight, 183);
+        mainChatUserInputTextArea.style.setProperty("height", `${newHeight}px`);
+        mainChatUserInputTextArea.style.setProperty("overflow-y", mainChatUserInputTextArea.scrollHeight > 180 ? 'auto' : 'hidden');
+        chatArea.style.setProperty("height", `calc(100vh - ${73 + newHeight}px)`);
+    }
+
+    mainChatUserInputTextArea.addEventListener('input', updateInputArea);
+    updateInputArea();
+}
+
+
 document.addEventListener("DOMContentLoaded", async () => {
-    const form = document.querySelector('.input-area form') as HTMLFormElement;
+    const form = document.querySelector('.a10fy-input-area form') as HTMLFormElement;
     const chat = await getGeminiChat();
 
-    console.log(chat);
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         sendMessageToChat(chat);
@@ -345,9 +366,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    makeUserInputAreaAutoexpandable();
+
     // chrome.storage.session.get(["llmMessage"]).then((result) => {
     //     if (result) {
     //         updateLlmMessage(result["llmMessage"]);
     //     }
     // });
+
+
+
 });

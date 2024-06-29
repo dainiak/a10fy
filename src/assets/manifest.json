@@ -10,6 +10,7 @@
     "activeTab",
     "clipboardRead",
     "clipboardWrite",
+    "contextMenus",
     "offscreen",
     "scripting",
     "sidePanel",
