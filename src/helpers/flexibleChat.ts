@@ -1,5 +1,5 @@
 // create a class on top of ChatSession that is able to store messages, edit single message, serialize to json, and deserialize from json
-class FlexibleChat {
+class Chat {
     messages: Array<string>;
 
     constructor() {

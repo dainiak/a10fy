@@ -26,15 +26,14 @@ const markdownRenderer: any  = markdownit({
         if (lang === "json-vega-lite") {
             hljsLang = "json";
         }
+        let highlightedCode = "";
         if (lang && hljs.getLanguage(hljsLang)) {
             try {
-                return `<pre class="rounded-2 p-3 hljs language-${lang} code-block"><code>` +
-                    hljs.highlight(str, { language: hljsLang, ignoreIllegals: true }).value +
-                    '</code></pre>';
+                highlightedCode = hljs.highlight(str, { language: hljsLang, ignoreIllegals: true }).value.trim();
             } catch (__) {}
         }
-
-        return `<pre class="rounded-2 p-3 hljs language-${lang} code-block"><code class="hljs">` + markdownRenderer.utils.escapeHtml(str) + '</code></pre>';
+        highlightedCode ||= markdownRenderer.utils.escapeHtml(str).trim();
+        return `<pre class="rounded-2 p-3 hljs language-${lang} code-block"><code class="hljs">${highlightedCode}</code></pre>`;
     }
 });
 
@@ -82,13 +81,14 @@ function createMessageCard(messageType: ChatMessageType) {
     const chatArea = document.querySelector('.chat-area') as HTMLDivElement;
     const card = document.createElement('div');
     card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"}`;
-    const regenerateButtonHTML = messageType === "model" ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>` : "";
-    card.innerHTML = `
-<div class="card-header"><span>${messageType === "user" ? "User" : "Model"}</span><div class="header-buttons">
-${regenerateButtonHTML}
-<button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-pencil-square"></i></button>
+    const regenerateButtonHTML = (
+        messageType === "model"
+            ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>`
+            : ""
+    );
+    card.innerHTML = `<div class="card-header"><span>${messageType === "user" ? "User" : "Model"}</span><div class="header-buttons">
+${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-pencil-square"></i></button>
 </div></div><div class="card-body"></div>`;
-
 
     chatArea.appendChild(card);
     card.scrollIntoView({ behavior: 'smooth' });
@@ -139,15 +139,11 @@ function replacePreWithCodeCard(preElement: HTMLElement) {
     const code = preElement.textContent || "";
     const codeCard = document.createElement("div");
     codeCard.className = "card mb-3";
-    codeCard.innerHTML = `<div class="card-header">
-                        <span>${heading}</span>
-                        <div class="header-buttons">
-                            <button class="btn btn-sm btn-outline-secondary toggle-code"><i class="bi bi-code"></i></button>
-                            <button class="btn btn-sm btn-outline-secondary run-code"><i class="bi bi-play-fill"></i></button>
-                        </div>
-                    </div>
-                    ${preElement.outerHTML}
-                    <div class="player-output mt-2"></div>`;
+    codeCard.innerHTML = `
+    <div class="card-header"><span>${heading}</span><div class="header-buttons">
+        <button class="btn btn-sm btn-outline-secondary toggle-code"><i class="bi bi-code"></i></button>
+        <button class="btn btn-sm btn-outline-secondary run-code"><i class="bi bi-play-fill"></i></button>
+    </div></div>${preElement.outerHTML}<div class="player-output mt-2"></div>`;
 
     preElement.replaceWith(codeCard);
     const codePreElement = codeCard.querySelector("pre") as HTMLPreElement;
