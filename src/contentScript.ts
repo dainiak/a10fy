@@ -1,6 +1,7 @@
 import {extensionActions, ElementPropertiesResult} from "./helpers/constants";
 import {getDocumentSkeleton, findElementByIndex} from "./helpers/domManipulation";
 import {enqueuePageAction} from "./helpers/llmPageActions";
+import {downloadImage} from "./helpers/downloadImage";
 
 import ActionQueue from "./helpers/actionQueue";
 
@@ -11,6 +12,30 @@ setInterval(
     20
 );
 
+
+function getDomElementProperties(elementIndex: number | null, propertyNames: Array<string>, sendResponse: Function){
+    const element = findElementByIndex(elementIndex);
+    if (!element) {
+        sendResponse({error: "Element not found."});
+        return;
+    }
+
+    const properties: ElementPropertiesResult = {};
+    for (const propertyName of propertyNames)
+        switch(propertyName) {
+            case "value": properties.value = (element as HTMLInputElement).value; break;
+            case "style": properties.style = (element as HTMLElement).style; break;
+            case "computedStyle": properties.computedStyle = window.getComputedStyle(element as HTMLElement); break;
+            case "id": properties.id = (element as HTMLElement).id; break;
+            case "innerHTML": properties.innerHTML = (element as HTMLElement).innerHTML; break;
+            case "outerHTML": properties.outerHTML = (element as HTMLElement).outerHTML; break;
+            case "innerText": properties.innerText = (element as HTMLElement).innerText; break;
+            case "textContent": properties.textContent = element.textContent; break;
+            default: properties[propertyName] = (element as HTMLElement).getAttribute(propertyName); break;
+        }
+
+    sendResponse(properties);
+}
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
@@ -37,27 +62,16 @@ chrome.runtime.onMessage.addListener(
             sendResponse(query);
         }
         else if (request.action === extensionActions.getDomElementProperties) {
-            const element = findElementByIndex(request.elementIndex);
-            if (!element) {
-                sendResponse({error: "Element not found."});
-                return;
-            }
-
-            const properties: ElementPropertiesResult = {};
-            for (const propertyName of request.propertyNames)
-                switch(propertyName) {
-                    case "value": properties.value = (element as HTMLInputElement).value; break;
-                    case "style": properties.style = (element as HTMLElement).style; break;
-                    case "computedStyle": properties.computedStyle = window.getComputedStyle(element as HTMLElement); break;
-                    case "id": properties.id = (element as HTMLElement).id; break;
-                    case "innerHTML": properties.innerHTML = (element as HTMLElement).innerHTML; break;
-                    case "outerHTML": properties.outerHTML = (element as HTMLElement).outerHTML; break;
-                    case "innerText": properties.innerText = (element as HTMLElement).innerText; break;
-                    case "textContent": properties.textContent = element.textContent; break;
-                    default: properties[propertyName] = (element as HTMLElement).getAttribute(propertyName); break;
-                }
-
-            sendResponse(properties);
+            getDomElementProperties(request.elementIndex, request.propertyNames, sendResponse);
+        }
+        else if (request.action === extensionActions.getImage) {
+            const imageData = downloadImage(request.srcUrl);
+            if(imageData)
+                sendResponse({imageData: imageData})
+                // (imageData) => chrome.runtime.sendMessage({action: extensionActions.handleImage, srcUrl: request.srcUrl, imageData: imageData})
+            else
+                sendResponse({error: "Image not found or could not be downloaded."});
+            return true;
         }
     }
 );

@@ -5,42 +5,68 @@ const mediaRecorderOptions = {
 
 let audioRecorder: MediaRecorder | null = null;
 let mediaStream: MediaStream | null = null;
+let audioResultSuccessHandler: Function | null = null;
+let audioResultErrorHandler: Function | null = null;
 
-function startRecording(responseCallback?: CallableFunction) {
-    if (!navigator.mediaDevices && responseCallback) {
-        responseCallback({error: "Media devices not supported"});
-    }
-    else {
-        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-            mediaStream = stream;
-            audioRecorder?.stop();
-            audioRecorder = new MediaRecorder(stream, mediaRecorderOptions);
-            audioRecorder.start();
-            responseCallback && responseCallback({message: "Recording started"});
-        }).catch((err) => {
-            console.error(`The following error occurred: ${err}`);
-            mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
-            responseCallback && responseCallback({error: err});
-        });
-    }
-}
 
-function stopRecording(responseCallback: CallableFunction | null) {
-    if (audioRecorder) {
-        audioRecorder.addEventListener("dataavailable", (blobEvent) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(blobEvent.data);
-            reader.addEventListener("loadend", () => {
-                responseCallback && responseCallback(reader.result);
+function recordAudio() {
+    if (audioResultErrorHandler) {
+        audioResultErrorHandler("New audio recording requested");
+    }
+
+    return new Promise((resolve, reject) => {
+        audioResultSuccessHandler = resolve;
+        audioResultErrorHandler = reject;
+
+        if (!navigator.mediaDevices) {
+            reject("Media devices not supported");
+        }
+        else {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+                try {
+                    mediaStream = stream;
+                    audioRecorder?.stop();
+                    audioRecorder = new MediaRecorder(stream, mediaRecorderOptions);
+                    audioRecorder.start();
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }).catch((err) => {
+                try {
+                    mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
+                    reject(err);
+                }
+                catch (err) {
+                    reject(err);
+                }
             });
-        });
-        audioRecorder.stop();
-        mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
-        mediaStream = null;
-    }
-    else {
-        return {error: "No audio recording in progress"};
-    }
+        }
+    })
 }
 
-export { startRecording, stopRecording };
+function stopRecording() {
+    if (!audioRecorder)
+        return false;
+
+    audioRecorder.addEventListener("dataavailable", (blobEvent) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blobEvent.data);
+        reader.onloadend = () => {
+            audioResultSuccessHandler && audioResultSuccessHandler(reader.result);
+            audioResultSuccessHandler = null;
+            audioResultErrorHandler = null;
+        };
+        reader.onerror = () => {
+            audioResultErrorHandler && audioResultErrorHandler(reader.error);
+            audioResultSuccessHandler = null;
+            audioResultErrorHandler = null;
+        };
+    });
+    audioRecorder.stop();
+    mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
+    mediaStream = null;
+    return true;
+}
+
+export { recordAudio, stopRecording };

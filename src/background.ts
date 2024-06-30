@@ -58,19 +58,6 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
     });
 }
 
-chrome.runtime.onMessage.addListener(
-    async function (request, sender) {
-        if (!sender.tab && request.action === extensionActions.processUserAudioQuery && request.audio) {
-            const [tab] = await chrome.tabs.query({
-                active: true,
-                lastFocusedWindow: true
-            });
-            const tabDocumentInfo = await getTabDocumentInfo(tab);
-            await submitUserRequest(tabDocumentInfo, {audio: request.audio}, tab);
-        }
-    }
-);
-
 async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
     if (!tab.id)
         return {};
@@ -108,7 +95,19 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (command === "voiceCommandRecord") {
         await setupOffscreenDocument();
         chrome.tts.stop();
-        await chrome.runtime.sendMessage({action: extensionActions.startAudioCapture});
+        chrome.runtime.sendMessage({action: extensionActions.startAudioCapture}).then(
+            async (response) => {
+                if (response.audio) {
+                    const [tab] = await chrome.tabs.query({
+                        active: true,
+                        lastFocusedWindow: true
+                    });
+                    const tabDocumentInfo = await getTabDocumentInfo(tab);
+                    await submitUserRequest(tabDocumentInfo, {audio: response.audio}, tab);
+                }
+            }
+
+        );
         return;
     }
     if (command === "voiceCommandExecute") {
@@ -139,24 +138,27 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.contextMenus.create({
     title: "A test menu parent item 1",
     id: "testParentItem",
-    contexts:["selection"]
+    contexts:["selection", "image", "page"]
 });
+
 chrome.contextMenus.create({
     title: "A test menu parent item 2",
     id: "testParentItem2",
-    contexts:["selection"]
+    contexts:["selection", "image", "page"]
 });
 
 chrome.contextMenus.create({
     title: "A test menu item",
     id: "testMenuItem",
-    contexts:["selection"],
+    contexts:["selection", "image", "page"],
     parentId: "testParentItem"
 });
 
-
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    info.menuItemId,
-    info.selectionText
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (info.selectionText) {
+        console.log(info.selectionText);
+    }
+    else if (info.srcUrl && info.mediaType === "image" && tab?.id) {
+        console.log(await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getImage, srcUrl: info.srcUrl}));
+    }
 });

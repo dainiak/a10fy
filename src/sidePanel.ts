@@ -373,7 +373,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     //         updateLlmMessage(result["llmMessage"]);
     //     }
     // });
-
-
-
 });
+
+mainChatUserInputTextArea.onpaste = function (event) {
+    if(!event.clipboardData)
+        return;
+    const items = event.clipboardData.items;
+    Array.from(items).forEach((item) => {
+        if (item.kind === 'file') {
+            const reader = new FileReader();
+            reader.onloadend = function (event) {
+                console.log(event.target?.result); // data url!
+            };
+            const blob = item.getAsFile();
+            if (blob)
+                reader.readAsDataURL(blob);
+        }
+    })
+};

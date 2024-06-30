@@ -7,7 +7,8 @@ const extensionActions = {
     copyTextToClipboard: "copyTextToClipboard",
     getTextFromClipboard: "getTextFromClipboard",
     processUserAudioQuery: "processUserAudioQuery",
-    getDomElementProperties: "getDomElementProperties"
+    getDomElementProperties: "getDomElementProperties",
+    getImage: "getImage"
 }
 
 const storageKeys = {
