@@ -4,9 +4,9 @@ import {hljsDarkStyleContent, hljsLightStyleContent} from "./helpers/styleString
 import {getGeminiChat} from "./helpers/geminiInterfacing";
 import {ChatSession} from "@google/generative-ai";
 import katex from "katex";
-import {loadPyodide, version as pyodideVersion} from "pyodide";
 import {createCodeMirror, EditorView} from "./helpers/codeMirror";
 import mermaid from "mermaid";
+import {extensionActions} from "./helpers/constants";
 
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
@@ -183,26 +183,24 @@ function replacePreWithCodeCard(preElement: HTMLElement) {
 function playPython(code: string, outputElement: HTMLElement) {
     outputElement.style.setProperty("display", "");
     outputElement.innerHTML = '<pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
-    const pyodideOutputElement = outputElement.querySelector("code") as HTMLElement;
-    pyodideOutputElement.textContent = `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`;
-    loadPyodide({
-        stdout: (text) => {
-            pyodideOutputElement.textContent += text + "\n";
-        },
-        stderr: (text) => {
-            pyodideOutputElement.textContent += text + "\n";
-        }
-    }).then((pyodide) => {
-        pyodideOutputElement.textContent += "done.\n";
-        try {
-            pyodide.runPython(code);
-        } catch (e) {
-            if (pyodideOutputElement.textContent)
-                pyodideOutputElement.textContent += `\n${e}`;
-        }
-    }).catch((e) => {
-        pyodideOutputElement.textContent += `failed due to error:\n${e}`;
-    });
+    const codeResultElement = outputElement.querySelector("code") as HTMLElement;
+    const sandbox = document.getElementById("sandbox") as HTMLIFrameElement;
+    const requestId = (crypto.getRandomValues(new Uint32Array(1)).toString()).toString();
+
+    const resultMessageHandler = (event: MessageEvent) => {
+        if(event.data.action !== extensionActions.updateSandboxedPythonCodeOutput || event.data.requestId !== requestId)
+            return;
+        codeResultElement.textContent = event.data.stdout;
+        if (event.data.isFinal)
+            window.removeEventListener("message", resultMessageHandler);
+    };
+    window.addEventListener("message", resultMessageHandler);
+
+    sandbox.contentWindow?.postMessage({
+        action: extensionActions.runSandboxedPythonCode,
+        codeToRun: code,
+        requestId: requestId
+    }, "*");
 }
 
 function playMermaid(code: string, outputElement: HTMLElement) {

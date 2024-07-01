@@ -8,7 +8,9 @@ const extensionActions = {
     getTextFromClipboard: "getTextFromClipboard",
     processUserAudioQuery: "processUserAudioQuery",
     getDomElementProperties: "getDomElementProperties",
-    getImage: "getImage"
+    getImage: "getImage",
+    runSandboxedPythonCode: "runSandboxedPythonCode",
+    updateSandboxedPythonCodeOutput: "updateSandboxedPythonCodeOutput",
 }
 
 const storageKeys = {

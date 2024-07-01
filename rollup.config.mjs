@@ -3,6 +3,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import copy from "rollup-plugin-copy";
 import terser from '@rollup/plugin-terser';
 import scss from 'rollup-plugin-scss';
+import replace from '@rollup/plugin-replace';
 
 const enableTerser = false;
 
@@ -65,14 +66,20 @@ const copyPluginConfig = copy({
     ]
 });
 
+const replaceSessionStorageString = replace({
+    'typeof sessionStorage=="object"': 'true',
+    delimiters: ['', '']
+});
+
 
 export default [
     // constructScssConfig('tour'),
     constructJsConfig('background', jsPluginConfigs),
     constructJsConfig('contentScript', jsPluginConfigs),
-    constructJsConfig('contentScriptTour', jsPluginConfigs),
-    constructJsConfig('sidePanel', jsPluginConfigs),
+    // constructJsConfig('contentScriptTour', jsPluginConfigs),
     constructJsConfig('offscreen', jsPluginConfigs),
-    constructJsConfig('settings', jsPluginConfigs),
     constructJsConfig('popup', [...jsPluginConfigs, copyPluginConfig]),
+    constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),
+    constructJsConfig('settings', jsPluginConfigs),
+    constructJsConfig('sidePanel', jsPluginConfigs),
 ];
