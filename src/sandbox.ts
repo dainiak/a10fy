@@ -33,7 +33,12 @@ window.addEventListener('message', function (event) {
     }).then((pyodide) => {
         textContent += "done.\n";
         try {
-            pyodide.runPython(codeToRun);
+            const result = pyodide.runPython(codeToRun);
+            if(result !== undefined && result !== null && result !== "") {
+                textContent += result.toString();
+                if(result.destroy)
+                    result.destroy();
+            }
             sendUpdateMessage(textContent, true);
         } catch (e) {
             if (textContent)
