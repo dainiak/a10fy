@@ -1,4 +1,4 @@
-import {extensionActions, cssPrefix, UserRequest, TabDocumentInfo} from "./helpers/constants";
+import {extensionActions, cssPrefix, UserRequest, TabDocumentInfo, ExtensionMessageImageModificationRequest} from "./helpers/constants";
 import {getInlineDataPart, getMainPromptParts} from "./helpers/promptParts";
 import {setupOffscreenDocument} from "./helpers/setupOffscreenDocument";
 import {asyncRequestAndParse} from "./helpers/geminiInterfacing";
@@ -73,6 +73,18 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
     tabDocumentInfo.screenshot = tabScreenshot;
     return tabDocumentInfo;
 }
+
+// async function getTabElementScreenshot(tab: chrome.tabs.Tab, elementIndex: number) {
+//     if (!tab.id)
+//         return null;
+//
+//     const tabScreenshot = await chrome.tabs.captureVisibleTab(
+//         {"format": "png"}
+//     );
+//
+//     const elementInfo:  = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDomElementProperties});
+// }
+
 
 async function textBasedCommandOnPage() {
     const [tab] = await chrome.tabs.query({
@@ -159,6 +171,33 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log(info.selectionText);
     }
     else if (info.srcUrl && info.mediaType === "image" && tab?.id) {
-        console.log(await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getImage, srcUrl: info.srcUrl}));
+
+    }
+});
+
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+    if (request.action === extensionActions.registerContextMenuEvent) {
+        const tabScreenshot = await chrome.tabs.captureVisibleTab({"format": "png"});
+        // console.log(tabScreenshot);
+        // console.log(request.boundingRect);
+        await setupOffscreenDocument();
+        const result = await chrome.runtime.sendMessage({
+            action: extensionActions.modifyImage,
+            modification: "crop",
+            image: tabScreenshot,
+            parameters: {
+                x: request.boundingRect.x,
+                y: request.boundingRect.y,
+                width: request.boundingRect.width,
+                height: request.boundingRect.height,
+                viewportWidth: request.viewportRect.width,
+                viewportHeight: request.viewportRect.height
+            },
+            output: {
+                format: "jpeg",
+                quality: 40
+            }
+        } as ExtensionMessageImageModificationRequest);
+        console.log(result);
     }
 });

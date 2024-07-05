@@ -13,7 +13,7 @@ async function setupOffscreenDocument() {
         } else {
             creatingOffscreenDocument = chrome.offscreen.createDocument({
                 url: "offscreen.html",
-                reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK, chrome.offscreen.Reason.USER_MEDIA],
+                reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK, chrome.offscreen.Reason.USER_MEDIA, chrome.offscreen.Reason.BLOBS],
                 justification: "Allow the user do dictate voice commands."
             });
             await creatingOffscreenDocument;

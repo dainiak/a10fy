@@ -1,10 +1,10 @@
-import { extensionActions } from "./helpers/constants";
+import {extensionActions, ExtensionMessageRequest, ExtensionMessageImageModificationRequest} from "./helpers/constants";
 import { recordAudio, stopRecording } from "./helpers/audioRecording";
 
 const recordingNotificationSound = document.getElementById("startRecordingNotification") as HTMLAudioElement;
 
 chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
+    function(request: ExtensionMessageRequest, sender, sendResponse) {
         if (sender.tab)
             return;
 
@@ -39,7 +39,30 @@ chrome.runtime.onMessage.addListener(
             }).catch((err) => {
                 sendResponse({error: err});
             });
+        } else if (request.action === extensionActions.modifyImage) {
+            const modificationRequest = request as ExtensionMessageImageModificationRequest;
+            const crop = modificationRequest.parameters;
+            const canvas = document.createElement("canvas");
+            canvas.width = crop.width;
+            canvas.height = crop.height;
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
+            img.onload = () => {
+                const scaleX = img.height / modificationRequest.parameters.viewportHeight;
+                const scaleY = img.width / modificationRequest.parameters.viewportWidth;
+                ctx?.drawImage(img, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, crop.width, crop.height);
+                const imageData = ctx?.getImageData(0, 0, img.width, img.height);
+                if (imageData) {
+                    const outputParams = modificationRequest.output;
+                    sendResponse({image: canvas.toDataURL(`image/${outputParams.format}`, outputParams.quality)});
+                }
+                else {
+                    sendResponse({error: "Failed to crop image"});
+                }
+            }
+            img.onerror = () => sendResponse({error: "Failed to load image"});
+            img.src = modificationRequest.image;
+            return true;
         }
-
     }
 );

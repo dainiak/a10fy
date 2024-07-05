@@ -1,10 +1,10 @@
 import {extensionActions, ElementPropertiesResult} from "./helpers/constants";
 import {getDocumentSkeleton, findElementByIndex} from "./helpers/domManipulation";
 import {enqueuePageAction} from "./helpers/llmPageActions";
-import {downloadImage} from "./helpers/downloadImage";
 
 import ActionQueue from "./helpers/actionQueue";
 
+let lastContextMenuEvent: MouseEvent | null = null;
 
 const pageActionQueue = new ActionQueue();
 setInterval(
@@ -13,28 +13,30 @@ setInterval(
 );
 
 
-function getDomElementProperties(elementIndex: number | null, propertyNames: Array<string>, sendResponse: Function){
-    const element = findElementByIndex(elementIndex);
-    if (!element) {
-        sendResponse({error: "Element not found."});
-        return;
-    }
-
+function getDomElementProperties(element: Node, propertyNames: Array<string>){
     const properties: ElementPropertiesResult = {};
     for (const propertyName of propertyNames)
         switch(propertyName) {
-            case "value": properties.value = (element as HTMLInputElement).value; break;
-            case "style": properties.style = (element as HTMLElement).style; break;
-            case "computedStyle": properties.computedStyle = window.getComputedStyle(element as HTMLElement); break;
-            case "id": properties.id = (element as HTMLElement).id; break;
-            case "innerHTML": properties.innerHTML = (element as HTMLElement).innerHTML; break;
-            case "outerHTML": properties.outerHTML = (element as HTMLElement).outerHTML; break;
-            case "innerText": properties.innerText = (element as HTMLElement).innerText; break;
+            case "value": if(element instanceof HTMLInputElement) properties.value = element.value; break;
+            case "style": if(element instanceof HTMLElement) properties.style = element.style; break;
+            case "computedStyle": if(element instanceof HTMLElement) properties.computedStyle = window.getComputedStyle(element); break;
+            case "id": if(element instanceof HTMLElement) properties.id = element.id; break;
+            case "innerHTML": if(element instanceof HTMLElement) properties.innerHTML = element.innerHTML; break;
+            case "outerHTML": if(element instanceof HTMLElement) properties.outerHTML = element.outerHTML; break;
+            case "innerText": if(element instanceof HTMLElement) properties.innerText = element.innerText; break;
             case "textContent": properties.textContent = element.textContent; break;
-            default: properties[propertyName] = (element as HTMLElement).getAttribute(propertyName); break;
+            case "boundingRect":
+                if(element instanceof HTMLElement)
+                    properties.boundingRect = element.getBoundingClientRect();
+                else {
+                    while (element && !(element instanceof HTMLElement) && element.parentNode) element = element.parentNode;
+                    if (element instanceof HTMLElement) properties.boundingRect = element.getBoundingClientRect();
+                }
+                break;
+            default: if(element instanceof HTMLElement) properties[propertyName] = element.getAttribute(propertyName); break;
         }
 
-    sendResponse(properties);
+    return properties;
 }
 
 chrome.runtime.onMessage.addListener(
@@ -62,16 +64,27 @@ chrome.runtime.onMessage.addListener(
             sendResponse(query);
         }
         else if (request.action === extensionActions.getDomElementProperties) {
-            getDomElementProperties(request.elementIndex, request.propertyNames, sendResponse);
-        }
-        else if (request.action === extensionActions.getImage) {
-            const imageData = downloadImage(request.srcUrl);
-            if(imageData)
-                sendResponse({imageData: imageData})
-                // (imageData) => chrome.runtime.sendMessage({action: extensionActions.handleImage, srcUrl: request.srcUrl, imageData: imageData})
-            else
-                sendResponse({error: "Image not found or could not be downloaded."});
-            return true;
+            const element = findElementByIndex(request.elementIndex) as HTMLElement;
+            if (!element) {
+                sendResponse({error: "Element not found."});
+                return;
+            }
+            sendResponse(getDomElementProperties(element, request.propertyNames));
         }
     }
 );
+
+
+document.addEventListener("contextmenu", (event) => {
+    lastContextMenuEvent = event;
+    const element = event.target as HTMLElement;
+    const properties = getDomElementProperties(element, ["boundingRect"]);
+    chrome.runtime.sendMessage({
+        action: extensionActions.registerContextMenuEvent,
+        boundingRect: properties.boundingRect,
+        viewportRect: {
+            width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
+            height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+        }
+    });
+});

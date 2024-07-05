@@ -6,7 +6,14 @@ import {ChatSession} from "@google/generative-ai";
 import katex from "katex";
 import {createCodeMirror, EditorView} from "./helpers/codeMirror";
 import mermaid from "mermaid";
-import {extensionActions} from "./helpers/constants";
+import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
+import TurndownService from 'turndown';
+
+const turndownService = new TurndownService({
+   headingStyle: 'atx',
+});
+const markdownTest = turndownService.turndown('<h1>Hello world!</h1>');
+console.log(markdownTest);
 
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
@@ -182,25 +189,31 @@ function replacePreWithCodeCard(preElement: HTMLElement) {
 
 function playPython(code: string, outputElement: HTMLElement) {
     outputElement.style.setProperty("display", "");
-    outputElement.innerHTML = '<pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
+    outputElement.innerHTML = '<div class="dot-pulse"></div><pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
     const codeResultElement = outputElement.querySelector("code") as HTMLElement;
     const sandbox = document.getElementById("sandbox") as HTMLIFrameElement;
     const requestId = (crypto.getRandomValues(new Uint32Array(1)).toString()).toString();
 
     const resultMessageHandler = (event: MessageEvent) => {
-        if(event.data.action !== extensionActions.updateSandboxedPythonCodeOutput || event.data.requestId !== requestId)
+        if(event.data.action !== extensionActions.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
             return;
-        codeResultElement.textContent = event.data.stdout;
-        if (event.data.isFinal)
+        const result = event.data as SandboxedTaskResult;
+        codeResultElement.textContent = result.result.stdout;
+        if (result.isFinal)
             window.removeEventListener("message", resultMessageHandler);
+        else
+            codeResultElement.querySelector(".dot-pulse")?.remove();
     };
     window.addEventListener("message", resultMessageHandler);
 
     sandbox.contentWindow?.postMessage({
-        action: extensionActions.runSandboxedPythonCode,
-        codeToRun: code,
+        action: extensionActions.runInSandbox,
+        taskType: "python",
+        taskParams: {
+            code: code,
+        },
         requestId: requestId
-    }, "*");
+    } as RunInSandboxRequest, "*");
 }
 
 function playMermaid(code: string, outputElement: HTMLElement) {
@@ -304,10 +317,11 @@ function sendMessageToChat(chat: ChatSession){
 
     mainChatUserInputTextArea.value = '';
     mainChatUserInputTextArea.dispatchEvent(new Event('input'));
+    const llmMessageCardElement = createMessageCard("model");
+    const llmMessageCardTextElement = llmMessageCardElement.querySelector('.card-body') as HTMLElement;
+    llmMessageCardTextElement.innerHTML = '<div class="card-text"><div class="dot-pulse"></div></div>';
 
     chat.sendMessageStream(message).then(async (result) => {
-        const llmMessageCardElement = createMessageCard("model");
-        const llmMessageCardTextElement = llmMessageCardElement.querySelector('.card-body') as HTMLElement;
         let llmMessageText = "";
 
         for await (const chunk of result.stream) {
@@ -373,10 +387,57 @@ document.addEventListener("DOMContentLoaded", async () => {
     // });
 });
 
-mainChatUserInputTextArea.onpaste = function (event) {
-    if(!event.clipboardData)
+function addImageIcon(src: any) {
+    const iconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
+    const iconContainer = document.createElement("div");
+    iconContainer.className = "icon";
+    const img = document.createElement("img");
+    img.src = src;
+    iconContainer.appendChild(img);
+    iconsContainer.appendChild(iconContainer);
+}
+
+function addAudioIcon() {
+    const iconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
+    const iconContainer = document.createElement("div");
+    iconContainer.className = "icon";
+    const icon = document.createElement("i");
+    icon.classList.add("bi", "bi-file-earmark-music");
+    iconContainer.appendChild(icon);
+    iconsContainer.appendChild(iconContainer);
+}
+
+mainChatUserInputTextArea.onpaste = function (clipboardEvent) {
+    clipboardEvent.preventDefault();
+
+    if(!clipboardEvent.clipboardData)
         return;
-    const items = event.clipboardData.items;
+
+    const files = clipboardEvent.clipboardData.files;
+    if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if(file.type.startsWith('image')){
+                const reader = new FileReader();
+                reader.onload = function (loadEvent) {
+                    if(reader.result)
+                        addImageIcon(reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
+            if(file.type.startsWith('audio')){
+                const reader = new FileReader();
+                reader.onload = function (loadEvent) {
+                    if(reader.result)
+                        addAudioIcon();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        return;
+    }
+
+    const items = clipboardEvent.clipboardData.items;
     Array.from(items).forEach((item) => {
         if (item.kind === 'file') {
             const reader = new FileReader();

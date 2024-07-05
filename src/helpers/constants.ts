@@ -8,9 +8,10 @@ const extensionActions = {
     getTextFromClipboard: "getTextFromClipboard",
     processUserAudioQuery: "processUserAudioQuery",
     getDomElementProperties: "getDomElementProperties",
-    getImage: "getImage",
-    runSandboxedPythonCode: "runSandboxedPythonCode",
-    updateSandboxedPythonCodeOutput: "updateSandboxedPythonCodeOutput",
+    registerContextMenuEvent: "registerContextMenuEvent",
+    modifyImage: "modifyImage",
+    runInSandbox: "runInSandbox",
+    sandboxedTaskResultsUpdate: "sandboxedTaskResultsUpdate",
 }
 
 const storageKeys = {
@@ -35,6 +36,7 @@ interface ElementPropertiesResult {
     value?: string;
     style?: CSSStyleDeclaration;
     computedStyle?: CSSStyleDeclaration;
+    boundingRect?: DOMRect;
     id?: string;
     innerHTML?: string;
     outerHTML?: string;
@@ -51,4 +53,44 @@ interface TabDocumentInfo {
     screenshot?: string;
 }
 
-export { extensionActions, storageKeys, cssPrefix, cssPrefixFallbackSymbol, ActionRequest, UserRequest, ElementPropertiesResult, TabDocumentInfo };
+interface ExtensionMessageRequest {
+    action: string;
+    [key: string]: any;
+}
+
+interface ExtensionMessageImageModificationRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.modifyImage,
+    image: string,
+    output: {
+        format: "jpeg" | "png" | "bmp" | "gif" | "webp",
+        quality: number
+    },
+    modification: "crop",
+    parameters: {
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        viewportWidth: number,
+        viewportHeight: number
+    }
+}
+
+interface RunInSandboxRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.runInSandbox,
+    taskType: string,
+    taskParams: any,
+    requestId: string
+}
+
+interface SandboxedTaskResult extends ExtensionMessageRequest {
+    action: typeof extensionActions.sandboxedTaskResultsUpdate,
+    requestId: string,
+    result: any,
+    isFinal: boolean
+}
+
+export {
+    extensionActions, storageKeys, cssPrefix, cssPrefixFallbackSymbol, ActionRequest, UserRequest, ElementPropertiesResult, TabDocumentInfo,
+    ExtensionMessageRequest, ExtensionMessageImageModificationRequest, RunInSandboxRequest, SandboxedTaskResult
+};

@@ -1,21 +1,26 @@
 import {loadPyodide, version as pyodideVersion} from "pyodide";
-import {extensionActions} from "./helpers/constants";
+import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
 
 window.addEventListener('message', function (event) {
-    if (event.data.action !== extensionActions.runSandboxedPythonCode)
+    if (event.data.action !== extensionActions.runInSandbox)
         return;
 
-    const codeToRun = event.data.codeToRun;
+    const request = event.data as RunInSandboxRequest;
+
+    if (request.taskType !== "python")
+        return;
 
     let textContent = `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`;
     const sendUpdateMessage = (content: string, isFinal: boolean = false) => {
         event.source?.postMessage(
             {
-                action: extensionActions.updateSandboxedPythonCodeOutput,
-                requestId: event.data.requestId,
-                stdout: content,
+                action: extensionActions.sandboxedTaskResultsUpdate,
+                requestId: request.requestId,
+                result: {
+                    stdout: content,
+                },
                 isFinal: isFinal
-            }, {
+            } as SandboxedTaskResult, {
                 targetOrigin: event.origin
             }
         );
@@ -33,7 +38,7 @@ window.addEventListener('message', function (event) {
     }).then((pyodide) => {
         textContent += "done.\n";
         try {
-            const result = pyodide.runPython(codeToRun);
+            const result = pyodide.runPython(request.taskParams.code);
             if(result !== undefined && result !== null && result !== "") {
                 textContent += result.toString();
                 if(result.destroy)
