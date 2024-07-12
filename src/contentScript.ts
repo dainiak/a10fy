@@ -1,4 +1,14 @@
-import {extensionActions, ElementPropertiesResult} from "./helpers/constants";
+import {
+    extensionActions,
+    ElementPropertiesResult,
+    DocumentInfoResult,
+    PromptUserResult,
+    ExecutePageActionRequest,
+    PromptUserRequest,
+    ExtensionMessageRequest,
+    ElementPropertiesRequest,
+    RegisterContextMenuEventRequest
+} from "./helpers/constants";
 import {getDocumentSkeleton, findElementByIndex} from "./helpers/domManipulation";
 import {enqueuePageAction} from "./helpers/llmPageActions";
 
@@ -40,7 +50,7 @@ function getDomElementProperties(element: Node, propertyNames: Array<string>){
 }
 
 chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
+    function (request: ExtensionMessageRequest, sender, sendResponse) {
         if (sender.tab)
             return;
         if (request.action === extensionActions.getDocumentInfo) {
@@ -49,27 +59,32 @@ chrome.runtime.onMessage.addListener(
                 text: document.body.innerText,
                 url: document.location.href,
                 title: document.title
-            });
-        } else if (request.action === extensionActions.executePageAction)
+            } as DocumentInfoResult);
+        } else if (request.action === extensionActions.executePageAction) {
+            const executePageActionRequest = request as ExecutePageActionRequest;
             enqueuePageAction(
                 pageActionQueue,
                 {
-                    actionName: request.actionName,
-                    elementIndex: request.elementIndex,
-                    actionParams: request.actionParams
+                    actionName: executePageActionRequest.actionName,
+                    elementIndex: executePageActionRequest.elementIndex,
+                    actionParams: executePageActionRequest.actionParams
                 }
             );
-        else if (request.action === extensionActions.getUserQuery) {
-            const query = prompt("Enter your query:");
-            sendResponse(query);
+        }
+        else if (request.action === extensionActions.promptUser) {
+            const promptRequest = request as PromptUserRequest;
+            const promptText = promptRequest.promptText || "Enter your query:";
+            const userResponse = prompt(promptText);
+            sendResponse({userResponse: userResponse} as PromptUserResult);
         }
         else if (request.action === extensionActions.getDomElementProperties) {
-            const element = findElementByIndex(request.elementIndex) as HTMLElement;
+            const propertiesRequest = request as ElementPropertiesRequest;
+            const element = findElementByIndex(propertiesRequest.elementIndex) as HTMLElement;
             if (!element) {
-                sendResponse({error: "Element not found."});
+                sendResponse({error: "Element not found."} as ElementPropertiesResult);
                 return;
             }
-            sendResponse(getDomElementProperties(element, request.propertyNames));
+            sendResponse(getDomElementProperties(element, propertiesRequest.propertyNames) as ElementPropertiesResult);
         }
     }
 );
@@ -86,5 +101,5 @@ document.addEventListener("contextmenu", (event) => {
             width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
             height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
         }
-    });
+    } as RegisterContextMenuEventRequest);
 });

@@ -1,7 +1,7 @@
 const extensionActions = {
     getDocumentInfo: "getDocumentInfo",
     executePageAction: "executePageAction",
-    getUserQuery: "getUserQuery",
+    promptUser: "promptUser",
     startAudioCapture: "startAudioCapture",
     stopAudioCapture: "stopAudioCapture",
     copyTextToClipboard: "copyTextToClipboard",
@@ -27,12 +27,14 @@ interface ActionRequest {
     actionParams: string;
 }
 
+
 interface UserRequest {
     text?: string;
     audio?: string;
 }
 
 interface ElementPropertiesResult {
+    error?: string;
     value?: string;
     style?: CSSStyleDeclaration;
     computedStyle?: CSSStyleDeclaration;
@@ -55,7 +57,23 @@ interface TabDocumentInfo {
 
 interface ExtensionMessageRequest {
     action: string;
-    [key: string]: any;
+}
+
+interface ExecutePageActionRequest extends ExtensionMessageRequest {
+    actionName: string;
+    elementIndex: string;
+    actionParams: string;
+}
+
+interface DocumentInfoResult {
+    html?: string,
+    text?: string,
+    url?: string,
+    title?: string
+}
+
+interface PromptUserResult {
+    userResponse: string | null
 }
 
 interface ExtensionMessageImageModificationRequest extends ExtensionMessageRequest {
@@ -76,6 +94,11 @@ interface ExtensionMessageImageModificationRequest extends ExtensionMessageReque
     }
 }
 
+interface ImageModificationResult {
+    image?: string,
+    error?: string
+}
+
 interface RunInSandboxRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.runInSandbox,
     taskType: string,
@@ -90,7 +113,28 @@ interface SandboxedTaskResult extends ExtensionMessageRequest {
     isFinal: boolean
 }
 
+interface AudioRecordingResult {
+    audio?: string,
+    error?: string
+}
+
+interface PromptUserRequest extends ExtensionMessageRequest {
+    promptText?: string
+}
+
+interface ElementPropertiesRequest extends ExtensionMessageRequest {
+    elementIndex: string,
+    propertyNames: string[]
+}
+
+interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
+    boundingRect: DOMRect,
+    viewportRect: DOMRect
+}
+
+
 export {
     extensionActions, storageKeys, cssPrefix, cssPrefixFallbackSymbol, ActionRequest, UserRequest, ElementPropertiesResult, TabDocumentInfo,
-    ExtensionMessageRequest, ExtensionMessageImageModificationRequest, RunInSandboxRequest, SandboxedTaskResult
+    ExtensionMessageRequest, ExtensionMessageImageModificationRequest, RunInSandboxRequest, SandboxedTaskResult, ImageModificationResult, AudioRecordingResult, DocumentInfoResult,
+    PromptUserResult, ExecutePageActionRequest, PromptUserRequest, ElementPropertiesRequest, RegisterContextMenuEventRequest
 };

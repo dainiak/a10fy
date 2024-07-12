@@ -199,10 +199,10 @@ function playPython(code: string, outputElement: HTMLElement) {
             return;
         const result = event.data as SandboxedTaskResult;
         codeResultElement.textContent = result.result.stdout;
-        if (result.isFinal)
+        if (result.isFinal) {
             window.removeEventListener("message", resultMessageHandler);
-        else
             codeResultElement.querySelector(".dot-pulse")?.remove();
+        }
     };
     window.addEventListener("message", resultMessageHandler);
 

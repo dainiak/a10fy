@@ -1,4 +1,16 @@
-import {extensionActions, cssPrefix, UserRequest, TabDocumentInfo, ExtensionMessageImageModificationRequest} from "./helpers/constants";
+import {
+    extensionActions,
+    cssPrefix,
+    UserRequest,
+    TabDocumentInfo,
+    ExtensionMessageImageModificationRequest,
+    ExtensionMessageRequest,
+    RegisterContextMenuEventRequest,
+    PromptUserRequest,
+    PromptUserResult,
+    AudioRecordingResult,
+    ImageModificationResult
+} from "./helpers/constants";
 import {getInlineDataPart, getMainPromptParts} from "./helpers/promptParts";
 import {setupOffscreenDocument} from "./helpers/setupOffscreenDocument";
 import {asyncRequestAndParse} from "./helpers/geminiInterfacing";
@@ -7,7 +19,7 @@ import {llmPageActions} from "./helpers/llmPageActions";
 import {GenerateContentRequest, Part} from "@google/generative-ai";
 
 
-setupOffscreenDocument();
+setupOffscreenDocument().catch();
 
 async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: UserRequest, tab: chrome.tabs.Tab) {
     let requestParts: Part[] = [
@@ -48,7 +60,7 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
                 elementIndex: elementIndex,
                 actionName: actionName,
                 actionParams: actionParams
-            })
+            } as ExtensionMessageRequest)
         }
         else if (llmGlobalActions.hasOwnProperty(actionName as string)) {
             llmGlobalActions[actionName as string].execute(elementIndex as number|null, actionParams, tab)
@@ -69,7 +81,7 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
         }
     );
 
-    const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDocumentInfo});
+    const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDocumentInfo} as ExtensionMessageRequest);
     tabDocumentInfo.screenshot = tabScreenshot;
     return tabDocumentInfo;
 }
@@ -94,10 +106,10 @@ async function textBasedCommandOnPage() {
 
     // @ts-ignore
     // noinspection JSVoidFunctionReturnValueUsed
-    const query = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getUserQuery}) as string|null;
-    if (query !== null && query !== "") {
+    const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.promptUser} as PromptUserRequest);
+    if (response.userResponse !== null && response.userResponse !== "") {
         const tabDocumentInfo = await getTabDocumentInfo(tab);
-        await submitUserRequest(tabDocumentInfo, {text: query}, tab);
+        await submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab);
     }
 }
 
@@ -107,8 +119,8 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (command === "voiceCommandRecord") {
         await setupOffscreenDocument();
         chrome.tts.stop();
-        chrome.runtime.sendMessage({action: extensionActions.startAudioCapture}).then(
-            async (response) => {
+        chrome.runtime.sendMessage({action: extensionActions.startAudioCapture} as ExtensionMessageRequest).then(
+            async (response: AudioRecordingResult) => {
                 if (response.audio) {
                     const [tab] = await chrome.tabs.query({
                         active: true,
@@ -175,23 +187,24 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 });
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest, sender, sendResponse) => {
     if (request.action === extensionActions.registerContextMenuEvent) {
+        const menuEventRequest = request as RegisterContextMenuEventRequest;
         const tabScreenshot = await chrome.tabs.captureVisibleTab({"format": "png"});
         // console.log(tabScreenshot);
         // console.log(request.boundingRect);
         await setupOffscreenDocument();
-        const result = await chrome.runtime.sendMessage({
+        const result: ImageModificationResult = await chrome.runtime.sendMessage({
             action: extensionActions.modifyImage,
             modification: "crop",
             image: tabScreenshot,
             parameters: {
-                x: request.boundingRect.x,
-                y: request.boundingRect.y,
-                width: request.boundingRect.width,
-                height: request.boundingRect.height,
-                viewportWidth: request.viewportRect.width,
-                viewportHeight: request.viewportRect.height
+                x: menuEventRequest.boundingRect.x,
+                y: menuEventRequest.boundingRect.y,
+                width: menuEventRequest.boundingRect.width,
+                height: menuEventRequest.boundingRect.height,
+                viewportWidth: menuEventRequest.viewportRect.width,
+                viewportHeight: menuEventRequest.viewportRect.height
             },
             output: {
                 format: "jpeg",
