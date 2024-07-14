@@ -10,14 +10,20 @@ body, html {
     height: 100vh;
     border-right: 1px solid #dee2e6;
 }
-.chat-area {
+
+.a10fy-chat-area {
     height: calc(100vh - 110px);
     overflow-y: scroll;
 }
-.input-area {
+.a10fy-input-area {
     height: 60px;
 }
-.input-area textarea {
+.a10fy-input-area.droppable {
+    border: 2px dashed #28a745;
+}
+
+
+.a10fy-input-area textarea {
     height: 38px;
 }
 .message-user {

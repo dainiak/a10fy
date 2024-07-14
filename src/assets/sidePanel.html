@@ -15,21 +15,55 @@
 </head>
 <body>
     <iframe id="sandbox" src="sandbox.html" aria-hidden="true"></iframe>
+    <div id="pasteFormatChoiceModal" class="modal" tabindex="-1">
+        <div class="modal-dialog" style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center;">
+            <div class="modal-content">
+<!--                <div class="modal-header">-->
+<!--                    <h5 class="modal-title">Modal title</h5>-->
+<!--                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
+<!--                </div>-->
+                <div class="modal-body">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-primary"><i class="bi bi-markdown"></i></button>
+                        <button type="button" class="btn btn-primary"><i class="bi bi-file-text"></i></button>
+                        <button type="button" class="btn btn-primary"><i class="bi bi-file-image"></i></button>
+                    </div>
+                </div>
+<!--                <div class="modal-footer">-->
+<!--                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>-->
+<!--                    <button type="button" class="btn btn-primary">Save changes</button>-->
+<!--                </div>-->
+            </div>
+        </div>
+    </div>
     <div class="sidebar d-flex flex-column">
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab" aria-controls="chat" aria-selected="true">LLM Chat</button>
+                <button class="nav-link active" id="chatTab" data-bs-toggle="tab" data-bs-target="#chatPane" type="button" role="tab" aria-controls="chat" aria-selected="true"><i class="bi bi-chat-text"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab" aria-controls="tab2" aria-selected="false">LLM Message</button>
+                <button class="nav-link" id="chatListTab" data-bs-toggle="tab" data-bs-target="#chatListPane" type="button" role="tab" aria-controls="chat" aria-selected="false"><i class="bi bi-stack"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab" aria-controls="tab3" aria-selected="false">Tab 3</button>
+                <button class="nav-link" id="browserActionsTab" data-bs-toggle="tab" data-bs-target="#browserActionsPane" type="button" role="tab" aria-controls="tab2" aria-selected="false"><i class="bi bi-magic"></i></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settingsTab" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="tab3" aria-selected="false"><i class="bi bi-sliders"></i></button>
             </li>
         </ul>
-        <div class="tab-content flex-grow-1 d-flex flex-column" id="myTabContent">
-            <div class="tab-pane fade show active flex-grow-1 d-flex flex-column" id="chat" role="tabpanel" aria-labelledby="chat-tab">
-                <div class="a10fy-chat-area p-3"></div>
+        <div class="tab-content" id="mainTabsContent">
+            <div class="tab-pane fade show active" id="chatPane" role="tabpanel" aria-labelledby="chatTab">
+                <div class="a10fy-chat-area p-3">
+                    <div class="card" id="currentChatSettingsCard">
+                        <div class="card-header"><h6 class="h6">LLM settings for the current chat</h6></div>
+                        <div class="card-body">
+                            <h6 class="h6">LLM persona</h6>
+                            <select id="llmPersonaSelect" class="form-select" aria-label="LLM persona for the current chat"></select>
+                            <h6 class="h6">LLM model</h6>
+                            <select id="llmModelSelect" class="form-select" aria-label="LLM model for the current chat"></select>
+                        </div>
+                    </div>
+                </div>
                 <div class="a10fy-input-area p-3 border-top">
                     <div class="a10fy-input-area-icons"></div>
                     <form>
@@ -40,16 +74,19 @@
                     </form>
                 </div>
             </div>
-            <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
-                <div id="llmMessageContainer"></div>
+            <div class="tab-pane fade" id="chatListPane" role="tabpanel" aria-labelledby="chatListTab">
+                Chat list
             </div>
-            <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-                <!-- Content for Tab 3 -->
+            <div class="tab-pane fade" id="browserActionsPane" role="tabpanel" aria-labelledby="browserActionsTab">
+                <div id="llmMessageContainer">Content for Tab 2</div>
+            </div>
+            <div class="tab-pane fade" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">
+                Content for Tab 3
             </div>
         </div>
     </div>
 
-    <script src="js/bootstrap.js"></script>
+<!--    <script src="js/bootstrap.js"></script>-->
     <script src="js/sidePanel.js"></script>
 </body>
 </html>

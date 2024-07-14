@@ -60,6 +60,7 @@ interface ExtensionMessageRequest {
 }
 
 interface ExecutePageActionRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.executePageAction,
     actionName: string;
     elementIndex: string;
     actionParams: string;
@@ -101,6 +102,7 @@ interface ImageModificationResult {
 
 interface RunInSandboxRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.runInSandbox,
+    executor: "offscreen" | "sidePanel",
     taskType: string,
     taskParams: any,
     requestId: string
@@ -119,15 +121,18 @@ interface AudioRecordingResult {
 }
 
 interface PromptUserRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.promptUser,
     promptText?: string
 }
 
 interface ElementPropertiesRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.getDomElementProperties,
     elementIndex: string,
     propertyNames: string[]
 }
 
 interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.registerContextMenuEvent,
     boundingRect: DOMRect,
     viewportRect: DOMRect
 }

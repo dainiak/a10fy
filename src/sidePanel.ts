@@ -8,12 +8,12 @@ import {createCodeMirror, EditorView} from "./helpers/codeMirror";
 import mermaid from "mermaid";
 import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
 import TurndownService from 'turndown';
+import * as Bootstrap from "bootstrap";
+
 
 const turndownService = new TurndownService({
    headingStyle: 'atx',
 });
-const markdownTest = turndownService.turndown('<h1>Hello world!</h1>');
-console.log(markdownTest);
 
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
@@ -21,7 +21,8 @@ const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: 
 hljsStyle.textContent = themeType === "dark" ? hljsDarkStyleContent : hljsLightStyleContent;
 
 const mainChatUserInputTextArea = document.querySelector('.a10fy-input-area textarea') as HTMLTextAreaElement;
-
+const chatArea = document.querySelector('.a10fy-chat-area') as HTMLDivElement;
+const currentChatSettingsCard = document.getElementById("currentChatSettingsCard") as HTMLDivElement;
 
 const markdownRenderer: any  = markdownit({
     html:         false,
@@ -63,7 +64,7 @@ function markdownInlineMathRule(state: StateInline, silent: boolean) {
 
         if (!silent) {
             try {
-                const renderedContent = katex.renderToString(
+                state.push('html_inline', '', 0).content = katex.renderToString(
                     state.src.slice(contentStartPos, rightDelimiterPos),
                     {
                         throwOnError: true,
@@ -72,7 +73,6 @@ function markdownInlineMathRule(state: StateInline, silent: boolean) {
                         displayMode: isDisplay,
                     }
                 );
-                state.push('html_inline', '', 0).content = renderedContent;
             } catch (e) {
                 return false;
             }
@@ -87,8 +87,38 @@ markdownRenderer.inline.ruler.after('text', 'escaped_bracket', markdownInlineMat
 
 type ChatMessageType = "user" | "model";
 
+function showChatTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
+}
+
+function showActionsTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("browserActionsTab") as HTMLElement)?.show()
+}
+
+function showSettingsTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("settingsTab") as HTMLElement)?.show()
+}
+
+function populatePersonasList() {
+    const personas = ["one", "second", "trois"];
+    let currentPersona = "one";
+    const optionList = currentChatSettingsCard.querySelector("#llmPersonaSelect") as HTMLSelectElement;
+
+    personas.forEach((persona) => {
+        const option = document.createElement("option");
+        option.value = persona;
+        option.text = persona;
+        optionList.appendChild(option);
+        if (persona === currentPersona) {
+            option.selected = true;
+        }
+    });
+}
+
+populatePersonasList();
+
+
 function createMessageCard(messageType: ChatMessageType) {
-    const chatArea = document.querySelector('.a10fy-chat-area') as HTMLDivElement;
     const card = document.createElement('div');
     card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"}`;
     const regenerateButtonHTML = (
@@ -100,7 +130,11 @@ function createMessageCard(messageType: ChatMessageType) {
 ${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-pencil-square"></i></button>
 </div></div><div class="card-body"></div>`;
 
+    card.style.setProperty("opacity", "0");
+    card.style.setProperty("transition", "opacity 0.5s");
+    currentChatSettingsCard.style.setProperty("display", "none");
     chatArea.appendChild(card);
+    card.style.setProperty("opacity", "1");
     card.scrollIntoView({ behavior: 'smooth' });
     return card as HTMLDivElement;
 }
@@ -191,6 +225,7 @@ function playPython(code: string, outputElement: HTMLElement) {
     outputElement.style.setProperty("display", "");
     outputElement.innerHTML = '<div class="dot-pulse"></div><pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
     const codeResultElement = outputElement.querySelector("code") as HTMLElement;
+
     const sandbox = document.getElementById("sandbox") as HTMLIFrameElement;
     const requestId = (crypto.getRandomValues(new Uint32Array(1)).toString()).toString();
 
@@ -201,7 +236,7 @@ function playPython(code: string, outputElement: HTMLElement) {
         codeResultElement.textContent = result.result.stdout;
         if (result.isFinal) {
             window.removeEventListener("message", resultMessageHandler);
-            codeResultElement.querySelector(".dot-pulse")?.remove();
+            outputElement.querySelector(".dot-pulse")?.remove();
         }
     };
     window.addEventListener("message", resultMessageHandler);
@@ -347,16 +382,15 @@ function sendMessageToChat(chat: ChatSession){
 //     updateLlmMessage(llmMessageChange.newValue);
 // });
 
-function makeUserInputAreaAutoexpandable() {
-    const chatArea = document.querySelector('.a10fy-chat-area') as HTMLDivElement;
-    function updateInputArea() {
-        mainChatUserInputTextArea.style.setProperty("height", "auto");
-        const newHeight = Math.min(mainChatUserInputTextArea.scrollHeight, 183);
-        mainChatUserInputTextArea.style.setProperty("height", `${newHeight}px`);
-        mainChatUserInputTextArea.style.setProperty("overflow-y", mainChatUserInputTextArea.scrollHeight > 180 ? 'auto' : 'hidden');
-        chatArea.style.setProperty("height", `calc(100vh - ${73 + newHeight}px)`);
-    }
+function updateInputArea() {
+    mainChatUserInputTextArea.style.setProperty("height", "auto");
+    const newHeight = Math.min(mainChatUserInputTextArea.scrollHeight, 183);
+    mainChatUserInputTextArea.style.setProperty("height", `${newHeight}px`);
+    mainChatUserInputTextArea.style.setProperty("overflow-y", mainChatUserInputTextArea.scrollHeight > 180 ? 'auto' : 'hidden');
+    chatArea.style.setProperty("height", `calc(100vh - ${73 + newHeight}px)`);
+}
 
+function makeUserInputAreaAutoexpandable() {
     mainChatUserInputTextArea.addEventListener('input', updateInputArea);
     updateInputArea();
 }
@@ -407,46 +441,132 @@ function addAudioIcon() {
     iconsContainer.appendChild(iconContainer);
 }
 
-mainChatUserInputTextArea.onpaste = function (clipboardEvent) {
-    clipboardEvent.preventDefault();
+async function processItemsAddedToInputChat(transferredData: DataTransfer, processClipboard=true, detectOnly=false) {
+    if(processClipboard) {
+        const modalDialog = new Bootstrap.Modal(document.getElementById("pasteFormatChoiceModal") as HTMLDivElement);
+        modalDialog.show();
+    }
 
-    if(!clipboardEvent.clipboardData)
-        return;
+    const files = transferredData.files;
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image"));
+    const audioFiles = Array.from(files).filter((file) => file.type.startsWith("audio"));
+    if (audioFiles.length > 0) {
+        if(detectOnly)
+            return true;
+        for (let i = 0; i < audioFiles.length; i++) {
+            const file = audioFiles[i];
+            const reader = new FileReader();
+            reader.onload = function () {
+                if(reader.result)
+                    addAudioIcon();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
-    const files = clipboardEvent.clipboardData.files;
-    if (files.length > 0) {
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            if(file.type.startsWith('image')){
-                const reader = new FileReader();
-                reader.onload = function (loadEvent) {
-                    if(reader.result)
-                        addImageIcon(reader.result);
-                };
-                reader.readAsDataURL(file);
-            }
-            if(file.type.startsWith('audio')){
-                const reader = new FileReader();
-                reader.onload = function (loadEvent) {
-                    if(reader.result)
-                        addAudioIcon();
-                };
-                reader.readAsDataURL(file);
-            }
+    const items = processClipboard ? (await navigator.clipboard.read()) : [];
+
+    const richTextItems = items.filter((item) => item.types.includes("text/html"));
+    let clipboardText = "";
+
+    if (richTextItems.length > 0) {
+        if(detectOnly)
+            return true;
+        const text = await richTextItems[0].getType("text/html");
+        clipboardText = turndownService.turndown(await text.text());
+    }
+    else {
+        const plainTextItems = items.filter((item) => item.types.includes("text/plain"));
+        if (plainTextItems.length > 0) {
+            if(detectOnly)
+                return true;
+            const text = await plainTextItems[0].getType("text/plain");
+            clipboardText = await text.text();
+        }
+    }
+    if(clipboardText) {
+        if (mainChatUserInputTextArea.selectionStart || mainChatUserInputTextArea.selectionStart == 0) {
+            let startPos = mainChatUserInputTextArea.selectionStart;
+            let endPos = mainChatUserInputTextArea.selectionEnd;
+            mainChatUserInputTextArea.value = mainChatUserInputTextArea.value.substring(0, startPos)
+                + clipboardText
+                + mainChatUserInputTextArea.value.substring(endPos, mainChatUserInputTextArea.value.length);
+            updateInputArea();
+        } else {
+            mainChatUserInputTextArea.value += clipboardText;
+            updateInputArea();
         }
         return;
     }
 
-    const items = clipboardEvent.clipboardData.items;
-    Array.from(items).forEach((item) => {
-        if (item.kind === 'file') {
+    const imageItems = items.filter((item) => item.types.filter(type => type.startsWith("image")).length > 0);
+    if (imageItems.length > 0) {
+        if(detectOnly)
+            return true;
+        imageItems.forEach((item) => {
+            for (let type of item.types) {
+                if (type.startsWith('image')) {
+                    item.getType(type).then((blob) => {
+                        addImageIcon(URL.createObjectURL(blob));
+                    })
+                }
+            }
+        });
+    }
+    else {
+        imageFiles.forEach((file) => {
             const reader = new FileReader();
-            reader.onloadend = function (event) {
-                console.log(event.target?.result); // data url!
+            reader.onload = function () {
+                if(reader.result)
+                    addImageIcon(reader.result);
             };
-            const blob = item.getAsFile();
-            if (blob)
-                reader.readAsDataURL(blob);
-        }
-    })
-};
+            reader.readAsDataURL(file);
+        })
+    }
+    if(detectOnly)
+        return false;
+}
+
+mainChatUserInputTextArea.onpaste = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if(event.clipboardData)
+        processItemsAddedToInputChat(event.clipboardData).catch();
+}
+
+
+const inputArea = document.querySelector(".a10fy-input-area") as HTMLDivElement;
+
+inputArea.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    inputArea.classList.add("droppable");
+    inputArea.setAttribute("style", `
+    background-image: 
+        radial-gradient(circle at center center, #444cf755, #e5e5f755), 
+        repeating-radial-gradient(circle at center center, #444cf755, #444cf755, transparent 20px, transparent 10px);
+    background-blend-mode: multiply;
+    `);
+
+    if(event.dataTransfer)
+        processItemsAddedToInputChat(event.dataTransfer, false, true).then((isCompatibleData) => {
+            if (isCompatibleData) {
+                inputArea.classList.add("droppable")
+            }
+        });
+
+});
+
+inputArea.addEventListener("dragleave", (event) => {
+    event.preventDefault();
+    inputArea.classList.remove("droppable");
+    inputArea.setAttribute("style", "");
+});
+
+inputArea.addEventListener("drop", (event) => {
+    event.preventDefault();
+    inputArea.classList.remove("droppable");
+    inputArea.setAttribute("style", "");
+    if (event.dataTransfer)
+        processItemsAddedToInputChat(event.dataTransfer, false).catch();
+});
