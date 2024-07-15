@@ -89,22 +89,6 @@ markdownRenderer.inline.ruler.after('text', 'escaped_bracket', markdownInlineMat
 
 type ChatMessageType = "user" | "model";
 
-function showChatTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
-}
-
-function showChatListTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("chatListTab") as HTMLElement)?.show()
-}
-
-function showActionsTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("browserActionsTab") as HTMLElement)?.show()
-}
-
-function showSettingsTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("settingsTab") as HTMLElement)?.show()
-}
-
 function populatePersonasList() {
     const personas = ["one", "second", "trois"];
     let currentPersona = "one";
