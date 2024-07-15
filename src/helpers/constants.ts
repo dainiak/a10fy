@@ -137,9 +137,26 @@ interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
     viewportRect: DOMRect
 }
 
+interface LLMPersona {
+    id: string,
+    name: string,
+    description: string,
+    systemInstruction: string,
+    timestamp: string,
+    modelId: string | null,
+}
+
+interface LLMModel {
+    id: string,
+    name: string,
+    description: string,
+    code: string,
+    apiKey: string,
+}
 
 export {
     extensionActions, storageKeys, cssPrefix, cssPrefixFallbackSymbol, ActionRequest, UserRequest, ElementPropertiesResult, TabDocumentInfo,
     ExtensionMessageRequest, ExtensionMessageImageModificationRequest, RunInSandboxRequest, SandboxedTaskResult, ImageModificationResult, AudioRecordingResult, DocumentInfoResult,
-    PromptUserResult, ExecutePageActionRequest, PromptUserRequest, ElementPropertiesRequest, RegisterContextMenuEventRequest
+    PromptUserResult, ExecutePageActionRequest, PromptUserRequest, ElementPropertiesRequest, RegisterContextMenuEventRequest,
+    LLMPersona, LLMModel
 };

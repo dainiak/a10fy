@@ -9,7 +9,9 @@ import mermaid from "mermaid";
 import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
 import TurndownService from 'turndown';
 import * as Bootstrap from "bootstrap";
+import {initializeChatListTable} from "./helpers/sidePanel/chatList";
 
+initializeChatListTable();
 
 const turndownService = new TurndownService({
    headingStyle: 'atx',
@@ -89,6 +91,10 @@ type ChatMessageType = "user" | "model";
 
 function showChatTab() {
     Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
+}
+
+function showChatListTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("chatListTab") as HTMLElement)?.show()
 }
 
 function showActionsTab() {

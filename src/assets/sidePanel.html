@@ -6,6 +6,7 @@
     <title>Accessibilify</title>
     <style id="hljsStyle"></style>
     <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/datatables.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <link href="css/katex.css" rel="stylesheet">
     <script src="js/vega.js"></script>
@@ -74,13 +75,24 @@
                     </form>
                 </div>
             </div>
-            <div class="tab-pane fade" id="chatListPane" role="tabpanel" aria-labelledby="chatListTab">
-                Chat list
+            <div class="tab-pane fade container-lg" id="chatListPane" role="tabpanel" aria-labelledby="chatListTab">
+                <button aria-label="Create a new chat" class="btn btn-primary"><i class="bi bi-plus"></i> New chat</button>
+                <table id="chatListTable" class="table table-striped table-hover row-border order-column" style="width: 100%">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Topic</th>
+                            <th>LLM persona</th>
+                            <th>LLM model</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
-            <div class="tab-pane fade" id="browserActionsPane" role="tabpanel" aria-labelledby="browserActionsTab">
+            <div class="tab-pane fade container-lg" id="browserActionsPane" role="tabpanel" aria-labelledby="browserActionsTab">
                 <div id="llmMessageContainer">Content for Tab 2</div>
             </div>
-            <div class="tab-pane fade" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">
+            <div class="tab-pane fade container-lg" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">
                 Content for Tab 3
             </div>
         </div>
