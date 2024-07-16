@@ -1,5 +1,6 @@
 import mermaid from "mermaid";
 import {themeType} from "../sidePanel/htmlElements";
+import {uniqueString} from "../uniqueId";
 
 function playMermaid(code: string, outputElement: HTMLElement) {
     outputElement.className = "rounded-2 p-3 mb-0 hljs";
@@ -8,7 +9,7 @@ function playMermaid(code: string, outputElement: HTMLElement) {
     outputElement.innerHTML = "";
     const tempElement = document.createElement("div");
     outputElement.appendChild(tempElement);
-    tempElement.id = `mermaid-${(crypto.getRandomValues(new Uint32Array(1)).toString()).toString()}`;
+    tempElement.id = `mermaid-${uniqueString()}`;
     mermaid.initialize({
         startOnLoad: false,
         // suppressErrorRendering: true, – likely to be available in the next Mermaid version

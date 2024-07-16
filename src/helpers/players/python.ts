@@ -1,4 +1,5 @@
 import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "../constants";
+import {uniqueString} from "../uniqueId";
 
 function playPython(code: string, outputElement: HTMLElement) {
     outputElement.style.setProperty("display", "");
@@ -6,7 +7,7 @@ function playPython(code: string, outputElement: HTMLElement) {
     const codeResultElement = outputElement.querySelector("code") as HTMLElement;
 
     const sandbox = document.getElementById("sandbox") as HTMLIFrameElement;
-    const requestId = (crypto.getRandomValues(new Uint32Array(1)).toString()).toString();
+    const requestId = uniqueString();
 
     const resultMessageHandler = (event: MessageEvent) => {
         if(event.data.action !== extensionActions.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)

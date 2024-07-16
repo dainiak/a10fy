@@ -55,6 +55,7 @@
     "datatables.net-scroller-bs5": "^2.4.3",
     "datatables.net-searchpanes-bs5": "^2.3.0",
     "datatables.net-select-bs5": "^2.0.3",
+    "dexie": "^4.0.8",
     "highlight.js": "^11.9.0",
     "markdown-it": "^14.1.0",
     "mermaid": "^10.9.1",

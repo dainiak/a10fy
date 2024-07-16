@@ -1,31 +1,34 @@
 import DataTable from 'datatables.net-bs5';
 import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
-import * as Bootstrap from "bootstrap";
-
-const chatListTab = document.getElementById("chatListTab") as HTMLElement;
-
-function showChatTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
-}
-
-function showChatListTab() {
-    Bootstrap.Tab.getInstance(chatListTab)?.show()
-}
-
-function showActionsTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("browserActionsTab") as HTMLElement)?.show()
-}
-
-function showSettingsTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("settingsTab") as HTMLElement)?.show()
-}
+import {chatListTab} from './htmlElements';
+import {getChats} from "./chatStorage";
 
 
-function initializeChatListTable() {
+async function initializeChatListTable(openChatCallback: (chatId: string) => void, deleteChatCallback: (chatId: string) => void) {
     DataTable.ext.errMode = 'none';
     let scrollPos: number;
     let tableBody: HTMLDivElement;
+
+    const mockData = ([...Array(40).keys()]).map((i) => { return {
+        timestamp: `2022-01-01 12:${i + 10}:00`,
+        topic: `Some topic ${i}`,
+        persona: `Some persona ${i % 3}`,
+        model: `Some model ${i % 2}`,
+        id: 1985+i
+    }});
+
+    const chats = await getChats();
+    const data = chats.map((chat) => {
+        return {
+            timestamp: chat.timestamp,
+            topic: chat.topic,
+            persona: chat.persona,
+            model: chat.model,
+            id: chat.id
+        }
+    });
+
     const chatListTable = new DataTable('#chatListTable', {
         layout: {
             top: 'search',
@@ -81,23 +84,18 @@ function initializeChatListTable() {
                 render: (data, type, row) => `<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>`,
             }
         ],
-        data: ([...Array(40).keys()]).map((i) => { return {
-                timestamp: `2022-01-01 12:${i + 10}:00`,
-            topic: `Some topic ${i}`,
-            persona: `Some persona ${i % 3}`,
-            model: `Some model ${i % 2}`,
-            id: 1985+i
-        }})
+        data: data
     });
 
     chatListTable.on('click', 'button', function(e) {
         const button = (e.target as HTMLElement).closest('button') as HTMLButtonElement;
         if(button.classList.contains('open-chat-btn')) {
-            showChatTab()
+            openChatCallback(button.dataset.chatId as string);
         }
         else if(button.classList.contains('delete-chat-btn')) {
             const tr = button.closest('tr') as HTMLTableRowElement;
             chatListTable.row(tr).remove().draw();
+            deleteChatCallback(button.dataset.chatId as string);
         }
     });
 
@@ -113,7 +111,5 @@ function initializeChatListTable() {
 
     return chatListTable;
 }
-
-
 
 export {initializeChatListTable};

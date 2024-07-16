@@ -1,3 +1,5 @@
+import * as Bootstrap from "bootstrap";
+
 const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
 
 const chatPaneInputTextArea = document.querySelector('.a10fy-input-area textarea') as HTMLTextAreaElement;
@@ -5,6 +7,8 @@ const chatPaneChatArea = document.querySelector('.a10fy-chat-area') as HTMLDivEl
 const currentChatSettingsCard = document.getElementById("currentChatSettingsCard") as HTMLDivElement;
 const chatPaneInputArea = document.querySelector(".a10fy-input-area") as HTMLDivElement;
 const chatInputFormElement = document.querySelector('.a10fy-input-area form') as HTMLFormElement;
+const chatListTab = document.getElementById("chatListTab") as HTMLElement;
+
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 
 
@@ -21,5 +25,25 @@ function makeUserInputAreaAutoexpandable() {
     updateInputArea();
 }
 
+function showChatTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
+}
 
-export {chatPaneInputTextArea, chatPaneChatArea, currentChatSettingsCard, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputArea, makeUserInputAreaAutoexpandable};
+function showChatListTab() {
+    Bootstrap.Tab.getInstance(chatListTab)?.show()
+}
+
+function showActionsTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("browserActionsTab") as HTMLElement)?.show()
+}
+
+function showSettingsTab() {
+    Bootstrap.Tab.getInstance(document.getElementById("settingsTab") as HTMLElement)?.show()
+}
+
+
+export {
+    chatPaneInputTextArea, chatPaneChatArea, currentChatSettingsCard, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputArea, makeUserInputAreaAutoexpandable,
+    showSettingsTab, showActionsTab, showChatListTab, showChatTab, chatListTab
+
+};

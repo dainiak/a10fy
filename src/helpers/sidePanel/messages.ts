@@ -158,6 +158,24 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
     );
 }
 
+function addUserMessageCardToChatPane(message: string) {
+    const userMessageCard = createMessageCard("user");
+    const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
+    activateEditMessageTextButton(userMessageCard, message);
+
+    cardBody.innerHTML = markdownRenderer.render(message);
+    addBootstrapStyling(cardBody);
+}
+
+function addAssistantMessageCardToChatPane(message: string) {
+    const assistantMessageCard = createMessageCard("model");
+    const cardBody = assistantMessageCard.querySelector('.card-body') as HTMLElement;
+    cardBody.innerHTML = markdownRenderer.render(message);
+    addBootstrapStyling(cardBody);
+    addPlayers(cardBody);
+    activateEditMessageTextButton(assistantMessageCard, message);
+}
+
 function sendMessageToChat(chat: ChatSession){
     let message = chatPaneInputTextArea.value.trim();
     const userMessageCard = createMessageCard("user");
@@ -188,4 +206,4 @@ function sendMessageToChat(chat: ChatSession){
     });
 }
 
-export {sendMessageToChat};
+export {sendMessageToChat, addAssistantMessageCardToChatPane, addUserMessageCardToChatPane};
