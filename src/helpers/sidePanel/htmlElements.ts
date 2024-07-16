@@ -12,7 +12,7 @@ const chatListTab = document.getElementById("chatListTab") as HTMLElement;
 const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 
 
-function updateInputArea() {
+function updateInputAreaHeight() {
     chatPaneInputTextArea.style.setProperty("height", "auto");
     const newHeight = Math.min(chatPaneInputTextArea.scrollHeight, 183);
     chatPaneInputTextArea.style.setProperty("height", `${newHeight}px`);
@@ -21,8 +21,8 @@ function updateInputArea() {
 }
 
 function makeUserInputAreaAutoexpandable() {
-    chatPaneInputTextArea.addEventListener('input', updateInputArea);
-    updateInputArea();
+    chatPaneInputTextArea.addEventListener('input', updateInputAreaHeight);
+    updateInputAreaHeight();
 }
 
 function showChatTab() {
@@ -43,6 +43,6 @@ function showSettingsTab() {
 
 
 export {
-    chatPaneInputTextArea, chatPaneChatArea, currentChatSettingsCard, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputArea, makeUserInputAreaAutoexpandable,
+    chatPaneInputTextArea, chatPaneChatArea, currentChatSettingsCard, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputAreaHeight, makeUserInputAreaAutoexpandable,
     showSettingsTab, showActionsTab, showChatListTab, showChatTab, chatListTab
 };

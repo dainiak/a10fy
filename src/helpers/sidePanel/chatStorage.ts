@@ -1,26 +1,27 @@
 import {Dexie, type EntityTable} from 'dexie';
 import {uniqueString} from "../uniqueId";
 
-interface MessageAttachment {
+export interface MessageAttachment {
     id: string,
     data: string,
     type: "image" | "audio"
 }
 
-interface SerializedMessage {
+export interface SerializedMessage {
     id: string,
     type: "user" | "assistant",
     attachments: MessageAttachment[],
     content: string,
 }
 
-interface SerializedChat {
+export interface SerializedChat {
     id: string;
     timestamp: string;
     topic: string;
     persona: string;
     model: string;
     messages: SerializedMessage[];
+    draft: SerializedMessage & {type: "user"};
 }
 
 export const chatsDatabase = new Dexie('Chats') as Dexie & {
@@ -44,23 +45,38 @@ export function deleteChat(id: string) {
     return chatsDatabase.chats.delete(id);
 }
 
-export function addMessageToSerializedChat(chatId: string, message: SerializedMessage) {
-    return chatsDatabase.transaction('rw', chatsDatabase.chats, async () => {
-        const chat = await chatsDatabase.chats.get(chatId);
-        if(chat) {
-            chat.messages.push(message);
-            await chatsDatabase.chats.put(chat);
-        }
-    });
+export function saveUpdatedChat(chat: SerializedChat) {
+    return chatsDatabase.chats.put(chat);
 }
 
-export function createSerializedChat(topic: string, persona: string, model: string) {
-    return chatsDatabase.chats.add({
+export function getEmptyDraft() : SerializedMessage & {type: "user"} {
+    return {
+        id: uniqueString(),
+        type: "user",
+        attachments: [],
+        content: "",
+    }
+}
+
+export function getEmptyAssistantMessage() : SerializedMessage & {type: "assistant"} {
+    return {
+        id: uniqueString(),
+        type: "assistant",
+        attachments: [],
+        content: "",
+    }
+}
+
+export function createSerializedChat() {
+    const chat: SerializedChat = {
         id: uniqueString(),
         timestamp: new Date().toISOString(),
-        topic,
-        persona,
-        model,
+        topic: "",
+        persona: "",
+        model: "",
         messages: [],
-    });
+        draft: getEmptyDraft()
+    };
+    chatsDatabase.chats.add(chat);
+    return chat;
 }

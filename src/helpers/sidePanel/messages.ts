@@ -4,9 +4,13 @@ import {playVegaLite} from "../players/vegaLite";
 import {chatPaneChatArea, chatPaneInputTextArea, currentChatSettingsCard, themeType} from "./htmlElements";
 import {createCodeMirror, EditorView} from "../codeMirror";
 import {markdownRenderer} from "./markdown";
-import {ChatSession} from "@google/generative-ai";
+import {createSerializedChat, getEmptyAssistantMessage, getEmptyDraft, SerializedChat, saveUpdatedChat} from "./chatStorage";
+import {getGeminiTextModel} from "../geminiInterfacing";
+import {getInlineDataPart} from "../promptParts";
+
 
 type ChatMessageType = "user" | "assistant";
+let currentChat: SerializedChat | null = null;
 
 function addPlayers(messageCardTextElement: HTMLElement){
     const players = {
@@ -39,15 +43,16 @@ function addPlayers(messageCardTextElement: HTMLElement){
 }
 
 
-function createMessageCard(messageType: ChatMessageType) {
+function createMessageCard(messageType: ChatMessageType, messageId: string) {
     const card = document.createElement('div');
-    card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"}`;
+    card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"} chat-message-card`;
+    card.dataset.messageId = messageId;
     const regenerateButtonHTML = (
         messageType === "assistant"
             ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message" title="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>`
             : ""
     );
-    card.innerHTML = `<div class="card-header"><h6 class="card-title">${messageType === "user" ? "User" : "Model"}</h6><div class="header-buttons">
+    card.innerHTML = `<div class="card-header"><h6 class="card-title mb-0">${messageType === "user" ? "User" : "Model"}</h6><div class="header-buttons">
 ${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-message-text" aria-label="Edit message" title="Edit message"><i class="bi bi-pencil-square"></i></button>
 </div></div><div class="card-body"></div>`;
 
@@ -60,15 +65,22 @@ ${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-mess
     return card as HTMLDivElement;
 }
 
-function activateEditMessageTextButton(messageCard: HTMLElement, message: string) {
+function activateEditMessageTextButton(messageCard: HTMLElement, messageText: string, messageId: string) {
     const cardBodyElement = messageCard.querySelector('.card-body') as HTMLElement;
     let cmView: EditorView | null = null;
     const editButton = messageCard.querySelector('button.edit-message-text') as HTMLButtonElement;
     const saveMessage = (editorView: EditorView) => {
-        message = editorView.state.doc.toString();
+        messageText = editorView.state.doc.toString();
         editorView.destroy();
         cmView = null;
-        cardBodyElement.innerHTML = markdownRenderer.render(message);
+        if(currentChat) {
+            const messageToUpdate = currentChat.messages.find((message) => message.id === messageId);
+            if(messageToUpdate) {
+                messageToUpdate.content = messageText;
+                saveUpdatedChat(currentChat);
+            }
+        }
+        cardBodyElement.innerHTML = markdownRenderer.render(messageText);
         addBootstrapStyling(cardBodyElement);
         addPlayers(cardBodyElement);
         editButton.innerHTML = '<i class="bi bi-pencil-square"></i>';
@@ -80,7 +92,7 @@ function activateEditMessageTextButton(messageCard: HTMLElement, message: string
             return;
         }
         cardBodyElement.innerHTML = '';
-        cmView = createCodeMirror(cardBodyElement, message, saveMessage, themeType);
+        cmView = createCodeMirror(cardBodyElement, messageText, saveMessage, themeType);
         editButton.innerHTML = '<i class="bi bi-floppy"></i>';
     });
 }
@@ -158,44 +170,85 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
     );
 }
 
-function addMessageCardToChatPane(messageType: ChatMessageType, message: string) {
-    const userMessageCard = createMessageCard(messageType);
+function addMessageCardToChatPane(messageType: ChatMessageType, message: string, messageId: string) {
+    const userMessageCard = createMessageCard(messageType, messageId);
     const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
     cardBody.innerHTML = markdownRenderer.render(message);
 
     addBootstrapStyling(cardBody);
     addPlayers(cardBody);
-    activateEditMessageTextButton(userMessageCard, message);
+    activateEditMessageTextButton(userMessageCard, message, messageId);
 }
 
-function sendMessageToChat(chat: ChatSession){
-    let message = chatPaneInputTextArea.value.trim();
-    const userMessageCard = createMessageCard("user");
-    const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
-    activateEditMessageTextButton(userMessageCard, message);
+async function sendUserMessageToChat(){
+    if(!currentChat) {
+        currentChat = createSerializedChat();
+    }
+    let userMessage = chatPaneInputTextArea.value.trim();
+    const serializedUserMessage = currentChat.draft;
+    serializedUserMessage.content = userMessage;
 
-    cardBody.innerHTML = markdownRenderer.render(message);
+    const userMessageCard = createMessageCard("user", serializedUserMessage.id);
+    const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
+    activateEditMessageTextButton(userMessageCard, userMessage, serializedUserMessage.id);
+
+    cardBody.innerHTML = markdownRenderer.render(userMessage);
     addBootstrapStyling(cardBody);
+
+    currentChat.messages.push(serializedUserMessage);
+    currentChat.draft = getEmptyDraft();
+    currentChat.messages.push(getEmptyAssistantMessage());
+    const serializedAssistantMessage = currentChat.messages[currentChat.messages.length - 1];
+    await saveUpdatedChat(currentChat);
 
     chatPaneInputTextArea.value = '';
     chatPaneInputTextArea.dispatchEvent(new Event('input'));
-    const llmMessageCardElement = createMessageCard("assistant");
+    const llmMessageCardElement = createMessageCard("assistant", serializedAssistantMessage.id);
     const llmMessageCardTextElement = llmMessageCardElement.querySelector('.card-body') as HTMLElement;
     llmMessageCardTextElement.innerHTML = '<div class="card-text"><div class="dot-pulse"></div></div>';
 
-    chat.sendMessageStream(message).then(async (result) => {
+    const geminiHistory = currentChat.messages.map(
+        (message) => {
+            return {
+                role: message.type === "user" ? "user" : "model",
+                parts: [{text: message.content}, ...message.attachments.map((attachment) => getInlineDataPart(attachment.data))]
+            }
+        }
+    );
+
+    const chatModel = await getGeminiTextModel();
+    chatModel.generateContentStream({contents: geminiHistory}).then(async (result) => {
         let llmMessageText = "";
 
-        for await (const chunk of result.stream) {
-            const text = chunk.text();
-            llmMessageText += text;
-            llmMessageCardTextElement.innerHTML = markdownRenderer.render(llmMessageText);
+        try {
+            for await (const chunk of result.stream) {
+                const text = chunk.text();
+                llmMessageText += text;
+                llmMessageCardTextElement.innerHTML = markdownRenderer.render(llmMessageText);
+            }
         }
+        catch (error) {
+        }
+
+        serializedAssistantMessage.content = llmMessageText;
+        currentChat && await saveUpdatedChat(currentChat);
 
         addBootstrapStyling(llmMessageCardTextElement);
         addPlayers(llmMessageCardTextElement);
-        activateEditMessageTextButton(llmMessageCardElement, llmMessageText);
+        activateEditMessageTextButton(llmMessageCardElement, llmMessageText, serializedAssistantMessage.id);
     });
 }
 
-export {sendMessageToChat, addMessageCardToChatPane};
+function setCurrentChat(chat: SerializedChat) {
+    currentChat = chat;
+}
+
+function updateCurrentChatDraftContent() {
+    if(currentChat) {
+        currentChat.draft.content = chatPaneInputTextArea.value;
+        saveUpdatedChat(currentChat);
+    }
+}
+
+
+export {sendUserMessageToChat, addMessageCardToChatPane, setCurrentChat, updateCurrentChatDraftContent};

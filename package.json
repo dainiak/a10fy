@@ -59,6 +59,7 @@
     "highlight.js": "^11.9.0",
     "markdown-it": "^14.1.0",
     "mermaid": "^10.9.1",
+    "pako": "^2.1.0",
     "pyodide": "^0.26.1",
     "turndown": "^7.2.0"
   }

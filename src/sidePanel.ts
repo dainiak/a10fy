@@ -1,27 +1,23 @@
-import {getGeminiChat} from "./helpers/geminiInterfacing";
 import {initializeChatListTable} from "./helpers/sidePanel/chatList";
-import {addMessageCardToChatPane, sendMessageToChat} from "./helpers/sidePanel/messages";
-import {chatInputFormElement, makeUserInputAreaAutoexpandable, showChatTab} from "./helpers/sidePanel/htmlElements";
+import {
+    sendUserMessageToChat,
+    updateCurrentChatDraftContent
+} from "./helpers/sidePanel/messages";
+import {
+    chatInputFormElement,
+    chatPaneInputTextArea,
+    makeUserInputAreaAutoexpandable,
+    showChatTab
+} from "./helpers/sidePanel/htmlElements";
 import {setInputAreaAttachmentEventListeners} from "./helpers/sidePanel/attachments";
-import {populatePersonasList} from "./helpers/sidePanel/chatPane";
-import {chatsDatabase, deleteChat, getChat} from "./helpers/sidePanel/chatStorage";
+import {loadChatAsCurrent, populatePersonasList,} from "./helpers/sidePanel/chatPane";
+import {chatsDatabase, deleteChat, getChat, getEmptyDraft} from "./helpers/sidePanel/chatStorage";
 import {uniqueString} from "./helpers/uniqueId";
-
 
 
 async function loadChatToChatPane(chatId: string) {
     showChatTab();
-    const chat = await getChat(chatId);
-    if (chat) {
-        for (const message of chat.messages) {
-            if(message.type === "user") {
-                addMessageCardToChatPane("user", message.content);
-            }
-            else {
-                addMessageCardToChatPane("assistant", message.content);
-            }
-        }
-    }
+    await loadChatAsCurrent(chatId);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -31,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         topic: 'Some topic',
         persona: '',
         model: '',
+        draft: getEmptyDraft(),
         messages: [
             {
                 id: uniqueString(),
@@ -47,18 +44,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         ]
     });
 
-    const chat = await getGeminiChat();
-
     chatInputFormElement.addEventListener('submit', function(e) {
         e.preventDefault();
-        sendMessageToChat(chat);
+        sendUserMessageToChat();
         return false;
     })
 
     chatInputFormElement.addEventListener('keydown', (event) => {
         if(event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-            sendMessageToChat(chat);
+            sendUserMessageToChat();
         }
+    });
+
+    chatPaneInputTextArea.addEventListener("input", () => {
+        updateCurrentChatDraftContent();
     });
 
     initializeChatListTable(loadChatToChatPane, (chatId) => deleteChat(chatId)).catch();

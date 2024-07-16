@@ -8,8 +8,9 @@ import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/Pa
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 import {GOOGLE_API_KEY_TEMP} from "../_secrets";
-import {getOutputFormatDescription} from "./promptParts";
+import {getOutputFormatDescription, getInlineDataPart} from "./promptParts";
 import {getAssistantSystemPrompt, getChatSystemPrompt} from "./prompts";
+import {SerializedChat, SerializedMessage} from "./sidePanel/chatStorage";
 
 async function getJsonGeminiModel() {
     const outputDescription = getOutputFormatDescription();
@@ -101,15 +102,14 @@ async function getTextEmbedding(data: string | string[]) {
     }
 }
 
-async function getGeminiChat() {
+async function getGeminiTextModel() {
     // const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
     const GOOGLE_API_KEY = GOOGLE_API_KEY_TEMP;
-    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({
+
+    return (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({
         model: "gemini-1.5-flash-latest",
         systemInstruction: getChatSystemPrompt()
     });
-
-    return gemini.startChat();
 }
 
-export {asyncRequestAndParse, getTextEmbedding, getGeminiChat};
+export {asyncRequestAndParse, getTextEmbedding, getGeminiTextModel};

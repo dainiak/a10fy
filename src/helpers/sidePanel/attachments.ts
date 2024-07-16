@@ -1,6 +1,6 @@
 import * as Bootstrap from "bootstrap";
 import {turndownService} from "./markdown";
-import {chatPaneInputArea, chatPaneInputTextArea, updateInputArea} from "./htmlElements";
+import {chatPaneInputArea, chatPaneInputTextArea, updateInputAreaHeight} from "./htmlElements";
 
 
 function addImageIcon(src: any) {
@@ -73,10 +73,10 @@ async function processItemsAddedToInputChat(transferredData: DataTransfer, proce
             chatPaneInputTextArea.value = chatPaneInputTextArea.value.substring(0, startPos)
                 + clipboardText
                 + chatPaneInputTextArea.value.substring(endPos, chatPaneInputTextArea.value.length);
-            updateInputArea();
+            updateInputAreaHeight();
         } else {
             chatPaneInputTextArea.value += clipboardText;
-            updateInputArea();
+            updateInputAreaHeight();
         }
         return;
     }
