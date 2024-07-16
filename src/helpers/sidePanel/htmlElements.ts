@@ -45,5 +45,4 @@ function showSettingsTab() {
 export {
     chatPaneInputTextArea, chatPaneChatArea, currentChatSettingsCard, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputArea, makeUserInputAreaAutoexpandable,
     showSettingsTab, showActionsTab, showChatListTab, showChatTab, chatListTab
-
 };

@@ -6,7 +6,7 @@ import {createCodeMirror, EditorView} from "../codeMirror";
 import {markdownRenderer} from "./markdown";
 import {ChatSession} from "@google/generative-ai";
 
-type ChatMessageType = "user" | "model";
+type ChatMessageType = "user" | "assistant";
 
 function addPlayers(messageCardTextElement: HTMLElement){
     const players = {
@@ -43,12 +43,12 @@ function createMessageCard(messageType: ChatMessageType) {
     const card = document.createElement('div');
     card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"}`;
     const regenerateButtonHTML = (
-        messageType === "model"
-            ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>`
+        messageType === "assistant"
+            ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message" title="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>`
             : ""
     );
-    card.innerHTML = `<div class="card-header"><span>${messageType === "user" ? "User" : "Model"}</span><div class="header-buttons">
-${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-message-text"><i class="bi bi-pencil-square"></i></button>
+    card.innerHTML = `<div class="card-header"><h6 class="card-title">${messageType === "user" ? "User" : "Model"}</h6><div class="header-buttons">
+${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-message-text" aria-label="Edit message" title="Edit message"><i class="bi bi-pencil-square"></i></button>
 </div></div><div class="card-body"></div>`;
 
     card.style.setProperty("opacity", "0");
@@ -153,27 +153,19 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
 
     ["h1", "h2", "h3", "h4", "h5", "h6"].forEach((header) =>
         Array.from(messageCardTextElement.querySelectorAll(header)).forEach(
-            (element) => (element as HTMLTableElement).classList.add(header)
+            (element) => (element as HTMLTableElement).classList.add("card-title")
         )
     );
 }
 
-function addUserMessageCardToChatPane(message: string) {
-    const userMessageCard = createMessageCard("user");
+function addMessageCardToChatPane(messageType: ChatMessageType, message: string) {
+    const userMessageCard = createMessageCard(messageType);
     const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
-    activateEditMessageTextButton(userMessageCard, message);
-
     cardBody.innerHTML = markdownRenderer.render(message);
-    addBootstrapStyling(cardBody);
-}
 
-function addAssistantMessageCardToChatPane(message: string) {
-    const assistantMessageCard = createMessageCard("model");
-    const cardBody = assistantMessageCard.querySelector('.card-body') as HTMLElement;
-    cardBody.innerHTML = markdownRenderer.render(message);
     addBootstrapStyling(cardBody);
     addPlayers(cardBody);
-    activateEditMessageTextButton(assistantMessageCard, message);
+    activateEditMessageTextButton(userMessageCard, message);
 }
 
 function sendMessageToChat(chat: ChatSession){
@@ -187,7 +179,7 @@ function sendMessageToChat(chat: ChatSession){
 
     chatPaneInputTextArea.value = '';
     chatPaneInputTextArea.dispatchEvent(new Event('input'));
-    const llmMessageCardElement = createMessageCard("model");
+    const llmMessageCardElement = createMessageCard("assistant");
     const llmMessageCardTextElement = llmMessageCardElement.querySelector('.card-body') as HTMLElement;
     llmMessageCardTextElement.innerHTML = '<div class="card-text"><div class="dot-pulse"></div></div>';
 
@@ -206,4 +198,4 @@ function sendMessageToChat(chat: ChatSession){
     });
 }
 
-export {sendMessageToChat, addAssistantMessageCardToChatPane, addUserMessageCardToChatPane};
+export {sendMessageToChat, addMessageCardToChatPane};

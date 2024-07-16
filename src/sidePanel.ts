@@ -1,10 +1,6 @@
 import {getGeminiChat} from "./helpers/geminiInterfacing";
 import {initializeChatListTable} from "./helpers/sidePanel/chatList";
-import {
-    addAssistantMessageCardToChatPane,
-    addUserMessageCardToChatPane,
-    sendMessageToChat
-} from "./helpers/sidePanel/messages";
+import {addMessageCardToChatPane, sendMessageToChat} from "./helpers/sidePanel/messages";
 import {chatInputFormElement, makeUserInputAreaAutoexpandable, showChatTab} from "./helpers/sidePanel/htmlElements";
 import {setInputAreaAttachmentEventListeners} from "./helpers/sidePanel/attachments";
 import {populatePersonasList} from "./helpers/sidePanel/chatPane";
@@ -19,10 +15,10 @@ async function loadChatToChatPane(chatId: string) {
     if (chat) {
         for (const message of chat.messages) {
             if(message.type === "user") {
-                addUserMessageCardToChatPane(message.content);
+                addMessageCardToChatPane("user", message.content);
             }
             else {
-                addAssistantMessageCardToChatPane(message.content);
+                addMessageCardToChatPane("assistant", message.content);
             }
         }
     }
