@@ -3,13 +3,14 @@ import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
 import * as Bootstrap from "bootstrap";
 
+const chatListTab = document.getElementById("chatListTab") as HTMLElement;
 
 function showChatTab() {
     Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
 }
 
 function showChatListTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("chatListTab") as HTMLElement)?.show()
+    Bootstrap.Tab.getInstance(chatListTab)?.show()
 }
 
 function showActionsTab() {
@@ -27,7 +28,7 @@ function initializeChatListTable() {
     let tableBody: HTMLDivElement;
     const chatListTable = new DataTable('#chatListTable', {
         layout: {
-            top1: 'search',
+            top: 'search',
             topStart: null,
             topEnd: null,
             bottom: null,
@@ -47,6 +48,12 @@ function initializeChatListTable() {
         scrollX: false,
         scrollY: 'calc(100vh - 250px)',
         scrollCollapse: true,
+        language: {
+            search: '<i class="bi bi-search"></i>',
+            searchPlaceholder: "start typing here…",
+            emptyTable: "No chats available",
+            zeroRecords: "No matching chats found",
+        },
         preDrawCallback: () => {
             tableBody ||= document.querySelector("#chatListPane .dt-scroll-body") as HTMLDivElement;
             scrollPos = tableBody.scrollTop;
@@ -94,19 +101,14 @@ function initializeChatListTable() {
         }
     });
 
-    // @ts-ignore
-    document.querySelector('#chatListTab').addEventListener('shown.bs.tab', function (event) {
-        chatListTable.draw();
-    });
+    chatListTab.addEventListener('shown.bs.tab', () => chatListTable.draw());
 
     const searchControl = document.querySelector("#chatListPane div.dt-search") as HTMLDivElement;
     const searchLabel = document.querySelector("#chatListPane div.dt-search label") as HTMLLabelElement;
     const searchField = document.querySelector("#chatListPane div.dt-search input") as HTMLInputElement;
     searchControl.classList.add("input-group");
     searchLabel.classList.add("input-group-text");
-    searchLabel.innerHTML = '<i class="bi bi-search"></i>';
     searchField.classList.remove("form-control-sm");
-    searchField.placeholder = "start typing here…";
     searchField.ariaLabel = "Search chats";
 
     return chatListTable;
