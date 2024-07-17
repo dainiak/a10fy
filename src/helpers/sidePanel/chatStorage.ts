@@ -1,6 +1,22 @@
 import {Dexie, type EntityTable} from 'dexie';
 import {uniqueString} from "../uniqueId";
 
+export interface SerializedPersona {
+    id: string,
+    name: string,
+    description: string,
+    defaultModel: string,
+    systemInstruction: string,
+    safetySettings: object
+}
+
+export interface SerializedModel {
+    id: string,
+    name: string,
+    description: string,
+    apiKey: string,
+}
+
 export interface MessageAttachment {
     id: string,
     data: string,
@@ -9,7 +25,7 @@ export interface MessageAttachment {
 
 export interface SerializedMessage {
     id: string,
-    type: "user" | "assistant",
+    type: "user" | "model",
     attachments: MessageAttachment[],
     content: string,
 }
@@ -24,29 +40,30 @@ export interface SerializedChat {
     draft: SerializedMessage & {type: "user"};
 }
 
-export const chatsDatabase = new Dexie('Chats') as Dexie & {
+export const a10fyDatabase = new Dexie('Chats') as Dexie & {
     chats: EntityTable<SerializedChat, 'id'>;
 };
 
-chatsDatabase.version(1).stores({
+a10fyDatabase.version(1).stores({
     chats: 'id',
 });
 
 
 export function getChats() {
-    return chatsDatabase.chats.toArray();
+    return a10fyDatabase.chats.toArray();
 }
 
 export async function getChat(id: string) {
-    return chatsDatabase.chats.get(id);
+    return a10fyDatabase.chats.get(id);
 }
 
 export function deleteChat(id: string) {
-    return chatsDatabase.chats.delete(id);
+    return a10fyDatabase.chats.delete(id);
 }
 
 export function saveUpdatedChat(chat: SerializedChat) {
-    return chatsDatabase.chats.put(chat);
+    if(chat.messages.length)
+        return a10fyDatabase.chats.put(chat);
 }
 
 export function getEmptyDraft() : SerializedMessage & {type: "user"} {
@@ -58,10 +75,10 @@ export function getEmptyDraft() : SerializedMessage & {type: "user"} {
     }
 }
 
-export function getEmptyAssistantMessage() : SerializedMessage & {type: "assistant"} {
+export function getEmptyAssistantMessage() : SerializedMessage & {type: "model"} {
     return {
         id: uniqueString(),
-        type: "assistant",
+        type: "model",
         attachments: [],
         content: "",
     }
@@ -77,6 +94,6 @@ export function createSerializedChat() {
         messages: [],
         draft: getEmptyDraft()
     };
-    chatsDatabase.chats.add(chat);
+    a10fyDatabase.chats.add(chat);
     return chat;
 }

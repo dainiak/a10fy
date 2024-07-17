@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
@@ -40,30 +40,22 @@
     <div class="sidebar d-flex flex-column">
         <ul class="nav nav-tabs" id="mainTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="chatTab" data-bs-toggle="tab" data-bs-target="#chatPane" type="button" role="tab" aria-controls="chat" aria-selected="true"><i class="bi bi-chat-text"></i></button>
+                <button class="nav-link active" id="chatTab" data-bs-toggle="tab" data-bs-target="#chatPane" type="button" role="tab" aria-controls="chatPane" aria-selected="true"><i class="bi bi-chat-text"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="chatListTab" data-bs-toggle="tab" data-bs-target="#chatListPane" type="button" role="tab" aria-controls="chat" aria-selected="false"><i class="bi bi-stack"></i></button>
+                <button class="nav-link" id="chatListTab" data-bs-toggle="tab" data-bs-target="#chatListPane" type="button" role="tab" aria-controls="chatListPane" aria-selected="false"><i class="bi bi-stack"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="browserActionsTab" data-bs-toggle="tab" data-bs-target="#browserActionsPane" type="button" role="tab" aria-controls="tab2" aria-selected="false"><i class="bi bi-magic"></i></button>
+                <button class="nav-link" id="browserActionsTab" data-bs-toggle="tab" data-bs-target="#browserActionsPane" type="button" role="tab" aria-controls="browserActionsPane" aria-selected="false"><i class="bi bi-magic"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settingsTab" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="tab3" aria-selected="false"><i class="bi bi-sliders"></i></button>
+                <button class="nav-link" id="settingsTab" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="settingsPane" aria-selected="false"><i class="bi bi-sliders"></i></button>
             </li>
         </ul>
         <div class="tab-content" id="mainTabsContent">
             <div class="tab-pane fade show active" id="chatPane" role="tabpanel" aria-labelledby="chatTab">
                 <div class="a10fy-chat-area p-3">
-                    <div class="card mb-3" id="currentChatSettingsCard">
-                        <div class="card-header"><h6 class="card-title">LLM settings for the current chat</h6></div>
-                        <div class="card-body">
-                            <label class="h6" for="llmPersonaSelect">LLM persona</label>
-                            <select id="llmPersonaSelect" class="form-select" aria-label="LLM persona for the current chat"></select>
-                            <label class="h6 mt-3" for="llmModelSelect">LLM model</label>
-                            <select id="llmModelSelect" class="form-select" aria-label="LLM model for the current chat"></select>
-                        </div>
-                    </div>
+
                 </div>
                 <div class="a10fy-input-area p-3 border-top">
                     <div class="a10fy-input-area-icons"></div>
@@ -76,7 +68,7 @@
                 </div>
             </div>
             <div class="tab-pane fade container-lg" id="chatListPane" role="tabpanel" aria-labelledby="chatListTab">
-                <button aria-label="Create a new chat" class="btn btn-primary my-3 px-2"><i class="bi bi-plus-square-fill"></i> New chat</button>
+                <button aria-label="Create a new chat" class="btn btn-primary my-3 px-2" id="newChatButton"><i class="bi bi-plus-square-fill"></i> New chat</button>
                 <table id="chatListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                     <thead>
                         <tr>

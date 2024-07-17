@@ -1,26 +1,57 @@
 import {
     chatPaneChatArea,
     chatPaneInputTextArea,
-    currentChatSettingsCard,
     makeUserInputAreaAutoexpandable
 } from './htmlElements';
-import {addMessageCardToChatPane, setCurrentChat} from "./messages";
-import {getChat} from "./chatStorage";
+import {addMessageCardToChatPane, setCurrentChat, updateCurrentChatSettings} from "./messages";
+import {getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
+import {uniqueString} from "../uniqueId";
 
 
-function populatePersonasList() {
-    const personas = ["one", "second", "trois"];
-    let currentPersona = "one";
-    const optionList = currentChatSettingsCard.querySelector("#llmPersonaSelect") as HTMLSelectElement;
+function setupChatSettingsCard(currentChat: SerializedChat) {
+    chatPaneChatArea.innerHTML = "";
+    chatPaneChatArea.innerHTML = `
+        <div class="card mb-3" id="currentChatSettingsCard">
+            <div class="card-header"><h6 class="card-title mb-0">Settings for the current chat</h6></div>
+            <div class="card-body">
+                <label class="h6" for="llmPersonaSelect">LLM persona</label>
+                <select id="llmPersonaSelect" class="form-select" aria-label="LLM persona for the current chat"></select>
+                <label class="h6 mt-3" for="llmModelSelect">LLM model</label>
+                <select id="llmModelSelect" class="form-select" aria-label="LLM model for the current chat"></select>
+            </div>
+        </div>`
+    const currentChatSettingsCard = chatPaneChatArea.querySelector('#currentChatSettingsCard') as HTMLDivElement;
+
+    const personas = [{name: "one", id: "1"}, {name: "two", id: "2"}, {name: "three", id: "3"}];
+    const personaList = currentChatSettingsCard.querySelector("#llmPersonaSelect") as HTMLSelectElement;
 
     personas.forEach((persona) => {
         const option = document.createElement("option");
-        option.value = persona;
-        option.text = persona;
-        optionList.appendChild(option);
-        if (persona === currentPersona) {
+        option.value = persona.id;
+        option.text = persona.name;
+        personaList.appendChild(option);
+        if (persona.id === currentChat.persona) {
             option.selected = true;
         }
+    });
+
+    personaList.addEventListener("change", () => {
+        updateCurrentChatSettings({persona: personaList.value});
+    });
+
+    const models = [{name: "one", id: "1"}, {name: "two", id: "2"}, {name: "three", id: "3"}];
+    const modelList = currentChatSettingsCard.querySelector("#llmModelSelect") as HTMLSelectElement;
+    models.forEach((model) => {
+        const option = document.createElement("option");
+        option.value = model.id;
+        option.text = model.name;
+        modelList.appendChild(option);
+        if (model.id === currentChat.model) {
+            option.selected = true;
+        }
+    });
+    modelList.addEventListener("change", () => {
+        updateCurrentChatSettings({model: modelList.value});
     });
 }
 
@@ -30,21 +61,29 @@ async function loadChatAsCurrent(chatId: string) {
     if (chat) {
         setCurrentChat(chat);
         chatPaneChatArea.innerHTML = "";
+        setupChatSettingsCard(chat);
 
         for (const message of chat.messages) {
-            addMessageCardToChatPane(message.type === "user" ? "user" : "assistant", message.content, message.id);
+            addMessageCardToChatPane(message.type === "user" ? "user" : "model", message.content, message.id);
         }
         chatPaneInputTextArea.value = chat.draft.content;
     }
-
 }
 
-export {populatePersonasList, loadChatAsCurrent};
+function startNewChat() {
+    const newChat = {
+        id: uniqueString(),
+        timestamp: "",
+        topic: "",
+        persona: "",
+        model: "",
+        messages: [],
+        draft: getEmptyDraft()
+    };
+    setCurrentChat(newChat);
+    chatPaneChatArea.innerHTML = "";
+    setupChatSettingsCard(newChat);
+    chatPaneInputTextArea.value = "";
+}
 
-
-
-
-
-
-
-export {makeUserInputAreaAutoexpandable};
+export {setupChatSettingsCard, loadChatAsCurrent, startNewChat, makeUserInputAreaAutoexpandable};

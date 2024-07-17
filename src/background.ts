@@ -18,7 +18,6 @@ import {llmGlobalActions} from "./helpers/llmGlobalActions";
 import {llmPageActions} from "./helpers/llmPageActions";
 import {GenerateContentRequest, Part} from "@google/generative-ai";
 
-
 setupOffscreenDocument().catch();
 
 async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: UserRequest, tab: chrome.tabs.Tab) {
@@ -151,12 +150,12 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason.search(/install/g) === -1)
-        return;
-    await chrome.tabs.create({
-        url: chrome.runtime.getURL("settings.html"),
-        active: true
-    })
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+        await chrome.tabs.create({
+            url: chrome.runtime.getURL("settings.html"),
+            active: true
+        })
+    }
 });
 
 chrome.contextMenus.create({

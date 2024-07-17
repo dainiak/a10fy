@@ -10,14 +10,6 @@ async function initializeChatListTable(openChatCallback: (chatId: string) => voi
     let scrollPos: number;
     let tableBody: HTMLDivElement;
 
-    const mockData = ([...Array(40).keys()]).map((i) => { return {
-        timestamp: `2022-01-01 12:${i + 10}:00`,
-        topic: `Some topic ${i}`,
-        persona: `Some persona ${i % 3}`,
-        model: `Some model ${i % 2}`,
-        id: 1985+i
-    }});
-
     const chats = await getChats();
     const data = chats.map((chat) => {
         return {

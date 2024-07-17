@@ -2,42 +2,296 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/datatables.css" rel="stylesheet">
+    <link href="css/bootstrap-icons.css" rel="stylesheet">
+
     <title>A10fy Welcome Screen</title>
 </head>
 <body>
-<h3>Let&apos;s set up the extension!</h3>
-<ol>
-    <li>Please <a id="allowToUseMicrophone" href="#">allow the extension to use your microphone</a> to be able to dictate requests. You will only have to do it once.</li>
-    <li>Input your <label for="googleApiKey">Google Gemini API key:</label> <input id="googleApiKey" type="text"></li>
-</ol>
+<div id="editModelModal" class="modal" tabindex="-1">
+    <div class="modal-dialog" style="position: fixed; bottom: 0; left: 0; right: 0;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit persona</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="modelName" placeholder="Name">
+                        <label for="modelName" class="form-label">Name</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="modelDescription" placeholder="Description">
+                        <label for="modelDescription" class="form-label">Description</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="password" class="form-control" id="modelApiKey" placeholder="API Key">
+                        <label for="modelApiKey" class="form-label">API Key</label>
+                    </div>
+                    <h5 class="card-title mt-5 mb-2">Safety Settings</h5>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="modelSafetyDangerousContent">
+                            <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
+                            <option value="BLOCK_NONE">Lowest</option>
+                            <option value="BLOCK_ONLY_HIGH">Low</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                        </select>
+                        <label for="modelSafetyDangerousContent" class="form-label">Dangerous content blocker sensitivity</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="modelSafetyHateSpeech">
+                            <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
+                            <option value="BLOCK_NONE">Lowest</option>
+                            <option value="BLOCK_ONLY_HIGH">Low</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                        </select>
+                        <label for="modelSafetyHateSpeech" class="form-label">Hate speech content blocker sensitivity</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="modelSafetyHarassment">
+                            <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
+                            <option value="BLOCK_NONE">Lowest</option>
+                            <option value="BLOCK_ONLY_HIGH">Low</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                        </select>
+                        <label for="modelSafetyHarassment" class="form-label">Harassment content blocker sensitivity</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="modelSafetySexuallyExplicit">
+                            <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
+                            <option value="BLOCK_NONE">Lowest</option>
+                            <option value="BLOCK_ONLY_HIGH">Low</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                        </select>
+                        <label for="modelSafetySexuallyExplicit" class="form-label">Sexually explicit content blocker sensitivity</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editPersonaModal" class="modal" tabindex="-1">
+    <div class="modal-dialog" style="position: fixed; bottom: 0; left: 0; right: 0;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit persona</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="personaName">
+                        <label for="personaName" class="form-label">Name</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="personaDescription">
+                        <label for="personaDescription" class="form-label">Description</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="personaModel"></select>
+                        <label for="personaModel" class="form-label">Model</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <textarea class="form-control" id="personaSystemInstruction"></textarea>
+                        <label for="personaSystemInstruction" class="form-label">System instruction</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="editMenuItemModal" class="modal" tabindex="-1">
+    <div class="modal-dialog" style="position: fixed; bottom: 0; left: 0; right: 0;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit context menu item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="text-align: left;">
+                <form>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="menuItemName">
+                        <label for="menuItemName" class="form-label">Name</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="menuItemPath">
+                        <label for="menuItemPath" class="form-label">Path in menu</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="menuItemDescription">
+                        <label for="menuItemDescription" class="form-label">Description</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="editCodePlayerModal" class="modal">
+    <div class="modal-dialog" style="position: fixed; bottom: 0; left: 0; right: 0;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit code player</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="text-align: left;">
+                <form>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="codePlayerName">
+                        <label for="codePlayerName" class="form-label">Name</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="codePlayerLanguageTags">
+                        <label for="codePlayerLanguageTags" class="form-label">Language tags</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="codePlayerDescription">
+                        <label for="codePlayerDescription" class="form-label">Description</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <textarea class="form-control" id="codePlayerCode"></textarea>
+                        <label for="codePlayerCode" class="form-label">Code</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 
-<h3>TTS Preferences</h3>
-Default rate:
-Preferred voices: lang <-> preferred voice
+<div class="container-fluid d-flex flex-column">
+    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="setupTab" data-bs-toggle="tab" data-bs-target="#setupPane" type="button" role="tab" aria-controls="setupPane" aria-selected="true"><i class="bi bi-gift"></i> Quick Setup</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="settingsTab" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="settingsPane" aria-selected="false"><i class="bi bi-tools"></i> Settings</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="aboutTab" data-bs-toggle="tab" data-bs-target="#aboutPane" type="button" role="tab" aria-controls="aboutPane" aria-selected="false"><i class="bi bi-info-circle"></i> About</button>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="setupPane" role="tabpanel" aria-labelledby="setupTab">
+            <div class="card my-4">
+                <div class="card-header">
+                    <h5 class="card-title">Let’s set up the extension!</h5>
+                </div>
+                <div class="card-body">
+                    <div class="h6 mb-2 card-title">Input the default Gemini API key</div>
+                    <div class="mb-3 form-floating"><input class="form-control" id="googleApiKey" type="password" placeholder="API key"><label for="googleApiKey">Google Gemini API key</label></div>
+                    <div class="h6 mt-3 mb-2 card-title">Permissions</div>
+                    <div class="card-text">
+                        Please <a id="allowToUseMicrophone" href="#">allow the extension to use your microphone</a> to be able to dictate requests. You will only have to do it once.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade container-lg" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title"><i class="bi bi-robot"></i> Models</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newModelButton"><i class="bi bi-plus-square-fill"></i> Add model</button>
+                    <table id="modelListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>API key</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title"><i class="bi bi-people"></i> Personas</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
+                    <table id="personaListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>System instruction</th>
+                            <th>Model</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title"><i class="bi bi-menu-app"></i> Context menu items</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add a context menu item" class="btn btn-outline-primary my-3 px-2" id="newMenuItem"><i class="bi bi-plus-square-fill"></i> Add item</button>
+                    <table id="menuItemsListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Path in menu</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title"><i class="bi bi-play"></i> Custom code players</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> Add code player</button>
+                    <table id="codePlayerListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Language tags</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title"><i class="bi bi-volume-up"></i> TTS Voices</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add a TTS voice preference" class="btn btn-outline-primary my-3 px-2" id="newVoiceButton"><i class="bi bi-plus-square-fill"></i> Add voice preference</button>
+                    <table id="voiceListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Language</th>
+                            <th>Voice</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade container-lg" id="aboutPane" role="tabpanel" aria-labelledby="aboutTab">
+            Content for Tab 3
+        </div>
+    </div>
+</div>
 
 
 
-<h3>Custom Prompts</h3>
-<table>
-    <thead>
-        <tr>
-            <th>Command</th>
-            <th>Prompt</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody id="customPrompts">
-        <tr>
-            <td><input type="text" class="customPromptsCommand"></td>
-            <td><input type="text" class="customPromptsPrompt"></td>
-            <td><button class="delete">Delete</button></td>
-        </tr>
-    </tbody>
-</table>
-
-
-
+<script src="js/bootstrap.js"></script>
 <script src="js/settings.js"></script>
 </body>
 </html>

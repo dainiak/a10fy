@@ -7,12 +7,12 @@ import {
     chatInputFormElement,
     chatPaneInputTextArea,
     makeUserInputAreaAutoexpandable,
-    showChatTab
+    showChatTab,
+    themeType
 } from "./helpers/sidePanel/htmlElements";
 import {setInputAreaAttachmentEventListeners} from "./helpers/sidePanel/attachments";
-import {loadChatAsCurrent, populatePersonasList,} from "./helpers/sidePanel/chatPane";
-import {chatsDatabase, deleteChat, getChat, getEmptyDraft} from "./helpers/sidePanel/chatStorage";
-import {uniqueString} from "./helpers/uniqueId";
+import {loadChatAsCurrent, startNewChat,} from "./helpers/sidePanel/chatPane";
+import {deleteChat} from "./helpers/sidePanel/chatStorage";
 
 
 async function loadChatToChatPane(chatId: string) {
@@ -21,28 +21,29 @@ async function loadChatToChatPane(chatId: string) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await chatsDatabase.chats.add({
-        id: uniqueString(),
-        timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
-        topic: 'Some topic',
-        persona: '',
-        model: '',
-        draft: getEmptyDraft(),
-        messages: [
-            {
-                id: uniqueString(),
-                type: 'user',
-                attachments: [],
-                content: 'Hello!',
-            },
-            {
-                id: uniqueString(),
-                type: 'assistant',
-                attachments: [],
-                content: 'Hi there!',
-            }
-        ]
-    });
+    document.body.setAttribute("data-bs-theme", themeType);
+    // await a10fyDatabase.chats.add({
+    //     id: uniqueString(),
+    //     timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
+    //     topic: 'Some topic',
+    //     persona: '',
+    //     model: '',
+    //     draft: getEmptyDraft(),
+    //     messages: [
+    //         {
+    //             id: uniqueString(),
+    //             type: 'user',
+    //             attachments: [],
+    //             content: 'Hello!',
+    //         },
+    //         {
+    //             id: uniqueString(),
+    //             type: 'model',
+    //             attachments: [],
+    //             content: 'Hi there!',
+    //         }
+    //     ]
+    // });
 
     chatInputFormElement.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -60,8 +61,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateCurrentChatDraftContent();
     });
 
+    (document.getElementById("newChatButton") as HTMLButtonElement).addEventListener("click", async () => {
+        startNewChat();
+        showChatTab();
+    });
+
     initializeChatListTable(loadChatToChatPane, (chatId) => deleteChat(chatId)).catch();
-    populatePersonasList();
     makeUserInputAreaAutoexpandable();
     setInputAreaAttachmentEventListeners();
 });

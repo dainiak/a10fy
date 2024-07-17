@@ -4,7 +4,6 @@ const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: 
 
 const chatPaneInputTextArea = document.querySelector('.a10fy-input-area textarea') as HTMLTextAreaElement;
 const chatPaneChatArea = document.querySelector('.a10fy-chat-area') as HTMLDivElement;
-const currentChatSettingsCard = document.getElementById("currentChatSettingsCard") as HTMLDivElement;
 const chatPaneInputArea = document.querySelector(".a10fy-input-area") as HTMLDivElement;
 const chatInputFormElement = document.querySelector('.a10fy-input-area form') as HTMLFormElement;
 const chatListTab = document.getElementById("chatListTab") as HTMLElement;
@@ -43,6 +42,6 @@ function showSettingsTab() {
 
 
 export {
-    chatPaneInputTextArea, chatPaneChatArea, currentChatSettingsCard, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputAreaHeight, makeUserInputAreaAutoexpandable,
+    chatPaneInputTextArea, chatPaneChatArea, chatPaneInputArea, chatInputFormElement, hljsStyle, themeType, updateInputAreaHeight, makeUserInputAreaAutoexpandable,
     showSettingsTab, showActionsTab, showChatListTab, showChatTab, chatListTab
 };

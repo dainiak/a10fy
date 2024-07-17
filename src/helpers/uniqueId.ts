@@ -1,5 +1,6 @@
 export function uniqueString() {
-    return Array.from(crypto.getRandomValues(new Uint32Array(2))).map(x => x.toString(36)).join('');
+    let s = Array.from(crypto.getRandomValues(new Uint32Array(2))).map(x => x.toString(36)).join('').slice(0, 10);
+    return s + '0000000000'.slice(0, 10 - s.length);
 }
 
 export function uniqueInteger() {
