@@ -8,15 +8,12 @@ import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/Pa
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 import {GOOGLE_API_KEY_TEMP} from "../_secrets";
-import {getOutputFormatDescription, getInlineDataPart} from "./promptParts";
-import {getAssistantSystemPrompt, getChatSystemPrompt} from "./prompts";
-import {SerializedChat, SerializedMessage} from "./sidePanel/chatStorage";
+import {getAssistantSystemPrompt, getDefaultChatSystemPrompt} from "./prompts";
 
 async function getJsonGeminiModel() {
-    const outputDescription = getOutputFormatDescription();
     const systemInstruction = getAssistantSystemPrompt();
 
-    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
+    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.mainGoogleApiKey]))[storageKeys.mainGoogleApiKey];
     const generationConfig = {
         temperature: 0,
         // topP: 0.95,
@@ -86,7 +83,7 @@ async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPat
 }
 
 async function getTextEmbedding(data: string | string[]) {
-    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
+    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.mainGoogleApiKey]))[storageKeys.mainGoogleApiKey];
     const geminiEmbed = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({model: "text-embedding-004"});
     if (data instanceof String) {
         const embedding = await geminiEmbed.embedContent(data);
@@ -108,7 +105,7 @@ async function getGeminiTextModel() {
 
     return (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({
         model: "gemini-1.5-flash-latest",
-        systemInstruction: getChatSystemPrompt()
+        systemInstruction: getDefaultChatSystemPrompt()
     });
 }
 

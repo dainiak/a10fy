@@ -4,12 +4,18 @@ import {playVegaLite} from "../players/vegaLite";
 import {chatPaneChatArea, chatPaneInputTextArea, themeType} from "./htmlElements";
 import {createCodeMirror, EditorView} from "../codeMirror";
 import {markdownRenderer} from "./markdown";
-import {createSerializedChat, getEmptyAssistantMessage, getEmptyDraft, SerializedChat, saveUpdatedChat} from "./chatStorage";
+import {
+    ChatMessageTypes,
+    createSerializedChat,
+    getEmptyAssistantMessage,
+    getEmptyDraft,
+    saveUpdatedChat,
+    SerializedChat
+} from "./chatStorage";
 import {getGeminiTextModel} from "../geminiInterfacing";
 import {getInlineDataPart} from "../promptParts";
 
 
-type ChatMessageType = "user" | "model";
 let currentChat: SerializedChat | null = null;
 
 function addPlayers(messageCardTextElement: HTMLElement){
@@ -42,13 +48,12 @@ function addPlayers(messageCardTextElement: HTMLElement){
     }
 }
 
-
-function createMessageCard(messageType: ChatMessageType, messageId: string) {
+function createMessageCard(messageType: ChatMessageTypes, messageId: string) {
     const card = document.createElement('div');
-    card.className = `card mb-3 message-${messageType === "user" ? "user" : "model"} chat-message-card`;
+    card.className = `card mb-3 message-${messageType === ChatMessageTypes.USER ? "user" : "model"} chat-message-card`;
     card.dataset.messageId = messageId;
     const regenerateButtonHTML = (
-        messageType === "model"
+        messageType === ChatMessageTypes.MODEL
             ? `<button class="btn btn-sm btn-outline-secondary regenerate-message" aria-label="Regenerate message" title="Regenerate message"><i class="bi bi-arrow-clockwise"></i></button>`
             : ""
     );
@@ -59,6 +64,7 @@ ${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-mess
     card.style.setProperty("opacity", "0");
     card.style.setProperty("transition", "opacity 0.5s");
 
+    Array.from(chatPaneChatArea.querySelectorAll("button.regenerate-message")).forEach((button) => button.remove());
     chatPaneChatArea.appendChild(card);
     card.style.setProperty("opacity", "1");
     card.scrollIntoView({ behavior: 'smooth' });
@@ -170,17 +176,18 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
     );
 }
 
-function addMessageCardToChatPane(messageType: ChatMessageType, message: string, messageId: string) {
-    const userMessageCard = createMessageCard(messageType, messageId);
-    const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
+export function addMessageCardToChatPane(messageType: ChatMessageTypes, message: string, messageId: string) {
+    const messageCard = createMessageCard(messageType, messageId);
+    const cardBody = messageCard.querySelector('.card-body') as HTMLElement;
     cardBody.innerHTML = markdownRenderer.render(message);
 
     addBootstrapStyling(cardBody);
     addPlayers(cardBody);
-    activateEditMessageTextButton(userMessageCard, message, messageId);
+    activateEditMessageTextButton(messageCard, message, messageId);
+    return messageCard;
 }
 
-async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardElement?:HTMLDivElement){
+export async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardElement?:HTMLDivElement){
     const serializedAssistantMessage = currentChat.messages[currentChat.messages.length - 1];
     if (!currentChat.timestamp)
         currentChat.timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
@@ -188,7 +195,7 @@ async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardEl
 
     if(!llmMessageCardElement) {
         Array.from(chatPaneChatArea.querySelectorAll("button.regenerate-message")).forEach((button) => button.remove());
-        llmMessageCardElement = createMessageCard("model", serializedAssistantMessage.id);
+        llmMessageCardElement = createMessageCard(ChatMessageTypes.MODEL, serializedAssistantMessage.id);
         llmMessageCardElement.querySelector(".regenerate-message")?.addEventListener("click", async () => {
             await fillModelMessageCard(currentChat, llmMessageCardElement);
         });
@@ -200,7 +207,7 @@ async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardEl
     const geminiHistory = currentChat.messages.map(
         (message) => {
             return {
-                role: message.type === "user" ? "user" : "model",
+                role: message.type === ChatMessageTypes.USER ? "user" : "model",
                 parts: [{text: message.content}, ...message.attachments.map((attachment) => getInlineDataPart(attachment.data))]
             }
         }
@@ -231,7 +238,7 @@ async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardEl
     });
 }
 
-async function sendUserMessageToChat(){
+export async function sendUserMessageToChat(){
     if(!currentChat) {
         currentChat = createSerializedChat();
     }
@@ -239,7 +246,7 @@ async function sendUserMessageToChat(){
     const serializedUserMessage = currentChat.draft;
     serializedUserMessage.content = userMessage;
 
-    const userMessageCard = createMessageCard("user", serializedUserMessage.id);
+    const userMessageCard = createMessageCard(ChatMessageTypes.USER, serializedUserMessage.id);
     const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
     activateEditMessageTextButton(userMessageCard, userMessage, serializedUserMessage.id);
 
@@ -255,11 +262,11 @@ async function sendUserMessageToChat(){
     await fillModelMessageCard(currentChat);
 }
 
-function setCurrentChat(chat: SerializedChat) {
+export function setCurrentChat(chat: SerializedChat) {
     currentChat = chat;
 }
 
-function updateCurrentChatDraftContent() {
+export function updateCurrentChatDraftContent() {
     if(currentChat) {
         currentChat.draft.content = chatPaneInputTextArea.value;
         if (currentChat.timestamp)
@@ -267,7 +274,7 @@ function updateCurrentChatDraftContent() {
     }
 }
 
-function updateCurrentChatSettings(fields: {topic?: string; persona?: string; model?: string}) {
+export function updateCurrentChatSettings(fields: {topic?: string; persona?: string; model?: string}) {
     if(currentChat) {
         currentChat.topic = fields.topic || currentChat.topic;
         currentChat.persona = fields.persona || currentChat.persona;
@@ -276,6 +283,3 @@ function updateCurrentChatSettings(fields: {topic?: string; persona?: string; mo
             saveUpdatedChat(currentChat);
     }
 }
-
-
-export {sendUserMessageToChat, addMessageCardToChatPane, setCurrentChat, updateCurrentChatDraftContent, updateCurrentChatSettings};

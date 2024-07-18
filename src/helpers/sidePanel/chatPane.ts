@@ -1,14 +1,10 @@
-import {
-    chatPaneChatArea,
-    chatPaneInputTextArea,
-    makeUserInputAreaAutoexpandable
-} from './htmlElements';
-import {addMessageCardToChatPane, setCurrentChat, updateCurrentChatSettings} from "./messages";
-import {getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
+import {chatPaneChatArea, chatPaneInputTextArea} from './htmlElements';
+import {addMessageCardToChatPane, fillModelMessageCard, setCurrentChat, updateCurrentChatSettings} from "./messages";
+import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
 import {uniqueString} from "../uniqueId";
 
 
-function setupChatSettingsCard(currentChat: SerializedChat) {
+export function setupChatSettingsCard(currentChat: SerializedChat) {
     chatPaneChatArea.innerHTML = "";
     chatPaneChatArea.innerHTML = `
         <div class="card mb-3" id="currentChatSettingsCard">
@@ -55,7 +51,7 @@ function setupChatSettingsCard(currentChat: SerializedChat) {
     });
 }
 
-async function loadChatAsCurrent(chatId: string) {
+export async function loadChatAsCurrent(chatId: string) {
     const chat = await getChat(chatId);
 
     if (chat) {
@@ -63,14 +59,21 @@ async function loadChatAsCurrent(chatId: string) {
         chatPaneChatArea.innerHTML = "";
         setupChatSettingsCard(chat);
 
+        let lastMessageCard = null;
         for (const message of chat.messages) {
-            addMessageCardToChatPane(message.type === "user" ? "user" : "model", message.content, message.id);
+            lastMessageCard = addMessageCardToChatPane(message.type, message.content, message.id);
+        }
+
+        if(chat.messages.length > 0 && chat.messages[chat.messages.length - 1].type === ChatMessageTypes.MODEL && lastMessageCard) {
+            lastMessageCard.querySelector(".regenerate-message")?.addEventListener("click", async () => {
+                await fillModelMessageCard(chat, lastMessageCard);
+            });
         }
         chatPaneInputTextArea.value = chat.draft.content;
     }
 }
 
-function startNewChat() {
+export function startNewChat() {
     const newChat = {
         id: uniqueString(),
         timestamp: "",
@@ -85,5 +88,3 @@ function startNewChat() {
     setupChatSettingsCard(newChat);
     chatPaneInputTextArea.value = "";
 }
-
-export {setupChatSettingsCard, loadChatAsCurrent, startNewChat, makeUserInputAreaAutoexpandable};

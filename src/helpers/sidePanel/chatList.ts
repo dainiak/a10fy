@@ -5,7 +5,7 @@ import {chatListTab} from './htmlElements';
 import {getChats} from "./chatStorage";
 
 
-async function initializeChatListTable(openChatCallback: (chatId: string) => void, deleteChatCallback: (chatId: string) => void) {
+export async function initializeChatListTable(openChatCallback: (chatId: string) => void, deleteChatCallback: (chatId: string) => void) {
     DataTable.ext.errMode = 'none';
     let scrollPos: number;
     let tableBody: HTMLDivElement;
@@ -53,7 +53,7 @@ async function initializeChatListTable(openChatCallback: (chatId: string) => voi
             tableBody ||= document.querySelector("#chatListPane .dt-scroll-body") as HTMLDivElement;
             scrollPos = tableBody.scrollTop;
         },
-        drawCallback: function (settings) {
+        drawCallback: function () {
             (tableBody as HTMLDivElement).scrollTop = scrollPos;
         },
         columns: [
@@ -62,7 +62,7 @@ async function initializeChatListTable(openChatCallback: (chatId: string) => voi
                 data: 'id',
                 searchable: false,
                 orderable: false,
-                render: (data, type, row) => `<button class="btn btn-outline-secondary btn-sm open-chat-btn" data-chat-id="${data}" aria-label="Open chat" title="Open chat"><i class="bi bi-chat-text"></i></button>`,
+                render: (data) => `<button class="btn btn-outline-secondary btn-sm open-chat-btn" data-chat-id="${data}" aria-label="Open chat" title="Open chat"><i class="bi bi-chat-text"></i></button>`,
             },
             {title: 'Timestamp', data: 'timestamp', name: 'timestamp', searchable: true, className: 'dt-left text-left'},
             {title: 'Topic', data: 'topic', name: 'topic', searchable: true, className: 'dt-left text-left'},
@@ -73,7 +73,7 @@ async function initializeChatListTable(openChatCallback: (chatId: string) => voi
                 data: 'id',
                 searchable: false,
                 orderable: false,
-                render: (data, type, row) => `<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>`,
+                render: (data) => `<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>`,
             }
         ],
         data: data
@@ -103,5 +103,3 @@ async function initializeChatListTable(openChatCallback: (chatId: string) => voi
 
     return chatListTable;
 }
-
-export {initializeChatListTable};

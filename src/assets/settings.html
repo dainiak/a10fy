@@ -13,7 +13,7 @@
     <div class="modal-dialog" style="position: fixed; bottom: 0; left: 0; right: 0;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit persona</h5>
+                <h5 class="modal-title">Edit model</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -25,6 +25,10 @@
                     <div class="mb-3 form-floating">
                         <input type="text" class="form-control" id="modelDescription" placeholder="Description">
                         <label for="modelDescription" class="form-label">Description</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="modelTechnicalName" placeholder="Model technical name">
+                        <label for="modelTechnicalName" class="form-label">Model technical name</label>
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="modelApiKey" placeholder="API Key">
@@ -75,7 +79,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-primary" id="saveModelButton">Save changes</button>
             </div>
         </div>
     </div>
@@ -110,7 +114,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-primary" id="savePersonaButton">Save changes</button>
             </div>
         </div>
     </div>
@@ -163,6 +167,10 @@
                         <label for="codePlayerDescription" class="form-label">Description</label>
                     </div>
                     <div class="mb-3 form-floating">
+                        <input type="checkbox" class="form-check-input" id="codePlayerAutoplay">
+                        <label for="codePlayerAutoplay" class="form-label">Autoplay</label>
+                    </div>
+                    <div class="mb-3 form-floating">
                         <textarea class="form-control" id="codePlayerCode"></textarea>
                         <label for="codePlayerCode" class="form-label">Code</label>
                     </div>
@@ -187,13 +195,11 @@
     </ul>
     <div class="tab-content">
         <div class="tab-pane fade show active" id="setupPane" role="tabpanel" aria-labelledby="setupTab">
-            <div class="card my-4">
-                <div class="card-header">
-                    <h5 class="card-title">Let’s set up the extension!</h5>
-                </div>
+            <div class="card" style="border-top-left-radius: 0; border-top-right-radius: 0;">
                 <div class="card-body">
+                    <h5 class="card-title mb-3">Let’s set up the extension!</h5>
                     <div class="h6 mb-2 card-title">Input the default Gemini API key</div>
-                    <div class="mb-3 form-floating"><input class="form-control" id="googleApiKey" type="password" placeholder="API key"><label for="googleApiKey">Google Gemini API key</label></div>
+                    <div class="mb-3 form-floating"><input class="form-control" id="mainGoogleApiKey" type="password" placeholder="API key"><label for="mainGoogleApiKey">Google Gemini API key</label></div>
                     <div class="h6 mt-3 mb-2 card-title">Permissions</div>
                     <div class="card-text">
                         Please <a id="allowToUseMicrophone" href="#">allow the extension to use your microphone</a> to be able to dictate requests. You will only have to do it once.
@@ -206,12 +212,14 @@
                 <div class="card-header"><h5 class="card-title"><i class="bi bi-robot"></i> Models</h5></div>
                 <div class="card-body">
                     <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newModelButton"><i class="bi bi-plus-square-fill"></i> Add model</button>
-                    <table id="modelListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                    <table id="modelsTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
                             <th>Name</th>
                             <th>Description</th>
+                            <th>Technical name</th>
                             <th>API key</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody></tbody>
@@ -221,14 +229,15 @@
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title"><i class="bi bi-people"></i> Personas</h5></div>
                 <div class="card-body">
-                    <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
-                    <table id="personaListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                    <button aria-label="Add persona" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
+                    <table id="personasTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
                             <th>Name</th>
                             <th>Description</th>
-                            <th>System instruction</th>
                             <th>Model</th>
+                            <th>System instruction</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody></tbody>
@@ -239,7 +248,7 @@
                 <div class="card-header"><h5 class="card-title"><i class="bi bi-menu-app"></i> Context menu items</h5></div>
                 <div class="card-body">
                     <button aria-label="Add a context menu item" class="btn btn-outline-primary my-3 px-2" id="newMenuItem"><i class="bi bi-plus-square-fill"></i> Add item</button>
-                    <table id="menuItemsListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                    <table id="menuItemsTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
                             <th>Name</th>
@@ -255,7 +264,7 @@
                 <div class="card-header"><h5 class="card-title"><i class="bi bi-play"></i> Custom code players</h5></div>
                 <div class="card-body">
                     <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> Add code player</button>
-                    <table id="codePlayerListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                    <table id="codePlayersTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
                             <th>Name</th>
@@ -271,7 +280,7 @@
                 <div class="card-header"><h5 class="card-title"><i class="bi bi-volume-up"></i> TTS Voices</h5></div>
                 <div class="card-body">
                     <button aria-label="Add a TTS voice preference" class="btn btn-outline-primary my-3 px-2" id="newVoiceButton"><i class="bi bi-plus-square-fill"></i> Add voice preference</button>
-                    <table id="voiceListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                    <table id="voicesTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
                             <th>Language</th>

@@ -1,31 +1,25 @@
 import {Dexie, type EntityTable} from 'dexie';
 import {uniqueString} from "../uniqueId";
 
-export interface SerializedPersona {
-    id: string,
-    name: string,
-    description: string,
-    defaultModel: string,
-    systemInstruction: string,
-    safetySettings: object
+export enum ChatMessageTypes {
+    USER = "user",
+    MODEL = "model"
 }
 
-export interface SerializedModel {
-    id: string,
-    name: string,
-    description: string,
-    apiKey: string,
+export enum MessageAttachmentTypes {
+    IMAGE = "image",
+    AUDIO = "audio"
 }
 
 export interface MessageAttachment {
     id: string,
     data: string,
-    type: "image" | "audio"
+    type: MessageAttachmentTypes
 }
 
 export interface SerializedMessage {
     id: string,
-    type: "user" | "model",
+    type: ChatMessageTypes,
     attachments: MessageAttachment[],
     content: string,
 }
@@ -37,7 +31,7 @@ export interface SerializedChat {
     persona: string;
     model: string;
     messages: SerializedMessage[];
-    draft: SerializedMessage & {type: "user"};
+    draft: SerializedMessage;
 }
 
 export const a10fyDatabase = new Dexie('Chats') as Dexie & {
@@ -66,19 +60,19 @@ export function saveUpdatedChat(chat: SerializedChat) {
         return a10fyDatabase.chats.put(chat);
 }
 
-export function getEmptyDraft() : SerializedMessage & {type: "user"} {
+export function getEmptyDraft() : SerializedMessage {
     return {
         id: uniqueString(),
-        type: "user",
+        type: ChatMessageTypes.USER,
         attachments: [],
         content: "",
     }
 }
 
-export function getEmptyAssistantMessage() : SerializedMessage & {type: "model"} {
+export function getEmptyAssistantMessage() : SerializedMessage {
     return {
         id: uniqueString(),
-        type: "model",
+        type: ChatMessageTypes.MODEL,
         attachments: [],
         content: "",
     }

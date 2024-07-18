@@ -5,30 +5,30 @@ import ActionQueue from "./actionQueue";
 import {ActionRequest} from "./constants";
 
 
-const llmPageActionNames = {
-    click: "click",
-    focus: "focus",
-    scrollIntoView: "scrollIntoView",
-    submit: "submit",
-    setValue: "setValue",
-    clearInput: "clearInput",
-    typeString: "typeString",
-    setText: "setText",
-    remove: "remove",
-    hide: "hide",
-    setStyle: "setStyle",
-    setHTML: "setHTML",
-    setAttribute: "setAttribute",
-    removeAttribute: "removeAttribute",
-    pressEnter: "pressEnter",
-    searchForm: "searchForm",
-    navigate: "navigate",
-    pageTourStart: "pageTourStart",
-    pageTourStep: "pageTourStep",
+export enum llmPageActionNames {
+    click = "click",
+    focus = "focus",
+    scrollIntoView = "scrollIntoView",
+    submit = "submit",
+    setValue = "setValue",
+    clearInput = "clearInput",
+    typeString = "typeString",
+    setText = "setText",
+    remove = "remove",
+    hide = "hide",
+    setStyle = "setStyle",
+    setHTML = "setHTML",
+    setAttribute = "setAttribute",
+    removeAttribute = "removeAttribute",
+    pressEnter = "pressEnter",
+    searchForm = "searchForm",
+    navigate = "navigate",
+    pageTourStart = "pageTourStart",
+    pageTourStep = "pageTourStep",
 }
 
 
-interface LLMPageAction {
+export interface LLMPageAction {
     description: string;
     atomicActions: (element: Node | null, actionParams?: any) => (() => void)[];
 }
@@ -73,7 +73,7 @@ function pressEnter(element: Node | null) {
     ))
 }
 
-const llmPageActions: LLMPageActions = {
+export const llmPageActions: LLMPageActions = {
     [llmPageActionNames.click]: {
         description: "Call the click() method on a DOM element. Avoid using this command to submit forms. Use submit or pressEnter commands instead.",
         atomicActions: (element) => [() => element instanceof HTMLElement && element.click()]
@@ -238,7 +238,7 @@ const llmPageActions: LLMPageActions = {
 }
 
 
-function enqueuePageAction(actionQueue: ActionQueue, action: ActionRequest) {
+export function enqueuePageAction(actionQueue: ActionQueue, action: ActionRequest) {
     const {actionName, elementIndex, actionParams} = action;
     const element = findElementByIndex(elementIndex);
 
@@ -249,5 +249,3 @@ function enqueuePageAction(actionQueue: ActionQueue, action: ActionRequest) {
     }
 }
 
-
-export {llmPageActions, LLMPageAction, llmPageActionNames, enqueuePageAction};

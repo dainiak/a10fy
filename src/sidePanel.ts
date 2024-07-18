@@ -20,6 +20,10 @@ async function loadChatToChatPane(chatId: string) {
     await loadChatAsCurrent(chatId);
 }
 
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',({ matches }) => {
+    document.body.setAttribute("data-bs-theme", matches ? "dark" : "light");
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
     document.body.setAttribute("data-bs-theme", themeType);
     // await a10fyDatabase.chats.add({

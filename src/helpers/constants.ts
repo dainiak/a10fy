@@ -1,39 +1,44 @@
-const extensionActions = {
-    getDocumentInfo: "getDocumentInfo",
-    executePageAction: "executePageAction",
-    promptUser: "promptUser",
-    startAudioCapture: "startAudioCapture",
-    stopAudioCapture: "stopAudioCapture",
-    copyTextToClipboard: "copyTextToClipboard",
-    getTextFromClipboard: "getTextFromClipboard",
-    processUserAudioQuery: "processUserAudioQuery",
-    getDomElementProperties: "getDomElementProperties",
-    registerContextMenuEvent: "registerContextMenuEvent",
-    modifyImage: "modifyImage",
-    runInSandbox: "runInSandbox",
-    sandboxedTaskResultsUpdate: "sandboxedTaskResultsUpdate",
+export enum extensionActions {
+    getDocumentInfo = "getDocumentInfo",
+    executePageAction = "executePageAction",
+    promptUser = "promptUser",
+    startAudioCapture = "startAudioCapture",
+    stopAudioCapture = "stopAudioCapture",
+    copyTextToClipboard = "copyTextToClipboard",
+    getTextFromClipboard = "getTextFromClipboard",
+    processUserAudioQuery = "processUserAudioQuery",
+    getDomElementProperties = "getDomElementProperties",
+    registerContextMenuEvent = "registerContextMenuEvent",
+    modifyImage = "modifyImage",
+    runInSandbox = "runInSandbox",
+    sandboxedTaskResultsUpdate = "sandboxedTaskResultsUpdate",
 }
 
-const storageKeys = {
-    googleApiKey: "googleApiKey"
+export enum storageKeys {
+    mainGoogleApiKey = "googleApiKey",
+    models = "models",
+    personas = "personas",
+    codePlayers = "codePlayers",
+    menuItems = "menuItems",
+    ttsVoicePreferences = "ttsVoicePreferences",
 }
 
-const cssPrefix = "a10fy_";
-const cssPrefixFallbackSymbol = Symbol(cssPrefix);
+export const cssPrefix = "a10fy_";
+export const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
-interface ActionRequest {
+export interface ActionRequest {
     actionName: string;
     elementIndex: string;
     actionParams: string;
 }
 
 
-interface UserRequest {
+export interface UserRequest {
     text?: string;
     audio?: string;
 }
 
-interface ElementPropertiesResult {
+export interface ElementPropertiesResult {
     error?: string;
     value?: string;
     style?: CSSStyleDeclaration;
@@ -47,7 +52,7 @@ interface ElementPropertiesResult {
     [key: string]: any;
 }
 
-interface TabDocumentInfo {
+export interface TabDocumentInfo {
     html?: string;
     text?: string;
     url?: string;
@@ -55,29 +60,29 @@ interface TabDocumentInfo {
     screenshot?: string;
 }
 
-interface ExtensionMessageRequest {
-    action: string;
+export interface ExtensionMessageRequest {
+    action: extensionActions;
 }
 
-interface ExecutePageActionRequest extends ExtensionMessageRequest {
+export interface ExecutePageActionRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.executePageAction,
     actionName: string;
     elementIndex: string;
     actionParams: string;
 }
 
-interface DocumentInfoResult {
+export interface DocumentInfoResult {
     html?: string,
     text?: string,
     url?: string,
     title?: string
 }
 
-interface PromptUserResult {
+export interface PromptUserResult {
     userResponse: string | null
 }
 
-interface ExtensionMessageImageModificationRequest extends ExtensionMessageRequest {
+export interface ExtensionMessageImageModificationRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.modifyImage,
     image: string,
     output: {
@@ -95,12 +100,12 @@ interface ExtensionMessageImageModificationRequest extends ExtensionMessageReque
     }
 }
 
-interface ImageModificationResult {
+export interface ImageModificationResult {
     image?: string,
     error?: string
 }
 
-interface RunInSandboxRequest extends ExtensionMessageRequest {
+export interface RunInSandboxRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.runInSandbox,
     executor: "offscreen" | "sidePanel",
     taskType: string,
@@ -108,55 +113,32 @@ interface RunInSandboxRequest extends ExtensionMessageRequest {
     requestId: string
 }
 
-interface SandboxedTaskResult extends ExtensionMessageRequest {
+export interface SandboxedTaskResult extends ExtensionMessageRequest {
     action: typeof extensionActions.sandboxedTaskResultsUpdate,
     requestId: string,
     result: any,
     isFinal: boolean
 }
 
-interface AudioRecordingResult {
+export interface AudioRecordingResult {
     audio?: string,
     error?: string
 }
 
-interface PromptUserRequest extends ExtensionMessageRequest {
+export interface PromptUserRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.promptUser,
     promptText?: string
 }
 
-interface ElementPropertiesRequest extends ExtensionMessageRequest {
+export interface ElementPropertiesRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.getDomElementProperties,
     elementIndex: string,
     propertyNames: string[]
 }
 
-interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
+export interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.registerContextMenuEvent,
     boundingRect: DOMRect,
     viewportRect: DOMRect
 }
 
-interface LLMPersona {
-    id: string,
-    name: string,
-    description: string,
-    systemInstruction: string,
-    timestamp: string,
-    modelId: string | null,
-}
-
-interface LLMModel {
-    id: string,
-    name: string,
-    description: string,
-    code: string,
-    apiKey: string,
-}
-
-export {
-    extensionActions, storageKeys, cssPrefix, cssPrefixFallbackSymbol, ActionRequest, UserRequest, ElementPropertiesResult, TabDocumentInfo,
-    ExtensionMessageRequest, ExtensionMessageImageModificationRequest, RunInSandboxRequest, SandboxedTaskResult, ImageModificationResult, AudioRecordingResult, DocumentInfoResult,
-    PromptUserResult, ExecutePageActionRequest, PromptUserRequest, ElementPropertiesRequest, RegisterContextMenuEventRequest,
-    LLMPersona, LLMModel
-};

@@ -1,9 +1,9 @@
 import {cssPrefix} from "./constants";
 import {getOutputFormatDescription} from "./promptParts";
 
-function getChatSystemPrompt() {
+export function getDefaultChatSystemPromptTemplate() {
     return `
-You are a large language model. The current date is ${new Date().toJSON().slice(0,10)}.
+You are a large language model. The current date is ___CURRENT_DATETIME___.
 Your knowledge base was last updated in August 2023. You answer questions about events prior to and after August 2023 the way a highly informed individual in August 2023 would if they were talking to someone from the above date, and you can let others know this when relevant.
 
 You give concise responses to very simple questions, but provide thorough responses to more complex and open-ended questions.
@@ -28,9 +28,11 @@ You are capable of generating python code that can be executed right in the brow
 `.trim();
 }
 
-
-function getAssistantSystemPrompt() {
-    return `You are an AI assistant in the form of a Google Chrome extension. You fulfill user requests provided in form of text or voice audio recording. With the user's request you are usually given some details about the webpage the user is currently on (both screenshot of the webpage, as well as a simplified HTML representation of the webpage with ${cssPrefix}-prefixed CSS classes for HTML elements identification). You can use this context to provide the user with the information they need. You can also ask the user for more information if you need it. Your response should always be a ${ getOutputFormatDescription() }`;
+export function getDefaultChatSystemPrompt() {
+    return getDefaultChatSystemPromptTemplate().replace("___CURRENT_DATETIME___", new Date().toJSON().slice(0,10));
 }
 
-export { getAssistantSystemPrompt, getChatSystemPrompt };
+
+export function getAssistantSystemPrompt() {
+    return `You are an AI assistant in the form of a Google Chrome extension. You fulfill user requests provided in form of text or voice audio recording. With the user's request you are usually given some details about the webpage the user is currently on (both screenshot of the webpage, as well as a simplified HTML representation of the webpage with ${cssPrefix}-prefixed CSS classes for HTML elements identification). You can use this context to provide the user with the information they need. You can also ask the user for more information if you need it. Your response should always be a ${ getOutputFormatDescription() }`;
+}
