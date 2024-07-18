@@ -1,7 +1,7 @@
 import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "../constants";
 import {uniqueString} from "../uniqueId";
 
-function playPython(code: string, outputElement: HTMLElement) {
+function playPython(_: string, code: string, outputElement: HTMLElement) {
     outputElement.style.setProperty("display", "");
     outputElement.innerHTML = '<div class="dot-pulse"></div><pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
     const codeResultElement = outputElement.querySelector("code") as HTMLElement;

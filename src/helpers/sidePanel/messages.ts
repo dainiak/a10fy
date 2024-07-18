@@ -15,36 +15,52 @@ import {
 import {getGeminiTextModel} from "../geminiInterfacing";
 import {getInlineDataPart} from "../promptParts";
 import {storageKeys} from "../constants";
-import {SerializedModel, SerializedPersona} from "../settings/dataModels";
+import {SerializedCustomCodePlayer, SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {getFromStorage} from "../storageHandling";
+import {customPlayerFactory} from "../players/custom";
 
 
 let currentChat: SerializedChat | null = null;
 
-function addPlayers(messageCardTextElement: HTMLElement){
-    const players = {
+async function addPlayers(messageCardTextElement: HTMLElement){
+    const players: {[key: string]: {player: Function, autoplay: boolean, hideCode: boolean}} = {
         "python": {
             player: playPython,
-            autoplay: false
+            autoplay: false,
+            hideCode: false
         },
         "mermaid": {
             player: playMermaid,
-            autoplay: true
+            autoplay: true,
+            hideCode: true
         },
         "json-vega-lite": {
             player: playVegaLite,
-            autoplay: true
+            autoplay: true,
+            hideCode: true
+        }
+    }
+    const customPlayers: SerializedCustomCodePlayer[] = (await getFromStorage(storageKeys.codePlayers) || []);
+    for (const customPlayer of customPlayers) {
+        for(const languageTag of customPlayer.languageTags) {
+            if (languageTag)
+                players[languageTag] = {
+                    player: customPlayerFactory(customPlayer.customCSS, customPlayer.customJS, customPlayer.customHTML),
+                    autoplay: customPlayer.autoplay,
+                    hideCode: customPlayer.hideCode
+                }
         }
     }
 
-    for (const [language, {player, autoplay}] of Object.entries(players)) {
+    for (const [language, {player, autoplay, hideCode}] of Object.entries(players)) {
         Array.from(messageCardTextElement.querySelectorAll(`pre.code-block.language-${language}`)).forEach(
             (element) => {
                 const {outputElement, code, playButton, toggleCode} = replacePreWithCodeCard(element as HTMLElement);
-                playButton.addEventListener("click", () => player(code, outputElement));
+                playButton.addEventListener("click", () => player(language, code, outputElement));
                 if (autoplay) {
-                    player(code, outputElement);
-                    toggleCode(false);
+                    player(language, code, outputElement);
+                    if(hideCode)
+                        toggleCode(false);
                 }
             }
         );

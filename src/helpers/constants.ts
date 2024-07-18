@@ -115,6 +115,20 @@ export interface RunInSandboxRequest extends ExtensionMessageRequest {
     requestId: string
 }
 
+export interface CustomPlayerRequestParams {
+    customCSS: string,
+    customJS: string,
+    customHTML: string,
+    language: string,
+    code: string
+}
+
+export interface CustomPlayerResult {
+    html?: string,
+    width?: number,
+    height?: number
+}
+
 export interface SandboxedTaskResult extends ExtensionMessageRequest {
     action: typeof extensionActions.sandboxedTaskResultsUpdate,
     requestId: string,

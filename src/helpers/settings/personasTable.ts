@@ -84,12 +84,12 @@ async function editPersona(personaId: string) {
     modelSelect.value = persona.defaultModel;
     systemInstructionInput.value = persona.systemInstruction;
 
-    const closeModalButton = document.getElementById("savePersonaButton") as HTMLButtonElement;
-    closeModalButton.onclick = async () => {
-        persona.name = nameInput.value;
-        persona.description = descriptionInput.value;
+    const saveButton = document.getElementById("savePersonaButton") as HTMLButtonElement;
+    saveButton.onclick = async () => {
+        persona.name = nameInput.value.trim();
+        persona.description = descriptionInput.value.trim();
         persona.defaultModel = modelSelect.value;
-        persona.systemInstruction = systemInstructionInput.value;
+        persona.systemInstruction = systemInstructionInput.value.trim();
         await setToStorage(storageKeys.personas, personas);
         modal.hide();
         await fillPersonasTable();

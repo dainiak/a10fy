@@ -152,13 +152,13 @@ export async function setupEmbeddingModelSettings() {
     const embeddingModelApiKeyInput = document.getElementById("embeddingModelApiKey") as HTMLInputElement;
     embeddingModelApiKeyInput.value = embeddingModel?.apiKey || "";
     embeddingModelApiKeyInput.addEventListener("change", async () => {
-        embeddingModel.apiKey = embeddingModelApiKeyInput.value;
+        embeddingModel.apiKey = embeddingModelApiKeyInput.value.trim();
         await setToStorage(storageKeys.assistantModel, embeddingModel);
     });
     const embeddingModelNameInput = document.getElementById("embeddingModelTechnicalName") as HTMLInputElement;
     embeddingModelNameInput.value = embeddingModel?.technicalName || "text-embedding-004";
     embeddingModelNameInput.addEventListener("change", async () => {
-        embeddingModel.technicalName = embeddingModelNameInput.value;
+        embeddingModel.technicalName = embeddingModelNameInput.value.trim();
         await setToStorage(storageKeys.assistantModel, embeddingModel);
     });
 
@@ -222,15 +222,15 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
     modelSafetyHarassmentInput.value = model.safetySettings.harassment;
     modelSafetySexuallyExplicitInput.value = model.safetySettings.sexuallyExplicit;
 
-    const closeModalButton = document.getElementById("saveModelButton") as HTMLButtonElement;
-    closeModalButton.onclick = async () => {
-        model.name = modelNameInput.value;
-        model.description = modelDescriptionInput.value;
-        model.technicalName = modelTechnicalNameInput.value;
-        model.topK = modelTopKInput.value ? parseInt(modelTopKInput.value) : null;
-        model.topP = modelTopPInput.value ? parseFloat(modelTopPInput.value) : null;
-        model.temperature = modelTemperatureInput.value ? parseFloat(modelTemperatureInput.value) : null;
-        model.apiKey = modelApiKeyInput.value;
+    const saveButton = document.getElementById("saveModelButton") as HTMLButtonElement;
+    saveButton.onclick = async () => {
+        model.name = modelNameInput.value.trim();
+        model.description = modelDescriptionInput.value.trim();
+        model.technicalName = modelTechnicalNameInput.value.trim();
+        model.topK = modelTopKInput.value ? parseInt(modelTopKInput.value.trim()) : null;
+        model.topP = modelTopPInput.value ? parseFloat(modelTopPInput.value.trim()) : null;
+        model.temperature = modelTemperatureInput.value ? parseFloat(modelTemperatureInput.value.trim()) : null;
+        model.apiKey = modelApiKeyInput.value.trim();
         model.safetySettings = {
             dangerousContent: modelSafetyDangerousContentInput.value as HarmBlockThreshold,
             hateSpeech: modelSafetyHateSpeechInput.value as HarmBlockThreshold,
@@ -246,7 +246,7 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
             await fillModelsTable();
         }
 
-        closeModalButton.onclick = null;
+        saveButton.onclick = null;
         modal.hide();
     };
     modal.show();

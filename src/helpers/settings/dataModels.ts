@@ -26,3 +26,16 @@ export interface SerializedModel {
         sexuallyExplicit: HarmBlockThreshold
     }
 }
+
+export interface SerializedCustomCodePlayer {
+    id: string,
+    name: string,
+    description: string,
+    languageTags: string[],
+    autoplay: boolean,
+    hideCode: boolean,
+    customCSS: string,
+    customJS: string
+    customHTML: string,
+    testCode: string
+}
