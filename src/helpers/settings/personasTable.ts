@@ -3,22 +3,24 @@ import {SerializedModel, SerializedPersona} from "./dataModels";
 import * as Bootstrap from "bootstrap";
 import {uniqueString} from "../uniqueId";
 import {getDefaultChatSystemPromptTemplate} from "../prompts";
+import {getFromStorage, setToStorage} from "../storageHandling";
+import {get} from "mermaid/dist/diagrams/state/id-cache";
 
 export async function fillPersonasTable() {
-    const personasWrapped = await chrome.storage.sync.get([storageKeys.personas]);
-    if (personasWrapped[storageKeys.personas]) {
-        await chrome.storage.sync.set({[storageKeys.personas]: [{
+    let personas = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    if (!personas.length) {
+        personas = [{
             sortingIndex: 0,
             id: uniqueString(),
             name: "Default",
             description: "Default Persona",
             defaultModel: "",
             systemInstruction: getDefaultChatSystemPromptTemplate()
-        }]});
+        }];
+        await setToStorage(storageKeys.personas, personas);
     }
-    const personas: SerializedPersona[] = personasWrapped[storageKeys.personas].sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
-    const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-    const models: SerializedModel[] = modelsWrapped[storageKeys.models] || [];
+
+    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || [])
 
     const personasTable = document.getElementById("personasTable") as HTMLTableElement;
     const tbody = personasTable.querySelector("tbody") as HTMLTableSectionElement;
@@ -52,8 +54,7 @@ export async function fillPersonasTable() {
 }
 
 async function editPersona(personaId: string) {
-    const personasWrapped = await chrome.storage.sync.get([storageKeys.personas]);
-    const personas: SerializedPersona[] = personasWrapped[storageKeys.personas];
+    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas)) || [];
     const persona = personas.find((persona: SerializedPersona) => persona.id === personaId);
     if (!persona)
         return;
@@ -66,8 +67,8 @@ async function editPersona(personaId: string) {
     const systemInstructionInput = document.getElementById("personaSystemInstruction") as HTMLInputElement;
     nameInput.value = persona.name;
     descriptionInput.value = persona.description;
-    const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-    const models: SerializedModel[] = (modelsWrapped[storageKeys.models] || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+
+    const models: SerializedModel[] = (await getFromStorage(storageKeys.models)|| []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     const emptyModelOption = document.createElement("option");
     emptyModelOption.value = "";
     emptyModelOption.text = "";
@@ -89,7 +90,7 @@ async function editPersona(personaId: string) {
         persona.description = descriptionInput.value;
         persona.defaultModel = modelSelect.value;
         persona.systemInstruction = systemInstructionInput.value;
-        await chrome.storage.sync.set({[storageKeys.personas]: personas});
+        await setToStorage(storageKeys.personas, personas);
         modal.hide();
         await fillPersonasTable();
     };
@@ -98,41 +99,37 @@ async function editPersona(personaId: string) {
 }
 
 async function deletePersona(personaId: string, tr: HTMLTableRowElement) {
-    const personasWrapped = await chrome.storage.sync.get([storageKeys.personas]);
-    const personas: SerializedPersona[] = personasWrapped[storageKeys.personas].filter((persona: SerializedPersona) => persona.id !== personaId).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).filter((persona: SerializedPersona) => persona.id !== personaId).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
     personas.forEach((persona: SerializedPersona, idx: number  ) => persona.sortingIndex = idx);
-    await chrome.storage.sync.set({[storageKeys.personas]: personas});
+    await setToStorage(storageKeys.personas, personas);
     tr.remove();
 }
 
 async function movePersonaUp(personaId: string, tr: HTMLTableRowElement) {
-    const personasWrapped = await chrome.storage.sync.get([storageKeys.personas]);
-    const personas = personasWrapped[storageKeys.personas].sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
     const personaIndex = personas.findIndex((persona: SerializedPersona) => persona.id === personaId);
     if (personaIndex === 0)
         return;
     personas[personaIndex].sortingIndex = personaIndex - 1;
     personas[personaIndex - 1].sortingIndex = personaIndex;
-    await chrome.storage.sync.set({[storageKeys.personas]: personas});
+    await setToStorage(storageKeys.personas, personas);
     tr.parentElement?.insertBefore(tr, tr.previousSibling);
 }
 
 async function movePersonaDown(personaId: string, tr: HTMLTableRowElement) {
-    const personasWrapped = await chrome.storage.sync.get([storageKeys.personas]);
-    const personas = personasWrapped[storageKeys.personas].sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
     const personaIndex = personas.findIndex((persona: SerializedPersona) => persona.id === personaId);
     if (personaIndex === personas.length - 1)
         return;
     personas[personaIndex].sortingIndex = personaIndex + 1;
     personas[personaIndex + 1].sortingIndex = personaIndex;
-    await chrome.storage.sync.set({[storageKeys.personas]: personas});
+    await setToStorage(storageKeys.personas, personas);
     tr.parentElement?.insertBefore(tr, tr.nextSibling?.nextSibling || null);
 }
 
 export function setupNewPersonaButton() {
     (document.querySelector("#newModelButton") as HTMLButtonElement).addEventListener("click", async () => {
-        const personasWrapped = await chrome.storage.sync.get([storageKeys.personas]);
-        const personas: SerializedPersona[] = personasWrapped[storageKeys.personas] || [];
+        const personas: SerializedPersona[] = await  getFromStorage(storageKeys.personas) || [];
         const newPersona: SerializedPersona = {
             sortingIndex: personas.length,
             id: uniqueString(),
@@ -141,7 +138,7 @@ export function setupNewPersonaButton() {
             defaultModel: "",
             systemInstruction: "You are a helpful assistant."
         };
-        await chrome.storage.sync.set({[storageKeys.personas]: [...personas, newPersona]});
+        await setToStorage(storageKeys.personas, [...personas, newPersona]);
         await fillPersonasTable();
         await editPersona(newPersona.id);
     });

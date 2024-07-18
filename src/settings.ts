@@ -1,6 +1,7 @@
 import {storageKeys} from "./helpers/constants";
 import {fillModelsTable, setupNewModelButton} from "./helpers/settings/modelsTable";
 import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/personasTable";
+import {getFromStorage, setToStorage} from "./helpers/storageHandling";
 
 document.body.setAttribute("data-bs-theme", window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
 
@@ -18,15 +19,12 @@ allowToUseMicrophone.addEventListener("click", () => {
 });
 
 const apiKeyInput = document.getElementById("mainGoogleApiKey") as HTMLInputElement;
-chrome.storage.sync.get([storageKeys.mainGoogleApiKey]).then((data) => {
-    const apiKey = data[storageKeys.mainGoogleApiKey];
-    if(apiKey)
-        apiKeyInput.value = apiKey;
-});
 
-apiKeyInput.addEventListener("change", async () => {
-    await chrome.storage.sync.set({[storageKeys.mainGoogleApiKey]: apiKeyInput.value});
-});
+const apiKey = await getFromStorage(storageKeys.mainGoogleApiKey);
+if(apiKey)
+    apiKeyInput.value = apiKey;
+
+apiKeyInput.addEventListener("change", async () => await setToStorage(storageKeys.mainGoogleApiKey, apiKeyInput.value));
 
 setupNewModelButton();
 fillModelsTable().catch();

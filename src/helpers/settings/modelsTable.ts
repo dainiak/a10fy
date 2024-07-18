@@ -3,11 +3,12 @@ import {SerializedModel} from "./dataModels";
 import * as Bootstrap from "bootstrap";
 import {HarmBlockThreshold} from "@google/generative-ai";
 import {uniqueString} from "../uniqueId";
+import {getFromStorage, setToStorage} from "../storageHandling";
 
 export async function fillModelsTable() {
-    const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-    if (!modelsWrapped[storageKeys.models]) {
-        await chrome.storage.sync.set({[storageKeys.models]: [{
+    let models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    if (models.length === 0) {
+        models = [{
             sortingIndex: 0,
             id: uniqueString(),
             name: "Default",
@@ -20,9 +21,10 @@ export async function fillModelsTable() {
                 harassment: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,
                 sexuallyExplicit: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED
             }
-        }]});
+        }];
+        await setToStorage(storageKeys.models, models);
     }
-    const models: SerializedModel[] = modelsWrapped[storageKeys.models].sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+
     const modelsTable = document.getElementById("modelsTable") as HTMLTableElement;
     const tbody = modelsTable.querySelector("tbody") as HTMLTableSectionElement;
     tbody.innerHTML = "";
@@ -54,43 +56,38 @@ export async function fillModelsTable() {
 }
 
 async function moveModelUp(modelId: string, tr: HTMLTableRowElement) {
-    const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-
-    const models = modelsWrapped[storageKeys.models].sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     const modelIndex = models.findIndex((model: SerializedModel) => model.id === modelId);
     if (modelIndex === 0)
         return;
     models[modelIndex].sortingIndex = modelIndex - 1;
     models[modelIndex - 1].sortingIndex = modelIndex;
-    await chrome.storage.sync.set({[storageKeys.models]: models});
+    await setToStorage(storageKeys.models, models);
     tr.parentElement?.insertBefore(tr, tr.previousSibling);
 }
 
 async function moveModelDown(modelId: string, tr: HTMLTableRowElement) {
-    const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-
-    const models = modelsWrapped[storageKeys.models].sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     const modelIndex = models.findIndex((model: SerializedModel) => model.id === modelId);
     if (modelIndex === models.length - 1)
         return;
     models[modelIndex].sortingIndex = modelIndex + 1;
     models[modelIndex + 1].sortingIndex = modelIndex;
-    await chrome.storage.sync.set({[storageKeys.models]: models});
+    await setToStorage(storageKeys.models, models);
     tr.parentElement?.insertBefore(tr, tr.nextSibling?.nextSibling || null);
 }
 
 async function deleteModel(modelId: string, tr: HTMLTableRowElement) {
-    const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-    const models: SerializedModel[] = modelsWrapped[storageKeys.models].filter((model: SerializedModel) => model.id !== modelId).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).filter((model: SerializedModel) => model.id !== modelId).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     models.forEach((model: SerializedModel, idx: number) => model.sortingIndex = idx)
-    await chrome.storage.sync.set({[storageKeys.models]: models});
+    await setToStorage(storageKeys.models, models);
     tr.remove();
 }
 
 async function editModel(modelId: string) {
     const modalElement = document.getElementById("editModelModal") as HTMLDivElement;
     const modal = Bootstrap.Modal.getOrCreateInstance(modalElement);
-    const models = await chrome.storage.sync.get([storageKeys.models]);
+    const models = (await getFromStorage(storageKeys.models) || []);
     const model = models[storageKeys.models].find((model: SerializedModel) => model.id === modelId);
     const modelNameInput = document.getElementById("modelName") as HTMLInputElement;
     const modelDescriptionInput = document.getElementById("modelDescription") as HTMLTextAreaElement;
@@ -112,22 +109,17 @@ async function editModel(modelId: string) {
 
     const closeModalButton = document.getElementById("saveModelButton") as HTMLButtonElement;
     closeModalButton.onclick = async () => {
-        const newModel: SerializedModel = {
-            sortingIndex: model.sortingIndex,
-            id: model.id,
-            name: modelNameInput.value,
-            description: modelDescriptionInput.value,
-            technicalName: modelTechnicalNameInput.value,
-            apiKey: modelApiKeyInput.value,
-            safetySettings: {
-                dangerousContent: modelSafetyDangerousContentInput.value as HarmBlockThreshold,
-                hateSpeech: modelSafetyHateSpeechInput.value as HarmBlockThreshold,
-                harassment: modelSafetyHarassmentInput.value as HarmBlockThreshold,
-                sexuallyExplicit: modelSafetySexuallyExplicitInput.value as HarmBlockThreshold
-            }
-        };
-        const newModels = models[storageKeys.models].map((m: SerializedModel) => m.id === modelId ? newModel : m);
-        await chrome.storage.sync.set({[storageKeys.models]: newModels});
+        model.name = modelNameInput.value;
+        model.description = modelDescriptionInput.value;
+        model.technicalName = modelTechnicalNameInput.value;
+        model.apiKey = modelApiKeyInput.value;
+        model.safetySettings = {
+            dangerousContent: modelSafetyDangerousContentInput.value as HarmBlockThreshold,
+            hateSpeech: modelSafetyHateSpeechInput.value as HarmBlockThreshold,
+            harassment: modelSafetyHarassmentInput.value as HarmBlockThreshold,
+            sexuallyExplicit: modelSafetySexuallyExplicitInput.value as HarmBlockThreshold
+        }
+        await setToStorage(storageKeys.models, models);
         closeModalButton.onclick = null;
         await fillModelsTable();
         modal.hide();
@@ -137,8 +129,7 @@ async function editModel(modelId: string) {
 
 export function setupNewModelButton() {
     (document.querySelector("#newModelButton") as HTMLButtonElement).addEventListener("click", async () => {
-        const modelsWrapped = await chrome.storage.sync.get([storageKeys.models]);
-        const models = modelsWrapped[storageKeys.models] || [];
+        const models = await getFromStorage(storageKeys.models) || [];
         const newModel: SerializedModel = {
             sortingIndex: models.length,
             id: uniqueString(),
@@ -153,7 +144,7 @@ export function setupNewModelButton() {
                 sexuallyExplicit: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED
             }
         };
-        await chrome.storage.sync.set({[storageKeys.models]: [...models, newModel]});
+        await setToStorage(storageKeys.models, [...models, newModel]);
         await fillModelsTable();
         await editModel(newModel.id);
     });
