@@ -127,6 +127,44 @@ export async function setupAssistantModelSettings() {
     (document.getElementById("editAssistantModelButton") as HTMLButtonElement).onclick = () => editModel(assistantModel.id, true);
 }
 
+export async function setupEmbeddingModelSettings() {
+    let embeddingModel: SerializedModel | null = await getFromStorage(storageKeys.embeddingModel);
+    if(!embeddingModel) {
+        embeddingModel = {
+            sortingIndex: 0,
+            id: uniqueString(),
+            name: "Embedding model",
+            description: "Embedding model",
+            technicalName: "text-embedding-004",
+            topK: null,
+            topP: null,
+            temperature: null,
+            apiKey: "",
+            safetySettings: {
+                dangerousContent: HarmBlockThreshold.BLOCK_NONE,
+                hateSpeech: HarmBlockThreshold.BLOCK_NONE,
+                harassment: HarmBlockThreshold.BLOCK_NONE,
+                sexuallyExplicit: HarmBlockThreshold.BLOCK_NONE
+            }
+        }
+        await setToStorage(storageKeys.embeddingModel, embeddingModel);
+    }
+    const embeddingModelApiKeyInput = document.getElementById("embeddingModelApiKey") as HTMLInputElement;
+    embeddingModelApiKeyInput.value = embeddingModel?.apiKey || "";
+    embeddingModelApiKeyInput.addEventListener("change", async () => {
+        embeddingModel.apiKey = embeddingModelApiKeyInput.value;
+        await setToStorage(storageKeys.assistantModel, embeddingModel);
+    });
+    const embeddingModelNameInput = document.getElementById("embeddingModelTechnicalName") as HTMLInputElement;
+    embeddingModelNameInput.value = embeddingModel?.technicalName || "text-embedding-004";
+    embeddingModelNameInput.addEventListener("change", async () => {
+        embeddingModel.technicalName = embeddingModelNameInput.value;
+        await setToStorage(storageKeys.assistantModel, embeddingModel);
+    });
+
+    (document.getElementById("editAssistantModelButton") as HTMLButtonElement).onclick = () => editModel(embeddingModel.id, true);
+}
+
 async function editModel(modelId: string, isAssistantModel: boolean = false) {
     const modalElement = document.getElementById("editModelModal") as HTMLDivElement;
     const modal = Bootstrap.Modal.getOrCreateInstance(modalElement);

@@ -19,6 +19,7 @@ export enum storageKeys {
     models = "models",
     personas = "personas",
     assistantModel = "assistantModel",
+    embeddingModel = "embeddingModel",
     codePlayers = "codePlayers",
     menuItems = "menuItems",
     ttsVoicePreferences = "ttsVoicePreferences",

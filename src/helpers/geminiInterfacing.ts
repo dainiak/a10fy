@@ -14,7 +14,7 @@ import {SerializedModel, SerializedPersona} from "./settings/dataModels";
 async function getJSONGeminiModel() {
     const systemInstruction = getAssistantSystemPrompt();
     const assistantModelSettings: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
-    const GOOGLE_API_KEY = assistantModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const apiKey = assistantModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const generationConfig: GenerationConfig = {
         topK: assistantModelSettings?.topK || 64,
         topP: assistantModelSettings?.topP || 0.95,
@@ -42,7 +42,7 @@ async function getJSONGeminiModel() {
         }
     ];
 
-    return (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
+    return (new GoogleGenerativeAI(apiKey)).getGenerativeModel(
         {
             model: assistantModelSettings?.technicalName || "gemini-1.5-flash-latest",
             generationConfig: generationConfig,
@@ -80,8 +80,10 @@ async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPat
 }
 
 async function getTextEmbedding(data: string | string[]) {
-    const GOOGLE_API_KEY = await getFromStorage(storageKeys.mainGoogleApiKey);
-    const geminiEmbed = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({model: "text-embedding-004"});
+    const embeddingModelSettings: SerializedModel | null = await getFromStorage(storageKeys.embeddingModel);
+    const apiKey = embeddingModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const modelName = embeddingModelSettings?.technicalName || "text-embedding-004";
+    const geminiEmbed = (new GoogleGenerativeAI(apiKey)).getGenerativeModel({model: modelName});
     if (data instanceof String) {
         const embedding = await geminiEmbed.embedContent(data);
         return embedding.embedding.values;
@@ -97,7 +99,7 @@ async function getTextEmbedding(data: string | string[]) {
 }
 
 async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona) {
-    const GOOGLE_API_KEY = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const apiKey = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const generationConfig: GenerationConfig = {
         temperature: model.temperature || 0,
         topK: model.topK || 64,
@@ -125,7 +127,7 @@ async function getGeminiTextModel(model: SerializedModel, persona: SerializedPer
         }
     ];
 
-    return (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({
+    return (new GoogleGenerativeAI(apiKey)).getGenerativeModel({
         model: model.technicalName,
         generationConfig: generationConfig,
         safetySettings: safetySettings,
