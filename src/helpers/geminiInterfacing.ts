@@ -1,5 +1,5 @@
 import {
-    GenerateContentRequest,
+    GenerateContentRequest, GenerationConfig,
     GoogleGenerativeAI,
     HarmBlockThreshold,
     HarmCategory
@@ -7,17 +7,18 @@ import {
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
-import {GOOGLE_API_KEY_TEMP} from "../_secrets";
-import {getAssistantSystemPrompt, getDefaultChatSystemPrompt} from "./prompts";
+import {getAssistantSystemPrompt, getChatSystemPrompt} from "./prompts";
+import {getFromStorage} from "./storageHandling";
+import {SerializedModel, SerializedPersona} from "./settings/dataModels";
 
-async function getJsonGeminiModel() {
+async function getJSONGeminiModel() {
     const systemInstruction = getAssistantSystemPrompt();
-
-    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.mainGoogleApiKey]))[storageKeys.mainGoogleApiKey];
-    const generationConfig = {
-        temperature: 0,
-        // topP: 0.95,
-        // topK: 64,
+    const assistantModelSettings: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
+    const GOOGLE_API_KEY = assistantModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const generationConfig: GenerationConfig = {
+        topK: assistantModelSettings?.topK || 64,
+        topP: assistantModelSettings?.topP || 0.95,
+        temperature: assistantModelSettings?.temperature || 0,
         maxOutputTokens: 8192,
         responseMimeType: 'application/json'
     };
@@ -25,34 +26,30 @@ async function getJsonGeminiModel() {
     const safetySettings = [
         {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.dangerousContent || HarmBlockThreshold.BLOCK_NONE
         },
         {
             category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold: HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.hateSpeech || HarmBlockThreshold.BLOCK_NONE
         },
         {
             category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold: HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.harassment || HarmBlockThreshold.BLOCK_NONE
         },
         {
             category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold: HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.sexuallyExplicit || HarmBlockThreshold.BLOCK_NONE
         }
     ];
 
-    const gemini = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
+    return (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel(
         {
-            model: "gemini-1.5-flash-latest",
+            model: assistantModelSettings?.technicalName || "gemini-1.5-flash-latest",
             generationConfig: generationConfig,
             safetySettings: safetySettings,
             systemInstruction: systemInstruction
         }
     );
-    // gemini.generationConfig.responseMimeType = "application/json" or "text/plain";
-
-
-    return gemini;
 }
 
 async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPaths: Array<string>, onValueCallback: (parsedElementInfo: ParsedElementInfo) => void) {
@@ -61,7 +58,7 @@ async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPat
     parser.onValue = onValueCallback;
     parser.onError = (error) => console.log("Error while parsing JSON: ", error);
 
-    const gemini = await getJsonGeminiModel();
+    const gemini = await getJSONGeminiModel();
     console.log("Request complete data: ", requestData);
     gemini.countTokens(requestData).then((count) => console.log(count));
 
@@ -83,7 +80,7 @@ async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPat
 }
 
 async function getTextEmbedding(data: string | string[]) {
-    const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.mainGoogleApiKey]))[storageKeys.mainGoogleApiKey];
+    const GOOGLE_API_KEY = await getFromStorage(storageKeys.mainGoogleApiKey);
     const geminiEmbed = (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({model: "text-embedding-004"});
     if (data instanceof String) {
         const embedding = await geminiEmbed.embedContent(data);
@@ -99,13 +96,40 @@ async function getTextEmbedding(data: string | string[]) {
     }
 }
 
-async function getGeminiTextModel() {
-    // const GOOGLE_API_KEY = (await chrome.storage.sync.get([storageKeys.googleApiKey]))[storageKeys.googleApiKey];
-    const GOOGLE_API_KEY = GOOGLE_API_KEY_TEMP;
+async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona) {
+    const GOOGLE_API_KEY = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const generationConfig: GenerationConfig = {
+        temperature: model.temperature || 0,
+        topK: model.topK || 64,
+        topP: model.topP || 0.95,
+        maxOutputTokens: 8192,
+        responseMimeType: "text/plain"
+    };
+
+    const safetySettings = [
+        {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: model.safetySettings.dangerousContent
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: model.safetySettings.hateSpeech
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: model.safetySettings.harassment
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: model.safetySettings.sexuallyExplicit
+        }
+    ];
 
     return (new GoogleGenerativeAI(GOOGLE_API_KEY)).getGenerativeModel({
-        model: "gemini-1.5-flash-latest",
-        systemInstruction: getDefaultChatSystemPrompt()
+        model: model.technicalName,
+        generationConfig: generationConfig,
+        safetySettings: safetySettings,
+        systemInstruction: getChatSystemPrompt(persona.systemInstruction)
     });
 }
 

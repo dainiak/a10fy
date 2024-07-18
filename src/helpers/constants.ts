@@ -18,6 +18,7 @@ export enum storageKeys {
     mainGoogleApiKey = "googleApiKey",
     models = "models",
     personas = "personas",
+    assistantModel = "assistantModel",
     codePlayers = "codePlayers",
     menuItems = "menuItems",
     ttsVoicePreferences = "ttsVoicePreferences",

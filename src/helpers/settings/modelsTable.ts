@@ -14,6 +14,9 @@ export async function fillModelsTable() {
             name: "Default",
             description: "Default model",
             technicalName: "gemini-1.5-flash-latest",
+            topK: null,
+            topP: null,
+            temperature: null,
             apiKey: "",
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,
@@ -35,6 +38,7 @@ export async function fillModelsTable() {
             <td class="model-name"></td>
             <td class="model-description"></td>
             <td class="model-technical-name"></td>
+            <td class="model-generation-settings"></td>
             <td class="model-api-key"></td>
             <td>
                 <button class="btn btn-outline-secondary btn-sm edit-btn" data-model-id="${model.id}" aria-label="Edit model" title="Edit model"><i class="bi bi-pencil"></i></button>
@@ -46,6 +50,7 @@ export async function fillModelsTable() {
         (tr.querySelector(".model-name") as HTMLTableCellElement).textContent = model.name;
         (tr.querySelector(".model-description") as HTMLTableCellElement).textContent = model.description;
         (tr.querySelector(".model-technical-name") as HTMLTableCellElement).textContent = model.technicalName;
+        (tr.querySelector(".model-generation-settings") as HTMLTableCellElement).textContent = `${model.topK !== null ? model.topK : "—"} / ${model.topP !== null ? model.topP : "—"} / ${model.temperature !== null ? model.temperature : "—"}`;
         (tr.querySelector(".model-api-key") as HTMLTableCellElement).textContent = model.apiKey;
         (tr.querySelector(".edit-btn") as HTMLButtonElement).onclick = () => editModel(model.id);
         (tr.querySelector(".delete-btn") as HTMLButtonElement).onclick = () => deleteModel(model.id, tr);
@@ -84,13 +89,82 @@ async function deleteModel(modelId: string, tr: HTMLTableRowElement) {
     tr.remove();
 }
 
-async function editModel(modelId: string) {
+export async function setupAssistantModelSettings() {
+    let assistantModel: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
+    if(!assistantModel) {
+        assistantModel = {
+            sortingIndex: 0,
+            id: uniqueString(),
+            name: "Assistant model",
+            description: "Assistant model",
+            technicalName: "gemini-1.5-flash-latest",
+            topK: null,
+            topP: null,
+            temperature: null,
+            apiKey: "",
+            safetySettings: {
+                dangerousContent: HarmBlockThreshold.BLOCK_NONE,
+                hateSpeech: HarmBlockThreshold.BLOCK_NONE,
+                harassment: HarmBlockThreshold.BLOCK_NONE,
+                sexuallyExplicit: HarmBlockThreshold.BLOCK_NONE
+            }
+        }
+        await setToStorage(storageKeys.assistantModel, assistantModel);
+    }
+    const assistantModelApiKeyInput = document.getElementById("assistantModelApiKey") as HTMLInputElement;
+    assistantModelApiKeyInput.value = assistantModel?.apiKey || "";
+    assistantModelApiKeyInput.addEventListener("change", async () => {
+        assistantModel.apiKey = assistantModelApiKeyInput.value;
+        await setToStorage(storageKeys.assistantModel, assistantModel);
+    });
+    const assistantModelNameInput = document.getElementById("assistantModelTechnicalName") as HTMLInputElement;
+    assistantModelNameInput.value = assistantModel?.technicalName || "gemini-1.5-flash-latest";
+    assistantModelNameInput.addEventListener("change", async () => {
+        assistantModel.technicalName = assistantModelNameInput.value;
+        await setToStorage(storageKeys.assistantModel, assistantModel);
+    });
+
+    (document.getElementById("editAssistantModelButton") as HTMLButtonElement).onclick = () => editModel(assistantModel.id, true);
+}
+
+async function editModel(modelId: string, isAssistantModel: boolean = false) {
     const modalElement = document.getElementById("editModelModal") as HTMLDivElement;
     const modal = Bootstrap.Modal.getOrCreateInstance(modalElement);
-    const models = (await getFromStorage(storageKeys.models) || []);
-    const model = models[storageKeys.models].find((model: SerializedModel) => model.id === modelId);
+    let models: SerializedModel[] = [];
+    let model: SerializedModel;
+    if(isAssistantModel) {
+        model = await getFromStorage(storageKeys.assistantModel);
+        if(!model) {
+            model = {
+                sortingIndex: 0,
+                id: uniqueString(),
+                name: "Assistant model",
+                description: "Assistant model",
+                technicalName: "gemini-1.5-flash-latest",
+                topK: null,
+                topP: null,
+                temperature: null,
+                apiKey: "",
+                safetySettings: {
+                    dangerousContent: HarmBlockThreshold.BLOCK_NONE,
+                    hateSpeech: HarmBlockThreshold.BLOCK_NONE,
+                    harassment: HarmBlockThreshold.BLOCK_NONE,
+                    sexuallyExplicit: HarmBlockThreshold.BLOCK_NONE
+                }
+            }
+            await setToStorage(storageKeys.assistantModel, model);
+        }
+    }
+    else {
+        models = await getFromStorage(storageKeys.models) || [];
+        model = models.find((model: SerializedModel) => model.id === modelId) || models[0];
+    }
+
     const modelNameInput = document.getElementById("modelName") as HTMLInputElement;
     const modelDescriptionInput = document.getElementById("modelDescription") as HTMLTextAreaElement;
+    const modelTopKInput = document.getElementById("modelTopK") as HTMLInputElement;
+    const modelTopPInput = document.getElementById("modelTopP") as HTMLInputElement;
+    const modelTemperatureInput = document.getElementById("modelTemperature") as HTMLInputElement;
     const modelApiKeyInput = document.getElementById("modelApiKey") as HTMLInputElement;
     const modelTechnicalNameInput = document.getElementById("modelTechnicalName") as HTMLInputElement;
     const modelSafetyDangerousContentInput = document.getElementById("modelSafetyDangerousContent") as HTMLSelectElement;
@@ -101,6 +175,9 @@ async function editModel(modelId: string) {
     modelNameInput.value = model.name;
     modelDescriptionInput.value = model.description;
     modelTechnicalNameInput.value = model.technicalName;
+    modelTopKInput.value = model.topK !== null ? model.topK.toString() : "";
+    modelTopPInput.value = model.topP !== null ? model.topP.toString() : "";
+    modelTemperatureInput.value = model.temperature !== null ? model.temperature.toString() : "";
     modelApiKeyInput.value = model.apiKey;
     modelSafetyDangerousContentInput.value = model.safetySettings.dangerousContent;
     modelSafetyHateSpeechInput.value = model.safetySettings.hateSpeech;
@@ -112,6 +189,9 @@ async function editModel(modelId: string) {
         model.name = modelNameInput.value;
         model.description = modelDescriptionInput.value;
         model.technicalName = modelTechnicalNameInput.value;
+        model.topK = modelTopKInput.value ? parseInt(modelTopKInput.value) : null;
+        model.topP = modelTopPInput.value ? parseFloat(modelTopPInput.value) : null;
+        model.temperature = modelTemperatureInput.value ? parseFloat(modelTemperatureInput.value) : null;
         model.apiKey = modelApiKeyInput.value;
         model.safetySettings = {
             dangerousContent: modelSafetyDangerousContentInput.value as HarmBlockThreshold,
@@ -119,9 +199,16 @@ async function editModel(modelId: string) {
             harassment: modelSafetyHarassmentInput.value as HarmBlockThreshold,
             sexuallyExplicit: modelSafetySexuallyExplicitInput.value as HarmBlockThreshold
         }
-        await setToStorage(storageKeys.models, models);
+        if(isAssistantModel) {
+            await setToStorage(storageKeys.assistantModel, model);
+            await setupAssistantModelSettings();
+        }
+        else {
+            await setToStorage(storageKeys.models, models);
+            await fillModelsTable();
+        }
+
         closeModalButton.onclick = null;
-        await fillModelsTable();
         modal.hide();
     };
     modal.show();
@@ -136,6 +223,9 @@ export function setupNewModelButton() {
             name: "New model",
             description: "(Description here)",
             technicalName: "gemini-1.5-flash-latest",
+            topK: null,
+            topP: null,
+            temperature: null,
             apiKey: "",
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,

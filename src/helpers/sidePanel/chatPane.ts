@@ -2,9 +2,12 @@ import {chatPaneChatArea, chatPaneInputTextArea} from './htmlElements';
 import {addMessageCardToChatPane, fillModelMessageCard, setCurrentChat, updateCurrentChatSettings} from "./messages";
 import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
 import {uniqueString} from "../uniqueId";
+import {getFromStorage} from "../storageHandling";
+import {storageKeys} from "../constants";
+import {SerializedModel, SerializedPersona} from "../settings/dataModels";
 
 
-export function setupChatSettingsCard(currentChat: SerializedChat) {
+export async function setupChatSettingsCard(currentChat: SerializedChat) {
     chatPaneChatArea.innerHTML = "";
     chatPaneChatArea.innerHTML = `
         <div class="card mb-3" id="currentChatSettingsCard">
@@ -17,9 +20,13 @@ export function setupChatSettingsCard(currentChat: SerializedChat) {
             </div>
         </div>`
     const currentChatSettingsCard = chatPaneChatArea.querySelector('#currentChatSettingsCard') as HTMLDivElement;
+    const personaList = currentChatSettingsCard.querySelector('#llmPersonaSelect') as HTMLSelectElement;
+    const modelList = currentChatSettingsCard.querySelector('#llmModelSelect') as HTMLSelectElement;
 
-    const personas = [{name: "one", id: "1"}, {name: "two", id: "2"}, {name: "three", id: "3"}];
-    const personaList = currentChatSettingsCard.querySelector("#llmPersonaSelect") as HTMLSelectElement;
+    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    let personaFound = false;
+    let modelFound = false;
 
     personas.forEach((persona) => {
         const option = document.createElement("option");
@@ -28,15 +35,17 @@ export function setupChatSettingsCard(currentChat: SerializedChat) {
         personaList.appendChild(option);
         if (persona.id === currentChat.persona) {
             option.selected = true;
+            personaFound = true;
         }
     });
+    if(!personaFound) {
+        updateCurrentChatSettings({persona: personas[0].id});
+    }
 
     personaList.addEventListener("change", () => {
         updateCurrentChatSettings({persona: personaList.value});
     });
 
-    const models = [{name: "one", id: "1"}, {name: "two", id: "2"}, {name: "three", id: "3"}];
-    const modelList = currentChatSettingsCard.querySelector("#llmModelSelect") as HTMLSelectElement;
     models.forEach((model) => {
         const option = document.createElement("option");
         option.value = model.id;
@@ -44,8 +53,12 @@ export function setupChatSettingsCard(currentChat: SerializedChat) {
         modelList.appendChild(option);
         if (model.id === currentChat.model) {
             option.selected = true;
+            modelFound = true;
         }
     });
+    if (!modelFound) {
+        updateCurrentChatSettings({model: models[0].id});
+    }
     modelList.addEventListener("change", () => {
         updateCurrentChatSettings({model: modelList.value});
     });

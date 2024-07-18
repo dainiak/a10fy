@@ -28,8 +28,8 @@ You are capable of generating python code that can be executed right in the brow
 `.trim();
 }
 
-export function getDefaultChatSystemPrompt() {
-    return getDefaultChatSystemPromptTemplate().replace("___CURRENT_DATETIME___", new Date().toJSON().slice(0,10));
+export function getChatSystemPrompt(promptTemplate: string) {
+    return promptTemplate.replace("___CURRENT_DATETIME___", new Date().toJSON().slice(0,10));
 }
 
 

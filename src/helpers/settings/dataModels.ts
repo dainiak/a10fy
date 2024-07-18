@@ -15,6 +15,9 @@ export interface SerializedModel {
     name: string,
     description: string,
     technicalName: string,
+    topK: number | null,
+    topP: number | null,
+    temperature: number | null,
     apiKey: string,
     safetySettings: {
         dangerousContent: HarmBlockThreshold,

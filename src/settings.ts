@@ -1,5 +1,5 @@
 import {storageKeys} from "./helpers/constants";
-import {fillModelsTable, setupNewModelButton} from "./helpers/settings/modelsTable";
+import {fillModelsTable, setupAssistantModelSettings, setupNewModelButton} from "./helpers/settings/modelsTable";
 import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/personasTable";
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
 
@@ -18,14 +18,20 @@ allowToUseMicrophone.addEventListener("click", () => {
     });
 });
 
-const apiKeyInput = document.getElementById("mainGoogleApiKey") as HTMLInputElement;
+async function setupDefaultApiKey() {
+    const apiKeyInput = document.getElementById("mainGoogleApiKey") as HTMLInputElement;
 
-const apiKey = await getFromStorage(storageKeys.mainGoogleApiKey);
-if(apiKey)
-    apiKeyInput.value = apiKey;
+    const apiKey = await getFromStorage(storageKeys.mainGoogleApiKey);
+    if(apiKey)
+        apiKeyInput.value = apiKey;
 
-apiKeyInput.addEventListener("change", async () => await setToStorage(storageKeys.mainGoogleApiKey, apiKeyInput.value));
+    apiKeyInput.addEventListener("change", async () => await setToStorage(storageKeys.mainGoogleApiKey, apiKeyInput.value));
+}
 
+
+
+setupDefaultApiKey().catch();
+setupAssistantModelSettings().catch();
 setupNewModelButton();
 fillModelsTable().catch();
 setupNewPersonaButton();

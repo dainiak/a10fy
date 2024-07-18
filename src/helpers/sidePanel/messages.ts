@@ -14,6 +14,9 @@ import {
 } from "./chatStorage";
 import {getGeminiTextModel} from "../geminiInterfacing";
 import {getInlineDataPart} from "../promptParts";
+import {storageKeys} from "../constants";
+import {SerializedModel, SerializedPersona} from "../settings/dataModels";
+import {getFromStorage} from "../storageHandling";
 
 
 let currentChat: SerializedChat | null = null;
@@ -213,7 +216,21 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
         }
     );
 
-    const chatModel = await getGeminiTextModel();
+    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas)) || [];
+    let persona = personas.find((persona: SerializedPersona) => persona.id === currentChat.persona);
+    if (!persona) {
+        persona = personas[0];
+        currentChat.persona = persona.id;
+    }
+
+    const models = (await getFromStorage(storageKeys.models) || []);
+    let model = models.find((model: SerializedModel) => model.id === (currentChat.model || persona.defaultModel));
+    if(!model) {
+        model = models[0];
+        currentChat.model = model.id;
+    }
+
+    const chatModel = await getGeminiTextModel(model, persona);
     chatModel.generateContentStream({contents: geminiHistory}).then(async (result) => {
         let llmMessageText = "";
 

@@ -27,8 +27,23 @@
                         <label for="modelDescription" class="form-label">Description</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="modelTechnicalName" placeholder="Model technical name">
+                        <input type="text" class="form-control" id="modelTechnicalName" placeholder="Model technical name" required>
                         <label for="modelTechnicalName" class="form-label">Model technical name</label>
+                    </div>
+                    <div class="mb-3 form-floating has-validation">
+                        <input type="number" class="form-control" id="modelTopK" placeholder="Top-K">
+                        <label for="modelTopK" class="form-label">Top-K</label>
+                        <div class="invalid-feedback">Top-K should be a positive integer.</div>
+                    </div>
+                    <div class="mb-3 form-floating has-validation">
+                        <input type="number" class="form-control" id="modelTopP" placeholder="Top-P">
+                        <label for="modelTopP" class="form-label">Top-P</label>
+                        <div class="invalid-feedback">Top-P should be a number between 0 and 1.</div>
+                    </div>
+                    <div class="mb-3 form-floating has-validation">
+                        <input type="number" class="form-control" id="modelTemperature" placeholder="Temperature">
+                        <label for="modelTemperature" class="form-label">Temperature</label>
+                        <div class="invalid-feedback">Temperature should be a number between 0 and 1.</div>
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="modelApiKey" placeholder="API Key">
@@ -218,12 +233,29 @@
                             <th>Name</th>
                             <th>Description</th>
                             <th>Technical name</th>
+                            <th>Top-K/Top-P/Temperature</th>
                             <th>API key</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+            </div>
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title"><i class="bi bi-robot"></i> Assistant model</h5></div>
+                <div class="card-body">
+                    <h6 class="card-title">Assistant model API key</h6>
+                    <div class="mb-3 form-floating">
+                        <input type="password" class="form-control" id="assistantModelApiKey" placeholder="API key">
+                        <label for="assistantModelApiKey" class="form-label">API key</label>
+                    </div>
+                    <h6 class="card-title">Assistant model technical name</h6>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="assistantModelTechnicalName" placeholder="Technical name">
+                        <label for="assistantModelTechnicalName" class="form-label">Technical name</label>
+                    </div>
+                    <button aria-label="Edit assistant model" class="btn btn-outline-primary my-3 px-2" id="editAssistantModelButton"><i class="bi bi-pencil-square"></i> Edit advanced assistant model settings</button>
                 </div>
             </div>
             <div class="card my-4">
