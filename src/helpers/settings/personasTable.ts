@@ -128,7 +128,7 @@ async function movePersonaDown(personaId: string, tr: HTMLTableRowElement) {
 }
 
 export function setupNewPersonaButton() {
-    (document.querySelector("#newModelButton") as HTMLButtonElement).addEventListener("click", async () => {
+    (document.getElementById("newPersonaButton") as HTMLButtonElement).addEventListener("click", async () => {
         const personas: SerializedPersona[] = await  getFromStorage(storageKeys.personas) || [];
         const newPersona: SerializedPersona = {
             sortingIndex: personas.length,

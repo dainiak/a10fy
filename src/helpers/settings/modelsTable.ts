@@ -215,7 +215,7 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
 }
 
 export function setupNewModelButton() {
-    (document.querySelector("#newModelButton") as HTMLButtonElement).addEventListener("click", async () => {
+    (document.getElementById("newModelButton") as HTMLButtonElement).addEventListener("click", async () => {
         const models = await getFromStorage(storageKeys.models) || [];
         const newModel: SerializedModel = {
             sortingIndex: models.length,
