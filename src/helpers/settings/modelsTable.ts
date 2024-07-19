@@ -47,15 +47,15 @@ export async function fillModelsTable() {
                 <button class="btn btn-outline-secondary btn-sm move-down-btn" data-model-id="${model.id}" aria-label="Move model down the list" title="Move model down the list"><i class="bi bi-arrow-down"></i></button>
             </td>
         `;
-        (tr.querySelector(".model-name") as HTMLTableCellElement).textContent = model.name;
-        (tr.querySelector(".model-description") as HTMLTableCellElement).textContent = model.description;
-        (tr.querySelector(".model-technical-name") as HTMLTableCellElement).textContent = model.technicalName;
-        (tr.querySelector(".model-generation-settings") as HTMLTableCellElement).textContent = `${model.topK !== null ? model.topK : "—"} / ${model.topP !== null ? model.topP : "—"} / ${model.temperature !== null ? model.temperature : "—"}`;
-        (tr.querySelector(".model-api-key") as HTMLTableCellElement).textContent = model.apiKey;
-        (tr.querySelector(".edit-btn") as HTMLButtonElement).onclick = () => editModel(model.id);
-        (tr.querySelector(".delete-btn") as HTMLButtonElement).onclick = () => deleteModel(model.id, tr);
-        (tr.querySelector(".move-up-btn") as HTMLButtonElement).onclick = () => moveModelUp(model.id, tr);
-        (tr.querySelector(".move-down-btn") as HTMLButtonElement).onclick = () => moveModelDown(model.id, tr);
+        (tr.querySelector("td.model-name") as HTMLTableCellElement).textContent = model.name;
+        (tr.querySelector("td.model-description") as HTMLTableCellElement).textContent = model.description;
+        (tr.querySelector("td.model-technical-name") as HTMLTableCellElement).textContent = model.technicalName;
+        (tr.querySelector("td.model-generation-settings") as HTMLTableCellElement).textContent = `${model.topK !== null ? model.topK : "—"} / ${model.topP !== null ? model.topP : "—"} / ${model.temperature !== null ? model.temperature : "—"}`;
+        (tr.querySelector("td.model-api-key") as HTMLTableCellElement).textContent = model.apiKey;
+        (tr.querySelector("button.edit-btn") as HTMLButtonElement).onclick = () => editModel(model.id);
+        (tr.querySelector("button.delete-btn") as HTMLButtonElement).onclick = () => deleteModel(model.id, tr);
+        (tr.querySelector("button.move-up-btn") as HTMLButtonElement).onclick = () => moveModelUp(model.id, tr);
+        (tr.querySelector("button.move-down-btn") as HTMLButtonElement).onclick = () => moveModelDown(model.id, tr);
         tbody.appendChild(tr);
     });
 }

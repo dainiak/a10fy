@@ -40,16 +40,16 @@ export async function fillPersonasTable() {
                 <button class="btn btn-outline-secondary btn-sm move-down-btn" data-persona-id="${persona.id}" aria-label="Move persona down the list" title="Move persona down the list"><i class="bi bi-arrow-down"></i></button>
             </td>
         `;
-        (tr.querySelector(".persona-name") as HTMLTableCellElement).textContent = persona.name;
-        (tr.querySelector(".persona-description") as HTMLTableCellElement).textContent = persona.description;
+        (tr.querySelector("td.persona-name") as HTMLTableCellElement).textContent = persona.name;
+        (tr.querySelector("td.persona-description") as HTMLTableCellElement).textContent = persona.description;
         const modelForPersona = models.find((model: SerializedModel) => model.id === persona.defaultModel);
         if (modelForPersona)
-            (tr.querySelector(".persona-model") as HTMLTableCellElement).textContent = modelForPersona.name;
-        (tr.querySelector(".persona-system-instruction") as HTMLTableCellElement).textContent = persona.systemInstruction.length > 60 ? persona.systemInstruction.slice(0, 50) + "…" : persona.systemInstruction;
-        (tr.querySelector(".edit-btn") as HTMLButtonElement).onclick = () => editPersona(persona.id);
-        (tr.querySelector(".delete-btn") as HTMLButtonElement).onclick = () => deletePersona(persona.id, tr);
-        (tr.querySelector(".move-up-btn") as HTMLButtonElement).onclick = () => movePersonaUp(persona.id, tr);
-        (tr.querySelector(".move-down-btn") as HTMLButtonElement).onclick = () => movePersonaDown(persona.id, tr);
+            (tr.querySelector("td.persona-model") as HTMLTableCellElement).textContent = modelForPersona.name;
+        (tr.querySelector("td.persona-system-instruction") as HTMLTableCellElement).textContent = persona.systemInstruction.length > 60 ? persona.systemInstruction.slice(0, 50) + "…" : persona.systemInstruction;
+        (tr.querySelector("button.edit-btn") as HTMLButtonElement).onclick = () => editPersona(persona.id);
+        (tr.querySelector("button.delete-btn") as HTMLButtonElement).onclick = () => deletePersona(persona.id, tr);
+        (tr.querySelector("button.move-up-btn") as HTMLButtonElement).onclick = () => movePersonaUp(persona.id, tr);
+        (tr.querySelector("button.move-down-btn") as HTMLButtonElement).onclick = () => movePersonaDown(persona.id, tr);
     });
 }
 

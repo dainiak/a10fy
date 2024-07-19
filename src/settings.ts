@@ -1,7 +1,13 @@
 import {storageKeys} from "./helpers/constants";
-import {fillModelsTable, setupAssistantModelSettings, setupNewModelButton} from "./helpers/settings/modelsTable";
+import {
+    fillModelsTable,
+    setupAssistantModelSettings,
+    setupEmbeddingModelSettings,
+    setupNewModelButton
+} from "./helpers/settings/modelsTable";
 import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/personasTable";
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
+import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersTable";
 
 document.body.setAttribute("data-bs-theme", window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
 
@@ -32,7 +38,10 @@ async function setupDefaultApiKey() {
 
 setupDefaultApiKey().catch();
 setupAssistantModelSettings().catch();
+setupEmbeddingModelSettings().catch();
 setupNewModelButton();
 fillModelsTable().catch();
 setupNewPersonaButton();
 fillPersonasTable().catch();
+setupNewPlayerButton();
+fillPlayersTable().catch();

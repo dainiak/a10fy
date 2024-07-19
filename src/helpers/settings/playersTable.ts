@@ -8,28 +8,25 @@ import {customPlayerFactory} from "../players/custom";
 export async function fillPlayersTable() {
     const players: SerializedCustomCodePlayer[] = (await getFromStorage(storageKeys.codePlayers) || []);
     const table = document.getElementById("codePlayersTable") as HTMLTableElement;
-    table.innerHTML = "";
+    const tbody = table.querySelector("tbody") as HTMLTableSectionElement;
+    tbody.innerHTML = "";
     players.forEach((player: SerializedCustomCodePlayer) => {
         const tr = document.createElement("tr");
-        const nameTd = document.createElement("td");
-        nameTd.textContent = player.name;
-        tr.appendChild(nameTd);
-        const languageTagsTd = document.createElement("td");
-        languageTagsTd.textContent = player.languageTags.join(", ");
-        tr.appendChild(languageTagsTd);
-        const descriptionTd = document.createElement("td");
-        descriptionTd.textContent = player.description;
-        tr.appendChild(descriptionTd);
-
-        const editTd = document.createElement("td");
-        editTd.innerHTML = `
+        tr.innerHTML = `
+        <td class="player-name"></td>
+        <td class="player-language-tags"></td>
+        <td class="player-description"></td>
+        <td class="player-edit">
             <button class="btn btn-outline-secondary btn-sm edit-btn" data-player-id="${player.id}" aria-label="Edit player" title="Edit player"><i class="bi bi-pencil"></i></button>
             <button class="btn btn-outline-danger btn-sm delete-btn" data-player-id="${player.id}" aria-label="Delete player" title="Delete player"><i class="bi bi-trash"></i></button>
+        </td>
         `;
 
-        tr.appendChild(editTd);
-        (editTd.querySelector('edit-btn') as HTMLButtonElement).onclick = () => editPlayer(player.id);
-        (editTd.querySelector('delete-btn') as HTMLButtonElement).onclick = () => deletePlayer(player.id, tr);
+        (tr.querySelector('td.player-name') as HTMLTableCellElement).textContent = player.name;
+        (tr.querySelector('td.player-language-tags') as HTMLTableCellElement).textContent = player.languageTags.join(", ");
+        (tr.querySelector('td.player-description') as HTMLTableCellElement).textContent = player.description;
+        (tr.querySelector('button.edit-btn') as HTMLButtonElement).onclick = () => editPlayer(player.id);
+        (tr.querySelector('button.delete-btn') as HTMLButtonElement).onclick = () => deletePlayer(player.id, tr);
         table.appendChild(tr);
     });
 }
@@ -61,7 +58,7 @@ async function editPlayer(playerId: string) {
     playerDebugCode.value = player.testCode;
     const playerDebugLanguage = document.getElementById("playerDebugLanguage") as HTMLInputElement;
     playerDebugLanguage.value = player.languageTags.length ? player.languageTags[0] : "";
-    const saveButton = document.getElementById("saveCodePlayer") as HTMLButtonElement;
+    const saveButton = document.getElementById("saveCodePlayerButton") as HTMLButtonElement;
     saveButton.onclick = async () => {
         player.name = nameInput.value.trim();
         player.description = descriptionInput.value.trim();
@@ -86,6 +83,7 @@ async function editPlayer(playerId: string) {
             debugOutputElement
         );
     }
+    modal.show();
 }
 
 async function deletePlayer(playerId: string, tr: HTMLTableRowElement) {
@@ -105,9 +103,17 @@ export function setupNewPlayerButton() {
             autoplay: false,
             hideCode: false,
             customCSS: "",
-            customJS: "",
+            customJS: `
+// To submit results, call:
+// sendCustomCodePlayerResult({html: "Any JS-free markup here"})
+// or populate the sandbox document and then call:
+// sendCustomCodePlayerResult({width: number, height: number})
+// to set the dimensions of the viewport for the player’s result.`.trim(),
             customHTML: "",
-            testCode: ""
+            testCode: `
+\`\`\`languageTagHere
+    Code to test the player on.
+\`\`\``.trim()
         };
         await setToStorage(storageKeys.codePlayers, [...players, newPlayer]);
         await fillPlayersTable();
