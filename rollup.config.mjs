@@ -74,13 +74,13 @@ const replaceSessionStorageString = replace({
 
 export default [
     // constructScssConfig('tour'),
-    constructJsConfig('background', jsPluginConfigs),
+    constructJsConfig('background', [...jsPluginConfigs, copyPluginConfig]),
     constructJsConfig('contentScript', jsPluginConfigs),
+    constructJsConfig('customPlayerSandbox', jsPluginConfigs),
     // constructJsConfig('contentScriptTour', jsPluginConfigs),
     constructJsConfig('offscreen', jsPluginConfigs),
-    constructJsConfig('popup', [...jsPluginConfigs, copyPluginConfig]),
+    constructJsConfig('popup', jsPluginConfigs),
     constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),
-    constructJsConfig('customPlayerSandbox', jsPluginConfigs),
     constructJsConfig('settings', jsPluginConfigs),
     // constructJsConfig('sidePanel', jsPluginConfigs),
 ];

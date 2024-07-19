@@ -70,6 +70,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         showChatTab();
     });
 
+    (document.getElementById("openSettingsPageButton") as HTMLButtonElement).addEventListener("click", async () => {
+        await chrome.runtime.openOptionsPage();
+    })
+
     initializeChatListTable(loadChatToChatPane, (chatId) => deleteChat(chatId)).catch();
     makeUserInputAreaAutoexpandable();
     setInputAreaAttachmentEventListeners();
