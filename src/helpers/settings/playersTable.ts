@@ -59,6 +59,12 @@ async function editPlayer(playerId: string) {
     const playerDebugLanguage = document.getElementById("playerDebugLanguage") as HTMLInputElement;
     playerDebugLanguage.value = player.languageTags.length ? player.languageTags[0] : "";
     const saveButton = document.getElementById("saveCodePlayerButton") as HTMLButtonElement;
+    const debugButton = document.getElementById("playerDebugButton") as HTMLButtonElement;
+    const debugOutputElement = document.getElementById("playerDebugOutput") as HTMLDivElement;
+    const debugOutputHeader = document.getElementById("playerDebugOutputHeader") as HTMLDivElement;
+    const playerDebugLanguageInput = document.getElementById("playerDebugLanguage") as HTMLInputElement;
+    debugOutputHeader.textContent = "";
+
     saveButton.onclick = async () => {
         player.name = nameInput.value.trim();
         player.description = descriptionInput.value.trim();
@@ -69,16 +75,21 @@ async function editPlayer(playerId: string) {
         player.customJS = jsInput.value.trim();
         player.customHTML = htmlInput.value.trim();
         player.testCode = playerDebugCode.value.trim();
+        debugOutputElement.innerHTML = "";
         await setToStorage(storageKeys.codePlayers, players);
         await fillPlayersTable();
         modal.hide();
     }
-    const debugButton = document.getElementById("playerDebugButton") as HTMLButtonElement;
+    debugOutputElement.innerHTML = "";
     debugButton.onclick = async () => {
-        const debugOutputElement = document.getElementById("playerDebugOutput") as HTMLDivElement;
-        debugOutputElement.innerHTML = '<div class="card-text align-self-center">Results of the player run will be displayed here.</div>';
-        customPlayerFactory(cssInput.value.trim(), jsInput.value.trim(), htmlInput.value.trim())(
-            (document.getElementById("playerDebugLanguage") as HTMLInputElement).value.trim(),
+        debugOutputHeader.textContent = 'Results of the player run will be displayed below:';
+        customPlayerFactory(
+            cssInput.value.trim(),
+            jsInput.value.trim(),
+            htmlInput.value.trim(),
+            () => debugOutputHeader.textContent = "Result received from player:"
+        )(
+            playerDebugLanguageInput.value.trim(),
             playerDebugCode.value.trim(),
             debugOutputElement
         );

@@ -6,7 +6,7 @@ import {
     RunInSandboxRequest
 } from "../constants";
 
-export function customPlayerFactory(customCSS: string, customJS: string, customHTML: string) {
+export function customPlayerFactory(customCSS: string, customJS: string, customHTML: string, callback?: Function) {
     return (language: string, code: string, outputElement: HTMLElement) => {
         outputElement.style.setProperty("display", "");
         const requestId = uniqueString();
@@ -37,6 +37,8 @@ export function customPlayerFactory(customCSS: string, customJS: string, customH
                 if (result.height) {
                     sandbox.height = result.height.toString();
                 }
+                if(callback)
+                    callback(result);
             }
             catch(e) {
                 outputElement.innerHTML = `An error occurred while running the player: ${e}`;

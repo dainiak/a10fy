@@ -10,7 +10,7 @@
 </head>
 <body>
 <div id="editModelModal" class="modal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-scrollable" style="position: fixed; bottom: 0; left: 0; right: 0;">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit model</h5>
@@ -101,7 +101,7 @@
 </div>
 
 <div id="editPersonaModal" class="modal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-scrollable" style="position: fixed; bottom: 0; left: 0; right: 0;">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit persona</h5>
@@ -136,7 +136,7 @@
 </div>
 
 <div id="editMenuItemModal" class="modal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-scrollable" style="position: fixed; bottom: 0; left: 0; right: 0;">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit context menu item</h5>
@@ -167,7 +167,7 @@
 </div>
 
 <div id="editCodePlayerModal" class="modal" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-scrollable" style="position: fixed; bottom: 0; left: 0; right: 0;">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit custom code player</h5>
@@ -222,12 +222,10 @@
                             </div>
                             <button type="button" class="btn btn-secondary" id="playerDebugButton">Run!</button>
                         </form>
-                            <h6 class="card-title mt-0">The results of the run will be shown here:</h6>
-                            <div class="container-fluid" id="playerDebugOutput"></div>
+                        <h6 class="card-title mt-3" id="playerDebugOutputHeader">The results of the run will be shown here:</h6>
+                        <div class="container-fluid" id="playerDebugOutput"></div>
                     </div>
                 </div>
-
-
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
