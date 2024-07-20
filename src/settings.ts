@@ -9,14 +9,16 @@ import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/perso
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
 import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
 import * as Bootstrap from "bootstrap";
+
 const quickSetupTab = Bootstrap.Tab.getOrCreateInstance(document.getElementById("setupTab") as HTMLElement);
-quickSetupTab.show();
+
+document.querySelectorAll("a.open-quick-setup").forEach(element => element.addEventListener("click", () => quickSetupTab.show()));
 
 document.body.setAttribute("data-bs-theme", window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
-
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',({ matches }) => {
     document.body.setAttribute("data-bs-theme", matches ? "dark" : "light");
 });
+
 
 const allowToUseMicrophone = document.getElementById("allowToUseMicrophone") as HTMLElement;
 allowToUseMicrophone.addEventListener("click", () => {
@@ -37,7 +39,6 @@ async function setupDefaultApiKey() {
     apiKeyInput.addEventListener("change", async () => await setToStorage(storageKeys.mainGoogleApiKey, apiKeyInput.value));
 }
 
-document.querySelectorAll("a.open-quick-setup").forEach(element => element.addEventListener("click", () => quickSetupTab.show()));
 
 setupDefaultApiKey().catch();
 setupAssistantModelSettings().catch();

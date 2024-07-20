@@ -23,8 +23,8 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
     const personaList = currentChatSettingsCard.querySelector('#llmPersonaSelect') as HTMLSelectElement;
     const modelList = currentChatSettingsCard.querySelector('#llmModelSelect') as HTMLSelectElement;
 
-    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
-    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).filter((m: SerializedModel) => m.isVisibleInChat).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas) || []).filter((p: SerializedPersona) => p.isVisibleInChat).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
     let personaFound = false;
     let modelFound = false;
 

@@ -65,6 +65,7 @@ async function editPersona(personaId: string) {
     const descriptionInput = document.getElementById("personaDescription") as HTMLInputElement;
     const modelSelect = document.getElementById("personaModel") as HTMLSelectElement;
     const systemInstructionInput = document.getElementById("personaSystemInstruction") as HTMLInputElement;
+    const isVisibleInChatCheckbox = document.getElementById("personaVisibleInChat") as HTMLInputElement;
     nameInput.value = persona.name;
     descriptionInput.value = persona.description;
 
@@ -85,6 +86,7 @@ async function editPersona(personaId: string) {
     });
     modelSelect.value = persona.defaultModel;
     systemInstructionInput.value = persona.systemInstruction;
+    isVisibleInChatCheckbox.checked = persona.isVisibleInChat;
 
     const saveButton = document.getElementById("savePersonaButton") as HTMLButtonElement;
     saveButton.onclick = async () => {
@@ -92,6 +94,7 @@ async function editPersona(personaId: string) {
         persona.description = descriptionInput.value.trim();
         persona.defaultModel = modelSelect.value;
         persona.systemInstruction = systemInstructionInput.value.trim();
+        persona.isVisibleInChat = isVisibleInChatCheckbox.checked;
         await setToStorage(storageKeys.personas, personas);
         modal.hide();
         await fillPersonasTable();
@@ -142,7 +145,8 @@ export function setupNewPersonaButton() {
             name: "New Persona",
             description: "Description",
             defaultModel: "",
-            systemInstruction: "You are a helpful assistant."
+            systemInstruction: "You are a helpful assistant.",
+            isVisibleInChat: true,
         };
         await setToStorage(storageKeys.personas, [...personas, newPersona]);
         await fillPersonasTable();

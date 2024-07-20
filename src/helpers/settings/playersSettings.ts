@@ -115,16 +115,14 @@ export function setupNewPlayerButton() {
             hideCode: false,
             customCSS: "",
             customJS: `
-// To submit results, call:
-// sendCustomCodePlayerResult({html: "Any JS-free markup here"})
-// or populate the sandbox document and then call:
+// The input parameters can be read from a globally available customCodePlayerParams.language and customCodePlayerParams.code 
+// To submit results, call sendCustomCodePlayerResult function available in the global scope:
+// sendCustomCodePlayerResult({html: "Some static JS-free HTML markup here"})
+// or populate the sandboxed document and then call:
 // sendCustomCodePlayerResult({width: number, height: number})
-// to set the dimensions of the viewport for the player’s result.`.trim(),
+// to set the dimensions of the iframe that hosts the document.`.trim(),
             customHTML: "",
-            testCode: `
-\`\`\`languageTagHere
-    Code to test the player on.
-\`\`\``.trim()
+            testCode: `Code to test the player on`.trim()
         };
         await setToStorage(storageKeys.codePlayers, [...players, newPlayer]);
         await fillPlayersTable();

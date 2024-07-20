@@ -13,8 +13,13 @@ export function customPlayerFactory(customCSS: string, customJS: string, customH
         const sandbox = document.createElement("iframe") as HTMLIFrameElement;
         sandbox.id = requestId;
         sandbox.src = "customPlayerSandbox.html";
+        sandbox.classList.add("object-fit-contain");
+        sandbox.classList.add("mx-0");
+        sandbox.classList.add("my-0");
+        sandbox.classList.add("px-0");
+        sandbox.classList.add("py-0");
         sandbox.width = outputElement.getBoundingClientRect().width.toString();
-        sandbox.height = "1";
+        // sandbox.height = "1";
         outputElement.appendChild(sandbox);
 
         const resultMessageHandler = (event: MessageEvent) => {

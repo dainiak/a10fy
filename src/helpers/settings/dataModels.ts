@@ -6,7 +6,8 @@ export interface SerializedPersona {
     name: string,
     description: string,
     defaultModel: string,
-    systemInstruction: string
+    systemInstruction: string,
+    isVisibleInChat: boolean
 }
 
 export interface SerializedModel {
@@ -19,6 +20,7 @@ export interface SerializedModel {
     topP: number | null,
     temperature: number | null,
     apiKey: string,
+    isVisibleInChat: boolean,
     safetySettings: {
         dangerousContent: HarmBlockThreshold,
         hateSpeech: HarmBlockThreshold,

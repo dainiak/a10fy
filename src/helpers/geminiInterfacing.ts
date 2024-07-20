@@ -51,19 +51,19 @@ async function getJSONGeminiModel() {
     const safetySettings = [
         {
             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: assistantModelSettings?.safetySettings?.dangerousContent || HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.dangerousContent || HarmBlockThreshold.BLOCK_ONLY_HIGH
         },
         {
             category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold: assistantModelSettings?.safetySettings?.hateSpeech || HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.hateSpeech || HarmBlockThreshold.BLOCK_ONLY_HIGH
         },
         {
             category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold: assistantModelSettings?.safetySettings?.harassment || HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.harassment || HarmBlockThreshold.BLOCK_ONLY_HIGH
         },
         {
             category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold: assistantModelSettings?.safetySettings?.sexuallyExplicit || HarmBlockThreshold.BLOCK_NONE
+            threshold: assistantModelSettings?.safetySettings?.sexuallyExplicit || HarmBlockThreshold.BLOCK_ONLY_HIGH
         }
     ];
 

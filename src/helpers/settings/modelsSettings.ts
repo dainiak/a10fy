@@ -17,6 +17,7 @@ export async function fillModelsTable() {
             topK: null,
             topP: null,
             temperature: null,
+            isVisibleInChat: true,
             apiKey: "",
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,
@@ -105,11 +106,12 @@ export async function setupAssistantModelSettings() {
             topP: null,
             temperature: null,
             apiKey: "",
+            isVisibleInChat: true,
             safetySettings: {
-                dangerousContent: HarmBlockThreshold.BLOCK_NONE,
-                hateSpeech: HarmBlockThreshold.BLOCK_NONE,
-                harassment: HarmBlockThreshold.BLOCK_NONE,
-                sexuallyExplicit: HarmBlockThreshold.BLOCK_NONE
+                dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                harassment: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                sexuallyExplicit: HarmBlockThreshold.BLOCK_ONLY_HIGH
             }
         }
         await setToStorage(storageKeys.assistantModel, assistantModel);
@@ -143,6 +145,7 @@ export async function setupEmbeddingModelSettings() {
             topP: null,
             temperature: null,
             apiKey: "",
+            isVisibleInChat: false,
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.BLOCK_NONE,
                 hateSpeech: HarmBlockThreshold.BLOCK_NONE,
@@ -186,6 +189,7 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
                 topP: null,
                 temperature: null,
                 apiKey: "",
+                isVisibleInChat: false,
                 safetySettings: {
                     dangerousContent: HarmBlockThreshold.BLOCK_NONE,
                     hateSpeech: HarmBlockThreshold.BLOCK_NONE,
@@ -212,6 +216,7 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
     const modelSafetyHateSpeechInput = document.getElementById("modelSafetyHateSpeech") as HTMLSelectElement;
     const modelSafetyHarassmentInput = document.getElementById("modelSafetyHarassment") as HTMLSelectElement;
     const modelSafetySexuallyExplicitInput = document.getElementById("modelSafetySexuallyExplicit") as HTMLSelectElement;
+    const modelVisibleInChatCheckbox = document.getElementById("modelVisibleInChat") as HTMLInputElement;
 
     modelNameInput.value = model.name;
     modelDescriptionInput.value = model.description;
@@ -220,6 +225,7 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
     modelTopPInput.value = model.topP !== null ? model.topP.toString() : "";
     modelTemperatureInput.value = model.temperature !== null ? model.temperature.toString() : "";
     modelApiKeyInput.value = model.apiKey;
+    modelVisibleInChatCheckbox.checked = model.isVisibleInChat;
     modelSafetyDangerousContentInput.value = model.safetySettings.dangerousContent;
     modelSafetyHateSpeechInput.value = model.safetySettings.hateSpeech;
     modelSafetyHarassmentInput.value = model.safetySettings.harassment;
@@ -234,6 +240,7 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
         model.topP = modelTopPInput.value ? parseFloat(modelTopPInput.value.trim()) : null;
         model.temperature = modelTemperatureInput.value ? parseFloat(modelTemperatureInput.value.trim()) : null;
         model.apiKey = modelApiKeyInput.value.trim();
+        model.isVisibleInChat = modelVisibleInChatCheckbox.checked;
         model.safetySettings = {
             dangerousContent: modelSafetyDangerousContentInput.value as HarmBlockThreshold,
             hateSpeech: modelSafetyHateSpeechInput.value as HarmBlockThreshold,
@@ -267,6 +274,7 @@ export function setupNewModelButton() {
             topK: null,
             topP: null,
             temperature: null,
+            isVisibleInChat: true,
             apiKey: "",
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,

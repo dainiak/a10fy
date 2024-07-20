@@ -9,7 +9,7 @@
     <title>A10fy Welcome Screen</title>
 </head>
 <body>
-<div id="editModelModal" class="modal" tabindex="-1" data-bs-backdrop="static">
+<div id="editModelModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -27,8 +27,12 @@
                         <label for="modelDescription" class="form-label">Description</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="modelTechnicalName" placeholder="Model technical name" required>
+                        <input type="text" style="font-family: monospace" class="form-control" id="modelTechnicalName" placeholder="Model technical name" required>
                         <label for="modelTechnicalName" class="form-label">Model technical name</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="modelVisibleInChat">
+                        <label for="modelVisibleInChat" class="form-label">Available in chat mode</label>
                     </div>
                     <h5 class="card-title mt-5 mb-2">Generation Settings <a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#temperature"><i class="bi bi-info-circle"></i></a></h5>
                     <div class="mb-3 form-floating has-validation">
@@ -101,7 +105,7 @@
     </div>
 </div>
 
-<div id="editPersonaModal" class="modal" tabindex="-1" data-bs-backdrop="static">
+<div id="editPersonaModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -123,8 +127,12 @@
                         <label for="personaModel" class="form-label">Model</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <textarea class="form-control" id="personaSystemInstruction"></textarea>
+                        <textarea class="form-control" id="personaSystemInstruction" style="font-family: monospace"></textarea>
                         <label for="personaSystemInstruction" class="form-label">System instruction</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="personaVisibleInChat">
+                        <label for="personaVisibleInChat" class="form-label">Available in chat mode</label>
                     </div>
                 </form>
             </div>
@@ -136,7 +144,7 @@
     </div>
 </div>
 
-<div id="editMenuItemModal" class="modal" tabindex="-1" data-bs-backdrop="static">
+<div id="editMenuItemModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -167,7 +175,7 @@
     </div>
 </div>
 
-<div id="editCodePlayerModal" class="modal" data-bs-backdrop="static">
+<div id="editCodePlayerModal" class="modal fade" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -197,15 +205,15 @@
                         <label for="codePlayerHideCode" class="form-label">Hide original code</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <textarea class="form-control" id="codePlayerCSS"></textarea>
+                        <textarea class="form-control" id="codePlayerCSS" style="font-family: monospace"></textarea>
                         <label for="codePlayerCSS" class="form-label">CSS Styles</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <textarea class="form-control" id="codePlayerJS"></textarea>
+                        <textarea class="form-control" id="codePlayerJS" style="font-family: monospace"></textarea>
                         <label for="codePlayerJS" class="form-label">JavaScript Code</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <textarea class="form-control" id="codePlayerHTML"></textarea>
+                        <textarea class="form-control" id="codePlayerHTML" style="font-family: monospace"></textarea>
                         <label for="codePlayerHTML" class="form-label">HTML Code</label>
                     </div>
                 </form>
@@ -218,13 +226,13 @@
                                 <label for="playerDebugLanguage" class="form-label">Language tag</label>
                             </div>
                             <div class="mb-3 form-floating">
-                                <textarea class="form-control" id="playerDebugCode"></textarea>
+                                <textarea class="form-control" id="playerDebugCode" style="font-family: monospace"></textarea>
                                 <label for="playerDebugCode" class="form-label">Code to run the player on</label>
                             </div>
                             <button type="button" class="btn btn-secondary" id="playerDebugButton">Run!</button>
                         </form>
                         <h6 class="card-title mt-3" id="playerDebugOutputHeader">The results of the run will be shown here:</h6>
-                        <div class="container-fluid" id="playerDebugOutput"></div>
+                        <div class="container-fluid mx-0 px-0" id="playerDebugOutput"></div>
                     </div>
                 </div>
             </div>
@@ -249,10 +257,10 @@
             <button class="nav-link" id="personaSettingsTab" data-bs-toggle="tab" data-bs-target="#personaSettingsPane" type="button" role="tab" aria-controls="personaSettingsPane" aria-selected="false"><i class="bi bi-people"></i> Personas</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="actionSettingsTab" data-bs-toggle="tab" data-bs-target="#actionSettingsPane" type="button" role="tab" aria-controls="actionSettingsPane" aria-selected="false"><i class="bi bi-rocket"></i> Actions</button>
+            <button class="nav-link" id="actionSettingsTab" data-bs-toggle="tab" data-bs-target="#actionSettingsPane" type="button" role="tab" aria-controls="actionSettingsPane" aria-selected="false"><i class="bi bi-magic"></i> Actions</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="miscSettingsTab" data-bs-toggle="tab" data-bs-target="#miscSettingsPane" type="button" role="tab" aria-controls="miscSettingsPane" aria-selected="false"><i class="bi bi-tools"></i> Misc</button>
+            <button class="nav-link" id="miscSettingsTab" data-bs-toggle="tab" data-bs-target="#miscSettingsPane" type="button" role="tab" aria-controls="miscSettingsPane" aria-selected="false"><i class="bi bi-tools"></i> Other Settings</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="aboutTab" data-bs-toggle="tab" data-bs-target="#aboutPane" type="button" role="tab" aria-controls="aboutPane" aria-selected="false"><i class="bi bi-info-circle"></i> About</button>
@@ -265,7 +273,7 @@
                     <h5 class="card-title mb-3">Let’s set up the extension!</h5>
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i>
-                        <p>The A10fy extension is powered by Google Gemini family of large language models available under <a target="_blank" href="https://ai.google.dev/pricing">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid">if you are on Free tier of the Google Gemini, the data that comes to Gemini API may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>. According to Google’s <a target="_blank" href="https://ai.google.dev/gemini-api/terms#age-requirements">Terms of Service</a>, <strong>you must be at least 18 years old</strong> to use the services that power the A10fy extension.</p>
+                        <p>The A10fy extension is powered by Google Gemini family of large language models available under <a target="_blank" href="https://ai.google.dev/pricing" class="alert-link">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid" class="alert-link">if you are on Free tier of the Google Gemini, the data that comes to Gemini API may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>. According to Google’s <a target="_blank" href="https://ai.google.dev/gemini-api/terms#age-requirements" class="alert-link">Terms of Service</a>, <strong>you must be at least 18 years old</strong> to use the services that power the A10fy extension.</p>
                     </div>
                     <div class="h5 mb-2 card-title">Enter the default Gemini API key (you can get it <a target="_blank" href="https://aistudio.google.com/app/apikey">here</a>)</div>
                     <div class="mb-3 form-floating"><input class="form-control" id="mainGoogleApiKey" type="password" placeholder="API key"><label for="mainGoogleApiKey">Google Gemini API key</label></div>
@@ -282,8 +290,8 @@
                 <div class="card-body">
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle"></i>
-                        <p>Large Language Models or just “Models” for short are the algorithms that generate text messages in response to user’s input. Google Gemini API currently provides <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-flash">Gemini Flash</a> and <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-pro">Gemini Pro</a> models, the latter being more advanced and capable of more complex tasks, but costing more if you are on a paid plan. The stable versions of the models are available under technical names  The latest versions of those models are <code>gemini-1.5-flash-latest</code> and <code>gemini-1.5-pro-latest</code> respectively, while their stable versions are <code>gemini-1.5-flash</code> and <code>gemini-1.5-pro</code>.</p>
-                        <p>The Gemini models are available under <a target="_blank" href="https://ai.google.dev/pricing">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid">if you are on Free tier of the Google Gemini, the data that comes to the model may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>.</p>
+                        <p>Large Language Models or just “Models” for short are the algorithms that generate text messages in response to user’s input. Google Gemini API currently provides <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-flash" class="alert-link">Gemini Flash</a> and <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-pro" class="alert-link">Gemini Pro</a> models, the latter being more advanced and capable of more complex tasks, but costing more if you are on a paid plan. The stable versions of the models are available under technical names  The latest versions of those models are <code>gemini-1.5-flash-latest</code> and <code>gemini-1.5-pro-latest</code> respectively, while their stable versions are <code>gemini-1.5-flash</code> and <code>gemini-1.5-pro</code>.</p>
+                        <p>The Gemini models are available under <a target="_blank" href="https://ai.google.dev/pricing" class="alert-link">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid" class="alert-link">if you are on Free tier of the Google Gemini, the data that comes to the model may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>.</p>
                     </div>
                     <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newModelButton"><i class="bi bi-plus-square-fill"></i> Add model</button>
                     <table id="modelsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
@@ -292,7 +300,7 @@
                             <th>Name</th>
                             <th>Description</th>
                             <th>Technical name</th>
-                            <th><a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#top-k">Top-K</a>/<a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#top-p">Top-P</a>/<a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#temperature">Temperature</a></th>
+                            <th><a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#top-k" class="link-underline-info link-underline-opacity-50">Top-K</a>/<a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#top-p" class="link-underline-info link-underline-opacity-50">Top-P</a>/<a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#temperature" class="link-underline-info link-underline-opacity-50">Temperature</a></th>
                             <th>API key</th>
                             <th></th>
                         </tr>
@@ -313,7 +321,7 @@
                         <label for="assistantModelApiKey" class="form-label">Assistant model API key</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="assistantModelTechnicalName" placeholder="Technical name">
+                        <input type="text" style="font-family: monospace" class="form-control" id="assistantModelTechnicalName" placeholder="Technical name">
                         <label for="assistantModelTechnicalName" class="form-label">Assistant model technical name</label>
                     </div>
                     <button aria-label="Edit assistant model" class="btn btn-outline-primary my-3 px-2" id="editAssistantModelButton"><i class="bi bi-pencil-square"></i> Edit advanced assistant model settings</button>
@@ -331,7 +339,7 @@
                         <label for="embeddingModelApiKey" class="form-label">Embedding model API key</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="embeddingModelTechnicalName" placeholder="Technical name">
+                        <input type="text" style="font-family: monospace" class="form-control" id="embeddingModelTechnicalName" placeholder="Technical name">
                         <label for="embeddingModelTechnicalName" class="form-label">Embedding model technical name</label>
                     </div>
                 </div>
@@ -345,7 +353,7 @@
                 <div class="card-body">
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle"></i>
-                        <p>“Personas” are defined by the System Prompts, i.e. instructions that stir the behavior of large language models. Typically, system prompts start with “You are &lt;some character here&gt;” and provide the model with information about the user so that the model can adapt its messages to the user’s knowledge. <a target="_blank" href="https://promptengineering.org/system-prompts-in-large-language-models/">Learn more about writing system prompts.</a></p>
+                        <p>“Personas” are defined by the respective System Prompts, i.e. instructions that stir the behavior of large language models. Typically, system prompts start with “You are &lt;some character here&gt;” and may provide the model with information about the user so that the model can adapt its messages to the user’s knowledge and goals. <a target="_blank" href="https://promptengineering.org/system-prompts-in-large-language-models/" class="alert-link">Learn more about writing system prompts.</a></p>
                     </div>
                     <button aria-label="Add persona" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
                     <table id="personasTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
@@ -367,6 +375,14 @@
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-play"></i> Custom code players</h5></div>
                 <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <p>When chatting with a large language model, the default response format of the model (unless altered by some fancy system prompt) is <a target="_blank" href="https://commonmark.org/help/" class="alert-link">Markdown</a>. Markdown allows for inclusion of code blocks. For instance, a Python code block may look like this in raw Markdown syntax (note the <code>```</code> fences and <code>python</code> language tag):</p>
+<pre><code>```python
+if True:
+    print("Hello, world!")
+```</code></pre><p>“Code players” are small programs that interpret code blocks and produce HTML output. A code player is run in a sandboxed webpage in an iframe, and either populates the webpage inside the iframe (in case if interactivity is needed) or produces static HTML code that replaces the iframe upon execution. Examples of code players are available <a href="#" class="alert-link open-code-player-examples">here</a>.</p>
+                    </div>
                     <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> Add code player</button>
                     <table id="codePlayersTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
@@ -428,7 +444,7 @@
                     </div>
                     <h5 class="card-title mt-4 mb-2">Third-party software</h5>
                     <div class="card-text">
-                        This extension would not have been possible without the following open-source software:
+                        This extension would not have been possible without the following third-party software:
                         <ul>
                             <li><a target="_blank" href="https://getbootstrap.com/">Bootstrap</a> — a front-end framework. <a target="_blank" href="https://github.com/twbs/bootstrap/blob/main/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://codemirror.net/">CodeMirror</a> — a code editor component for the web. <a target="_blank" href="https://github.com/codemirror/dev/blob/main/LICENSE">MIT License</a>.</li>
@@ -443,38 +459,6 @@
                             <li><a target="_blank" href="https://github.com/pyodide/pyodide">Pyodide</a> — a Python distribution for the browser. <a target="_blank" href="https://github.com/pyodide/pyodide/blob/main/LICENSE">Mozilla Public License Version 2.0.</a></li>
                             <li><a target="_blank" href="https://github.com/mixmark-io/turndown">Turndown</a> — a tool to convert HTML to markdown. <a target="_blank" href="https://github.com/mixmark-io/turndown/blob/master/LICENSE">MIT License</a>.</li>
                         </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="accordion accordion-flush" id="faqAccordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                            Accordion Item #1
-                        </button>
-                    </h2>
-                    <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                        <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the first item's accordion body.</div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-                            Accordion Item #2
-                        </button>
-                    </h2>
-                    <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                        <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the second item's accordion body. Let's imagine this being filled with some actual content.</div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-                            Accordion Item #3
-                        </button>
-                    </h2>
-                    <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                        <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the third item's accordion body. Nothing more exciting happening here in terms of content, but just filling up the space to make it look, at least at first glance, a bit more representative of how this would look in a real-world application.</div>
                     </div>
                 </div>
             </div>
