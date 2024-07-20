@@ -17,17 +17,17 @@ export async function fillPlayersTable() {
         <td class="player-language-tags"></td>
         <td class="player-description"></td>
         <td class="player-edit">
-            <button class="btn btn-outline-secondary btn-sm edit-btn" data-player-id="${player.id}" aria-label="Edit player" title="Edit player"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-outline-danger btn-sm delete-btn" data-player-id="${player.id}" aria-label="Delete player" title="Delete player"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-outline-secondary btn-sm edit-btn" aria-label="Edit player" title="Edit player"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-outline-danger btn-sm delete-btn" aria-label="Delete player" title="Delete player"><i class="bi bi-trash"></i></button>
         </td>
         `;
 
         (tr.querySelector('td.player-name') as HTMLTableCellElement).textContent = player.name;
-        (tr.querySelector('td.player-language-tags') as HTMLTableCellElement).textContent = player.languageTags.join(", ");
+        (tr.querySelector('td.player-language-tags') as HTMLTableCellElement).innerHTML = player.languageTags.map(tag => `<code>${tag}</code>`).join(", ");
         (tr.querySelector('td.player-description') as HTMLTableCellElement).textContent = player.description;
         (tr.querySelector('button.edit-btn') as HTMLButtonElement).onclick = () => editPlayer(player.id);
         (tr.querySelector('button.delete-btn') as HTMLButtonElement).onclick = () => deletePlayer(player.id, tr);
-        table.appendChild(tr);
+        tbody.appendChild(tr);
     });
 }
 

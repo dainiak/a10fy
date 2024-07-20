@@ -1,8 +1,11 @@
 import {
-    GenerateContentRequest, GenerationConfig,
+    FunctionDeclarationSchemaType,
+    GenerateContentRequest,
+    GenerationConfig,
     GoogleGenerativeAI,
     HarmBlockThreshold,
-    HarmCategory
+    HarmCategory,
+    ResponseSchema
 } from "@google/generative-ai";
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
@@ -15,12 +18,34 @@ async function getJSONGeminiModel() {
     const systemInstruction = getAssistantSystemPrompt();
     const assistantModelSettings: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
     const apiKey = assistantModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const responseSchema: ResponseSchema = {
+        type: FunctionDeclarationSchemaType.OBJECT,
+        properties: {
+            //@ts-ignore
+            understoodAs: {
+                "type": FunctionDeclarationSchemaType.STRING,
+            },
+            //@ts-ignore
+            clarificationNeeded: {
+                type: FunctionDeclarationSchemaType.BOOLEAN,
+            },
+            //@ts-ignore
+            actionList: {
+                type: FunctionDeclarationSchemaType.ARRAY,
+                //@ts-ignore
+                items: {
+                    type: FunctionDeclarationSchemaType.ARRAY
+                }
+            }
+        }
+    }
     const generationConfig: GenerationConfig = {
         topK: assistantModelSettings?.topK || 64,
         topP: assistantModelSettings?.topP || 0.95,
         temperature: assistantModelSettings?.temperature || 0,
         maxOutputTokens: 8192,
-        responseMimeType: 'application/json'
+        responseMimeType: 'application/json',
+        responseSchema: responseSchema
     };
 
     const safetySettings = [

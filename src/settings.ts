@@ -4,10 +4,13 @@ import {
     setupAssistantModelSettings,
     setupEmbeddingModelSettings,
     setupNewModelButton
-} from "./helpers/settings/modelsTable";
-import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/personasTable";
+} from "./helpers/settings/modelsSettings";
+import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/personasSettings";
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
-import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersTable";
+import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
+import * as Bootstrap from "bootstrap";
+const quickSetupTab = Bootstrap.Tab.getOrCreateInstance(document.getElementById("setupTab") as HTMLElement);
+quickSetupTab.show();
 
 document.body.setAttribute("data-bs-theme", window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
 
@@ -34,7 +37,7 @@ async function setupDefaultApiKey() {
     apiKeyInput.addEventListener("change", async () => await setToStorage(storageKeys.mainGoogleApiKey, apiKeyInput.value));
 }
 
-
+document.querySelectorAll("a.open-quick-setup").forEach(element => element.addEventListener("click", () => quickSetupTab.show()));
 
 setupDefaultApiKey().catch();
 setupAssistantModelSettings().catch();

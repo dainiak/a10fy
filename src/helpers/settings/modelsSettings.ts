@@ -37,9 +37,9 @@ export async function fillModelsTable() {
         tr.innerHTML = `
             <td class="model-name"></td>
             <td class="model-description"></td>
-            <td class="model-technical-name"></td>
+            <td><code class="model-technical-name"></code></td>
             <td class="model-generation-settings"></td>
-            <td class="model-api-key"></td>
+            <td><code class="model-api-key"></code></td>
             <td>
                 <button class="btn btn-outline-secondary btn-sm edit-btn" data-model-id="${model.id}" aria-label="Edit model" title="Edit model"><i class="bi bi-pencil"></i></button>
                 <button class="btn btn-outline-danger btn-sm delete-btn" data-model-id="${model.id}" aria-label="Delete model" title="Delete model"><i class="bi bi-trash"></i></button>
@@ -49,9 +49,9 @@ export async function fillModelsTable() {
         `;
         (tr.querySelector("td.model-name") as HTMLTableCellElement).textContent = model.name;
         (tr.querySelector("td.model-description") as HTMLTableCellElement).textContent = model.description;
-        (tr.querySelector("td.model-technical-name") as HTMLTableCellElement).textContent = model.technicalName;
+        (tr.querySelector("code.model-technical-name") as HTMLElement).textContent = model.technicalName;
         (tr.querySelector("td.model-generation-settings") as HTMLTableCellElement).textContent = `${model.topK !== null ? model.topK : "—"} / ${model.topP !== null ? model.topP : "—"} / ${model.temperature !== null ? model.temperature : "—"}`;
-        (tr.querySelector("td.model-api-key") as HTMLTableCellElement).textContent = model.apiKey;
+        (tr.querySelector("code.model-api-key") as HTMLTableCellElement).innerHTML = model.apiKey ? `<code>…${model.apiKey.slice(model.apiKey.length-4)}</code>` : "";
         (tr.querySelector("button.edit-btn") as HTMLButtonElement).onclick = () => editModel(model.id);
         (tr.querySelector("button.delete-btn") as HTMLButtonElement).onclick = () => deleteModel(model.id, tr);
         (tr.querySelector("button.move-up-btn") as HTMLButtonElement).onclick = () => moveModelUp(model.id, tr);
@@ -86,7 +86,10 @@ async function deleteModel(modelId: string, tr: HTMLTableRowElement) {
     const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).filter((model: SerializedModel) => model.id !== modelId).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     models.forEach((model: SerializedModel, idx: number) => model.sortingIndex = idx)
     await setToStorage(storageKeys.models, models);
-    tr.remove();
+    if (models.length > 0)
+        tr.remove();
+    else
+        await fillModelsTable();
 }
 
 export async function setupAssistantModelSettings() {

@@ -4,7 +4,6 @@ import * as Bootstrap from "bootstrap";
 import {uniqueString} from "../uniqueId";
 import {getDefaultChatSystemPromptTemplate} from "../prompts";
 import {getFromStorage, setToStorage} from "../storageHandling";
-import {get} from "mermaid/dist/diagrams/state/id-cache";
 
 export async function fillPersonasTable() {
     let personas = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
@@ -20,7 +19,7 @@ export async function fillPersonasTable() {
         await setToStorage(storageKeys.personas, personas);
     }
 
-    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || [])
+    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []);
 
     const personasTable = document.getElementById("personasTable") as HTMLTableElement;
     const tbody = personasTable.querySelector("tbody") as HTMLTableSectionElement;
@@ -43,13 +42,14 @@ export async function fillPersonasTable() {
         (tr.querySelector("td.persona-name") as HTMLTableCellElement).textContent = persona.name;
         (tr.querySelector("td.persona-description") as HTMLTableCellElement).textContent = persona.description;
         const modelForPersona = models.find((model: SerializedModel) => model.id === persona.defaultModel);
-        if (modelForPersona)
-            (tr.querySelector("td.persona-model") as HTMLTableCellElement).textContent = modelForPersona.name;
+        (tr.querySelector("td.persona-model") as HTMLTableCellElement).textContent = modelForPersona ? modelForPersona.name : "(default)";
+
         (tr.querySelector("td.persona-system-instruction") as HTMLTableCellElement).textContent = persona.systemInstruction.length > 60 ? persona.systemInstruction.slice(0, 50) + "…" : persona.systemInstruction;
         (tr.querySelector("button.edit-btn") as HTMLButtonElement).onclick = () => editPersona(persona.id);
         (tr.querySelector("button.delete-btn") as HTMLButtonElement).onclick = () => deletePersona(persona.id, tr);
         (tr.querySelector("button.move-up-btn") as HTMLButtonElement).onclick = () => movePersonaUp(persona.id, tr);
         (tr.querySelector("button.move-down-btn") as HTMLButtonElement).onclick = () => movePersonaDown(persona.id, tr);
+        tbody.appendChild(tr);
     });
 }
 
@@ -69,9 +69,11 @@ async function editPersona(personaId: string) {
     descriptionInput.value = persona.description;
 
     const models: SerializedModel[] = (await getFromStorage(storageKeys.models)|| []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    modelSelect.innerHTML = "";
     const emptyModelOption = document.createElement("option");
     emptyModelOption.value = "";
     emptyModelOption.text = "";
+    modelSelect.appendChild(emptyModelOption);
 
     models.forEach((model: SerializedModel) => {
         const option = document.createElement("option");
@@ -100,9 +102,13 @@ async function editPersona(personaId: string) {
 
 async function deletePersona(personaId: string, tr: HTMLTableRowElement) {
     const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).filter((persona: SerializedPersona) => persona.id !== personaId).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
-    personas.forEach((persona: SerializedPersona, idx: number  ) => persona.sortingIndex = idx);
+    personas.forEach((persona: SerializedPersona, idx: number) => persona.sortingIndex = idx);
     await setToStorage(storageKeys.personas, personas);
-    tr.remove();
+
+    if(personas.length > 0)
+        tr.remove();
+    else
+        await fillPersonasTable();
 }
 
 async function movePersonaUp(personaId: string, tr: HTMLTableRowElement) {

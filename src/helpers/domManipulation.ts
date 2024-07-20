@@ -1,11 +1,10 @@
 import {cssPrefix, cssPrefixFallbackSymbol, ActionRequest} from "./constants";
-import ActionQueue from "./actionQueue";
 import {standardHTMLAttributes} from "./standardHtmlAttributes";
 
 const elementMap = new Map();
 
 
-function findElementByIndex(index: number | string | null): null | Node {
+export function findElementByIndex(index: number | string | null): null | Node {
     if (index === null || index === undefined)
         return null;
 
@@ -25,7 +24,7 @@ function findElementByIndex(index: number | string | null): null | Node {
     return null;
 }
 
-type DocumentSkeletonizationOptions = {
+export type DocumentSkeletonizationOptions = {
     wrapTextNodes?: boolean;
     revealPseudoElements?: boolean;
     attributesToKeep?: string[];
@@ -33,7 +32,7 @@ type DocumentSkeletonizationOptions = {
     includeTitle?: boolean;
 }
 
-function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): string {
+export function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): string {
     const wrapTextNodes = options?.wrapTextNodes || false;
     const revealPseudoElements = options?.revealPseudoElements || false;
     const attributesToKeep = options?.attributesToKeep || ["standard", "aria", "style", "id"];
@@ -180,5 +179,24 @@ function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): stri
     return "";
 }
 
+export function gatherElementsOnPathToRoot(element: HTMLElement, options: {tags?: string[], shouldHaveImage?: boolean}) {
+    const shouldHaveImage = options.shouldHaveImage === true;
+    const tags = options.tags || [];
+    const elements = [];
+    let currentElement: HTMLElement | null = element;
+    while(currentElement) {
+        if (tags.length && tags.includes(currentElement.tagName.toLowerCase())) {
+            const needToInclude = (
+                !shouldHaveImage
+                || currentElement.tagName.toLowerCase() === "img"
+                || !["", "none"].includes(window.getComputedStyle(currentElement).backgroundImage)
+                || !["", "none"].includes(window.getComputedStyle(currentElement, ":before").backgroundImage)
+                || !["", "none"].includes(window.getComputedStyle(currentElement, ":after").backgroundImage)
+            );
 
-export {getDocumentSkeleton, findElementByIndex};
+            if(needToInclude)
+                elements.push(currentElement);
+        }
+        currentElement = currentElement.parentElement;
+    }
+}

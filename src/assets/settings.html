@@ -30,6 +30,7 @@
                         <input type="text" class="form-control" id="modelTechnicalName" placeholder="Model technical name" required>
                         <label for="modelTechnicalName" class="form-label">Model technical name</label>
                     </div>
+                    <h5 class="card-title mt-5 mb-2">Generation Settings <a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#temperature"><i class="bi bi-info-circle"></i></a></h5>
                     <div class="mb-3 form-floating has-validation">
                         <input type="number" class="form-control" id="modelTopK" placeholder="Top-K">
                         <label for="modelTopK" class="form-label">Top-K</label>
@@ -43,50 +44,50 @@
                     <div class="mb-3 form-floating has-validation">
                         <input type="number" class="form-control" id="modelTemperature" placeholder="Temperature">
                         <label for="modelTemperature" class="form-label">Temperature</label>
-                        <div class="invalid-feedback">Temperature should be a number between 0 and 1.</div>
+                        <div class="invalid-feedback">Temperature should be a number between 0 and 2.</div>
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="modelApiKey" placeholder="API Key">
-                        <label for="modelApiKey" class="form-label">API Key</label>
+                        <label for="modelApiKey" class="form-label">API Key (leave blank to use the default one)</label>
                     </div>
-                    <h5 class="card-title mt-5 mb-2">Safety Settings</h5>
+                    <h5 class="card-title mt-5 mb-2">Safety Settings <a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/configure-safety-attributes#configurable-filters"><i class="bi bi-info-circle"></i></a></h5>
                     <div class="mb-3 form-floating">
                         <select class="form-select" id="modelSafetyDangerousContent">
                             <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
-                            <option value="BLOCK_NONE">Lowest</option>
-                            <option value="BLOCK_ONLY_HIGH">Low</option>
-                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
-                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                            <option value="BLOCK_ONLY_HIGH">Block high probability violations</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Block medium+ probability violations</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">Block low+ probability violations</option>
+                            <option value="BLOCK_NONE">Block nothing (requires approval from Google)</option>
                         </select>
                         <label for="modelSafetyDangerousContent" class="form-label">Dangerous content blocker sensitivity</label>
                     </div>
                     <div class="mb-3 form-floating">
                         <select class="form-select" id="modelSafetyHateSpeech">
                             <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
-                            <option value="BLOCK_NONE">Lowest</option>
-                            <option value="BLOCK_ONLY_HIGH">Low</option>
-                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
-                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                            <option value="BLOCK_ONLY_HIGH">Block high probability violations</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Block medium+ probability violations</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">Block low+ probability violations</option>
+                            <option value="BLOCK_NONE">Block nothing (requires approval from Google)</option>
                         </select>
                         <label for="modelSafetyHateSpeech" class="form-label">Hate speech content blocker sensitivity</label>
                     </div>
                     <div class="mb-3 form-floating">
                         <select class="form-select" id="modelSafetyHarassment">
                             <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
-                            <option value="BLOCK_NONE">Lowest</option>
-                            <option value="BLOCK_ONLY_HIGH">Low</option>
-                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
-                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                            <option value="BLOCK_ONLY_HIGH">Block high probability violations</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Block medium+ probability violations</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">Block low+ probability violations</option>
+                            <option value="BLOCK_NONE">Block nothing (requires approval from Google)</option>
                         </select>
                         <label for="modelSafetyHarassment" class="form-label">Harassment content blocker sensitivity</label>
                     </div>
                     <div class="mb-3 form-floating">
                         <select class="form-select" id="modelSafetySexuallyExplicit">
                             <option value="HARM_BLOCK_THRESHOLD_UNSPECIFIED">(unspecified)</option>
-                            <option value="BLOCK_NONE">Lowest</option>
-                            <option value="BLOCK_ONLY_HIGH">Low</option>
-                            <option value="BLOCK_MEDIUM_AND_ABOVE">Medium</option>
-                            <option value="BLOCK_LOW_AND_ABOVE">High</option>
+                            <option value="BLOCK_ONLY_HIGH">Block high probability violations</option>
+                            <option value="BLOCK_MEDIUM_AND_ABOVE">Block medium+ probability violations</option>
+                            <option value="BLOCK_LOW_AND_ABOVE">Block low+ probability violations</option>
+                            <option value="BLOCK_NONE">Block nothing (requires approval from Google)</option>
                         </select>
                         <label for="modelSafetySexuallyExplicit" class="form-label">Sexually explicit content blocker sensitivity</label>
                     </div>
@@ -181,7 +182,7 @@
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="text" class="form-control" id="codePlayerLanguageTags">
-                        <label for="codePlayerLanguageTags" class="form-label">Language tag(s)</label>
+                        <label for="codePlayerLanguageTags" class="form-label">Language tags (comma separated)</label>
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="text" class="form-control" id="codePlayerDescription">
@@ -242,7 +243,16 @@
             <button class="nav-link active" id="setupTab" data-bs-toggle="tab" data-bs-target="#setupPane" type="button" role="tab" aria-controls="setupPane" aria-selected="true"><i class="bi bi-gift"></i> Quick Setup</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="settingsTab" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="settingsPane" aria-selected="false"><i class="bi bi-tools"></i> Settings</button>
+            <button class="nav-link" id="modelSettingsTab" data-bs-toggle="tab" data-bs-target="#modelSettingsPane" type="button" role="tab" aria-controls="modelSettingsPane" aria-selected="false"><i class="bi bi-robot"></i> Models</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="personaSettingsTab" data-bs-toggle="tab" data-bs-target="#personaSettingsPane" type="button" role="tab" aria-controls="personaSettingsPane" aria-selected="false"><i class="bi bi-people"></i> Personas</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="actionSettingsTab" data-bs-toggle="tab" data-bs-target="#actionSettingsPane" type="button" role="tab" aria-controls="actionSettingsPane" aria-selected="false"><i class="bi bi-rocket"></i> Actions</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="miscSettingsTab" data-bs-toggle="tab" data-bs-target="#miscSettingsPane" type="button" role="tab" aria-controls="miscSettingsPane" aria-selected="false"><i class="bi bi-tools"></i> Misc</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="aboutTab" data-bs-toggle="tab" data-bs-target="#aboutPane" type="button" role="tab" aria-controls="aboutPane" aria-selected="false"><i class="bi bi-info-circle"></i> About</button>
@@ -253,19 +263,28 @@
             <div class="card" style="border-top-left-radius: 0; border-top-right-radius: 0;">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Let’s set up the extension!</h5>
-                    <div class="h6 mb-2 card-title">Input the default Gemini API key</div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle mb-2"></i>
+                        <p>The A10fy extension is powered by Google Gemini family of large language models available under <a target="_blank" href="https://ai.google.dev/pricing">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid">if you are on Free tier of the Google Gemini, the data that comes to Gemini API may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>. According to Google’s <a target="_blank" href="https://ai.google.dev/gemini-api/terms#age-requirements">Terms of Service</a>, <strong>you must be at least 18 years old</strong> to use the services that power the A10fy extension.</p>
+                    </div>
+                    <div class="h5 mb-2 card-title">Enter the default Gemini API key (you can get it <a target="_blank" href="https://aistudio.google.com/app/apikey">here</a>)</div>
                     <div class="mb-3 form-floating"><input class="form-control" id="mainGoogleApiKey" type="password" placeholder="API key"><label for="mainGoogleApiKey">Google Gemini API key</label></div>
-                    <div class="h6 mt-3 mb-2 card-title">Permissions</div>
+                    <div class="h5 mt-3 mb-2 card-title">Permissions</div>
                     <div class="card-text">
                         Please <a id="allowToUseMicrophone" href="#">allow the extension to use your microphone</a> to be able to dictate requests. You will only have to do it once.
                     </div>
                 </div>
             </div>
         </div>
-        <div class="tab-pane fade container-lg" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">
+        <div class="tab-pane fade container-lg" id="modelSettingsPane" role="tabpanel" aria-labelledby="modelSettingsTab">
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-robot"></i> Models</h5></div>
                 <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <p>Large Language Models or just “Models” for short are the algorithms that generate text messages in response to user’s input. Google Gemini API currently provides <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-flash">Gemini Flash</a> and <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-pro">Gemini Pro</a> models, the latter being more advanced and capable of more complex tasks, but costing more if you are on a paid plan. The stable versions of the models are available under technical names  The latest versions of those models are <code>gemini-1.5-flash-latest</code> and <code>gemini-1.5-pro-latest</code> respectively, while their stable versions are <code>gemini-1.5-flash</code> and <code>gemini-1.5-pro</code>.</p>
+                        <p>The Gemini models are available under <a target="_blank" href="https://ai.google.dev/pricing">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid">if you are on Free tier of the Google Gemini, the data that comes to the model may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>.</p>
+                    </div>
                     <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newModelButton"><i class="bi bi-plus-square-fill"></i> Add model</button>
                     <table id="modelsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
@@ -273,7 +292,7 @@
                             <th>Name</th>
                             <th>Description</th>
                             <th>Technical name</th>
-                            <th>Top-K/Top-P/Temperature</th>
+                            <th><a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#top-k">Top-K</a>/<a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#top-p">Top-P</a>/<a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#temperature">Temperature</a></th>
                             <th>API key</th>
                             <th></th>
                         </tr>
@@ -285,6 +304,10 @@
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-magic"></i> Assistant model settings</h5></div>
                 <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <p>Assistant model is the model that is used to process voice requests and perform actions on the page that are integrated into the extension. This model will also be used to summarize the content of the webpages for the Enhanced History Search feature. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
+                    </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="assistantModelApiKey" placeholder="API key">
                         <label for="assistantModelApiKey" class="form-label">Assistant model API key</label>
@@ -299,6 +322,10 @@
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-search"></i> Embedding model settings</h5></div>
                 <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <p>Embedding model is a special model that produces abstract representations of textual data. This model is used for the Enhanced History Search feature. If unsure, leave the following settings intact. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
+                    </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="embeddingModelApiKey" placeholder="API key">
                         <label for="embeddingModelApiKey" class="form-label">Embedding model API key</label>
@@ -309,9 +336,17 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="tab-pane fade container-lg" id="personaSettingsPane" role="tabpanel" aria-labelledby="personaSettingsTab">
             <div class="card my-4">
-                <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-people"></i> Personas</h5></div>
+                <div class="card-header">
+                    <h5 class="card-title mt-1"><i class="bi bi-people"></i> Personas</h5>
+                </div>
                 <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <p>“Personas” are defined by the System Prompts, i.e. instructions that stir the behavior of large language models. Typically, system prompts start with “You are &lt;some character here&gt;” and provide the model with information about the user so that the model can adapt its messages to the user’s knowledge. <a target="_blank" href="https://promptengineering.org/system-prompts-in-large-language-models/">Learn more about writing system prompts.</a></p>
+                    </div>
                     <button aria-label="Add persona" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
                     <table id="personasTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
@@ -320,6 +355,25 @@
                             <th>Description</th>
                             <th>Model</th>
                             <th>System instruction</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade container-lg" id="actionSettingsPane" role="tabpanel" aria-labelledby="actionSettingsTab">
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-play"></i> Custom code players</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> Add code player</button>
+                    <table id="codePlayersTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Language tag(s)</th>
+                            <th>Description</th>
                             <th></th>
                         </tr>
                         </thead>
@@ -344,23 +398,8 @@
                     </table>
                 </div>
             </div>
-            <div class="card my-4">
-                <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-play"></i> Custom code players</h5></div>
-                <div class="card-body">
-                    <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> Add code player</button>
-                    <table id="codePlayersTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Language tag(s)</th>
-                            <th>Description</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+        </div>
+        <div class="tab-pane fade container-lg" id="miscSettingsPane" role="tabpanel" aria-labelledby="miscSettingsTab">
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-volume-up"></i> TTS Voice Preferences</h5></div>
                 <div class="card-body">
@@ -385,7 +424,25 @@
                 <div class="card-body">
                     <h5 class="card-title">Homepage and repository</h5>
                     <div class="card-text">
-                        This extension is developed by the <a href="https://a10fy.com" target="_blank">A10fy</a> team. The source code is available on <a href="https://github">GitHub</a>.
+                        This extension is developed by the <a target="_blank" href="https://a10fy.com">A10fy</a> team. The source code is available on <a target="_blank" href="https://github">GitHub</a>.
+                    </div>
+                    <h5 class="card-title mt-4 mb-2">Third-party software</h5>
+                    <div class="card-text">
+                        This extension would not have been possible without the following open-source software:
+                        <ul>
+                            <li><a target="_blank" href="https://getbootstrap.com/">Bootstrap</a> — a front-end framework. <a target="_blank" href="https://github.com/twbs/bootstrap/blob/main/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://codemirror.net/">CodeMirror</a> — a code editor component for the web. <a target="_blank" href="https://github.com/codemirror/dev/blob/main/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://datatables.net/">DataTables</a> — interactive tables for the web. <a target="_blank" href="https://datatables.net/license/mit">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://dexie.org/">Dexie</a> — an IndexedDB wrapper library. <a target="_blank" href="https://github.com/dexie/Dexie.js/blob/master/LICENSE">Apache License</a>.</li>
+                            <li><a target="_blank" href="https://github.com/google-gemini/generative-ai-js">Google Generative AI SDK</a> — a JavaScript Gemini SDK. <a target="_blank" href="https://github.com/google-gemini/generative-ai-js/blob/main/LICENSE">Apache License</a>.</li>
+                            <li><a target="_blank" href="https://highlightjs.org/">Highlight.js</a> — a code highlighting library. <a target="_blank" href="https://github.com/highlightjs/highlight.js/blob/main/LICENSE">BSD 3-Clause License</a>.</li>
+                            <li><a target="_blank" href="https://github.com/deepfates/hnsw">HNSW</a> — a JavaScript implementation of the Hierarchical Navigable Small Worlds algorithm.</li>
+                            <li><a target="_blank" href="https://katex.org/">KaTeX</a> — a math typesetting library. <a target="_blank" href="https://github.com/KaTeX/KaTeX/blob/main/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://github.com/markdown-it/markdown-it">Markdown-it</a> — an extensible Markdown parser. <a target="_blank" href="https://github.com/markdown-it/markdown-it/blob/master/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://mermaid.js.org/">Mermaid</a> — a JavaScript diagramming and charting tool. <a target="_blank" href="https://github.com/mermaid-js/mermaid/blob/develop/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://github.com/pyodide/pyodide">Pyodide</a> — a Python distribution for the browser. <a target="_blank" href="https://github.com/pyodide/pyodide/blob/main/LICENSE">Mozilla Public License Version 2.0.</a></li>
+                            <li><a target="_blank" href="https://github.com/mixmark-io/turndown">Turndown</a> — a tool to convert HTML to markdown. <a target="_blank" href="https://github.com/mixmark-io/turndown/blob/master/LICENSE">MIT License</a>.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -427,7 +484,7 @@
 
 
 
-<script src="js/bootstrap.js"></script>
+<!--<script src="js/bootstrap.js"></script>-->
 <script src="js/settings.js"></script>
 </body>
 </html>
