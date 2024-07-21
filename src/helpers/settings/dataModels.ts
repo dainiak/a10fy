@@ -67,8 +67,10 @@ export interface SerializedCustomAction {
     name: string,
     description: string,
     handle: string,
+    pathInContextMenu: string,
     jsonMode: boolean,
     systemInstruction: string,
+    messageText: string,
     modelId: string,
     playerId: string,
     targetsFilter: {
@@ -78,6 +80,7 @@ export interface SerializedCustomAction {
         allowSearchInPageSelection: boolean,
         imageRequired: boolean
     },
+    selectedTextRegExp: string,
     context: {
         elementSnapshot: boolean,
         pageSnapshot: boolean

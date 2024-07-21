@@ -155,7 +155,7 @@ export interface ElementPropertiesRequest extends ExtensionMessageRequest {
 
 export interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
     action: typeof extensionActions.registerContextMenuEvent,
-    boundingRect: DOMRect,
-    viewportRect: DOMRect
+    availableCustomActions: string[],
+    selectedText: string
 }
 

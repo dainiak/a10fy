@@ -158,32 +158,32 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
-chrome.contextMenus.removeAll();
-    chrome.contextMenus.update(
-    "dsf",
-    {
-        visible:
-    }
-)
-
-chrome.contextMenus.create({
-    title: "A test menu parent item 1",
-    id: "testParentItem",
-    contexts:["selection", "image", "page"]
-});
-
-chrome.contextMenus.create({
-    title: "A test menu parent item 2",
-    id: "testParentItem2",
-    contexts:["selection", "image", "page"]
-});
-
-chrome.contextMenus.create({
-    title: "A test menu item",
-    id: "testMenuItem",
-    contexts:["selection", "image", "page"],
-    parentId: "testParentItem"
-});
+// chrome.contextMenus.removeAll();
+//     chrome.contextMenus.update(
+//     "dsf",
+//     {
+//         visible:
+//     }
+// )
+//
+// chrome.contextMenus.create({
+//     title: "A test menu parent item 1",
+//     id: "testParentItem",
+//     contexts:["selection", "image", "page"]
+// });
+//
+// chrome.contextMenus.create({
+//     title: "A test menu parent item 2",
+//     id: "testParentItem2",
+//     contexts:["selection", "image", "page"]
+// });
+//
+// chrome.contextMenus.create({
+//     title: "A test menu item",
+//     id: "testMenuItem",
+//     contexts:["selection", "image", "page"],
+//     parentId: "testParentItem"
+// });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.selectionText) {
@@ -197,27 +197,28 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest, sender, sendResponse) => {
     if (request.action === extensionActions.registerContextMenuEvent) {
         const menuEventRequest = request as RegisterContextMenuEventRequest;
-        const tabScreenshot = await chrome.tabs.captureVisibleTab({"format": "png"});
-        // console.log(tabScreenshot);
-        // console.log(request.boundingRect);
-        await setupOffscreenDocument();
-        const result: ImageModificationResult = await chrome.runtime.sendMessage({
-            action: extensionActions.modifyImage,
-            modification: "crop",
-            image: tabScreenshot,
-            parameters: {
-                x: menuEventRequest.boundingRect.x,
-                y: menuEventRequest.boundingRect.y,
-                width: menuEventRequest.boundingRect.width,
-                height: menuEventRequest.boundingRect.height,
-                viewportWidth: menuEventRequest.viewportRect.width,
-                viewportHeight: menuEventRequest.viewportRect.height
-            },
-            output: {
-                format: "jpeg",
-                quality: 40
-            }
-        } as ExtensionMessageImageModificationRequest);
-        console.log(result);
+        // menuEventRequest.availableCustomActions
+
+        // const tabScreenshot = await chrome.tabs.captureVisibleTab({"format": "png"});
+
+        // await setupOffscreenDocument();
+        // const result: ImageModificationResult = await chrome.runtime.sendMessage({
+        //     action: extensionActions.modifyImage,
+        //     modification: "crop",
+        //     image: tabScreenshot,
+        //     parameters: {
+        //         x: menuEventRequest.boundingRect.x,
+        //         y: menuEventRequest.boundingRect.y,
+        //         width: menuEventRequest.boundingRect.width,
+        //         height: menuEventRequest.boundingRect.height,
+        //         viewportWidth: menuEventRequest.viewportRect.width,
+        //         viewportHeight: menuEventRequest.viewportRect.height
+        //     },
+        //     output: {
+        //         format: "jpeg",
+        //         quality: 40
+        //     }
+        // } as ExtensionMessageImageModificationRequest);
+        // console.log(result);
     }
 });

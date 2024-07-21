@@ -105,7 +105,10 @@ async function editPlayer(playerId: string) {
 async function deletePlayer(playerId: string, tr: HTMLTableRowElement) {
     const players: SerializedCustomCodePlayer[] = (await getFromStorage(storageKeys.codePlayers) || []).filter((player: SerializedCustomCodePlayer) => player.id !== playerId);
     await setToStorage(storageKeys.codePlayers, players);
-    tr.remove();
+    if(players.length > 0)
+        tr.remove();
+    else
+        await fillPlayersTable();
 }
 
 export function setupNewPlayerButton() {

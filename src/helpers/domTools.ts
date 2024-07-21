@@ -216,9 +216,14 @@ export function gatherElementsOnPathToRoot(element: HTMLElement, options: {selec
 }
 
 
-export async function gatherElementsForCustomActions(baseElement: HTMLElement | null) {
-    const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
-    const actionsToElementsMapping = new Map<string, Element>();
+export async function gatherElementsForCustomActions(actions: SerializedCustomAction[], baseElement: HTMLElement | null) {
+    const actionsToElementsMapping = new Map<string, Element | null>();
+
+    for(const action of actions) {
+        if (action.targetsFilter.selector === "") {
+            actionsToElementsMapping.set(action.id, null);
+        }
+    }
 
     const searchForElements = (element: Element, isFallback= false) => {
         let currentElement: Element | null = element;

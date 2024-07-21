@@ -7,12 +7,14 @@ import {
     PromptUserRequest,
     ExtensionMessageRequest,
     ElementPropertiesRequest,
-    RegisterContextMenuEventRequest
+    RegisterContextMenuEventRequest, storageKeys
 } from "./helpers/constants";
-import {getDocumentSkeleton, findElementByIndex} from "./helpers/domTools";
+import {getDocumentSkeleton, findElementByIndex, gatherElementsForCustomActions} from "./helpers/domTools";
 import {enqueuePageAction} from "./helpers/llmPageActions";
 
 import ActionQueue from "./helpers/actionQueue";
+import {SerializedCustomAction} from "./helpers/settings/dataModels";
+import {getFromStorage} from "./helpers/storageHandling";
 
 let lastContextMenuEvent: MouseEvent | null = null;
 
@@ -89,17 +91,25 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
-
-document.addEventListener("contextmenu", (event) => {
+document.addEventListener("contextmenu", async (event) => {
     lastContextMenuEvent = event;
     const element = event.target as HTMLElement;
-    const properties = getDomElementProperties(element, ["boundingRect"]);
+    const selection = window.getSelection();
+    const selectedText = selection ? selection.toString() : "";
+    const actions: SerializedCustomAction[] = (await getFromStorage(storageKeys.customActions) || []).filter((action: SerializedCustomAction) => {
+        return action.pathInContextMenu && (!action.selectedTextRegExp || selectedText.match(RegExp(action.selectedTextRegExp)))
+    });
+    const possibleActionsElements = await gatherElementsForCustomActions(actions, element);
+    // const properties = getDomElementProperties(element, ["boundingRect"]);
     chrome.runtime.sendMessage({
         action: extensionActions.registerContextMenuEvent,
-        boundingRect: properties.boundingRect,
-        viewportRect: {
-            width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
-            height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
-        }
+        availableCustomActions: Array.from(possibleActionsElements.keys()),
+        selectedText: selectedText,
+
+        // boundingRect: properties.boundingRect,
+        // viewportRect: {
+        //     width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
+        //     height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+        // }
     } as RegisterContextMenuEventRequest);
 });

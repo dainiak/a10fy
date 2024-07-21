@@ -175,6 +175,10 @@
                         <input type="text" class="form-control" id="customActionHandle" style="font-family: monospace">
                         <label for="customActionHandle" class="form-label">Handle</label>
                     </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="customActionPathInContextMenu">
+                        <label for="customActionPathInContextMenu" class="form-label">Browser context menu item title</label>
+                    </div>
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i> The action’s handle is a short name that can be used to call action from a chat.
                     </div>
@@ -190,9 +194,13 @@
                         <textarea class="form-control" id="customActionSystemInstruction" style="font-family: monospace"></textarea>
                         <label for="customActionSystemInstruction" class="form-label">System instruction</label>
                     </div>
+                    <div class="mb-3 form-floating">
+                        <textarea class="form-control" id="customActionMessage" style="font-family: monospace"></textarea>
+                        <label for="customActionMessage" class="form-label">Message</label>
+                    </div>
                     <div class="alert alert-info" role="alert">
-                        <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_direct_call_</code>.</p>
-                        <p>You can use any combination of the following placeholders anywhere inside the system instruction to provide LLM with relevant context: <code>__DOCUMENT_HTML__</code> for complete HTML contents of the document, <code>__ELEMENT_HTML__</code> for element's OuterHTML, <code>__ELEMENT_TEXT__</code> for element's textContent, and <code>__SELECTION_TEXT__</code> for the selected text on the page.
+                        <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_direct_call_</code>.
+                        You can use any combination of the following placeholders anywhere inside the system instruction and/or in message to provide LLM with relevant context: <code>__DOCUMENT_HTML__</code> for complete HTML contents of the document, <code>__ELEMENT_HTML__</code> for element's OuterHTML, <code>__ELEMENT_TEXT__</code> for element's textContent, and <code>__SELECTION_TEXT__</code> for the selected text on the page. It is recommended to describe the LLM output format requirements and the task in system instruction, while leaving the page-dependent information for the message.
                     </div>
                     <h5 class="card-title mt-3 mb-2">Model settings</h5>
                     <div class="mb-3 form-floating">
@@ -208,8 +216,12 @@
                     </div>
                     <h5 class="card-title mt-3 mb-2">Target element of the webpage</h5>
                     <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" style="font-family: monospace" id="customActionTextSelectionRegExp">
+                        <label for="customActionTextSelectionRegExp" class="form-label">RegExp for selected text required to call action</label>
+                    </div>
+                    <div class="mb-3 form-floating">
                         <input type="text" class="form-control" style="font-family: monospace" id="customActionSelector">
-                        <label for="customActionSelector" class="form-label">CSS selector</label>
+                        <label for="customActionSelector" class="form-label">CSS selector (leave empty if no target element is required)</label>
                     </div>
                     <div class="mb-3">
                         <input type="checkbox" class="form-check-input" id="customActionSelectorImageRequired">
@@ -255,37 +267,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="saveCustomActionButton">Save changes</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="editMenuItemModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit context menu item</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="text-align: left;">
-                <form>
-                    <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="menuItemName">
-                        <label for="menuItemName" class="form-label">Name</label>
-                    </div>
-                    <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="menuItemPath">
-                        <label for="menuItemPath" class="form-label">Path in menu</label>
-                    </div>
-                    <div class="mb-3 form-floating">
-                        <input type="text" class="form-control" id="menuItemDescription">
-                        <label for="menuItemDescription" class="form-label">Description</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveMenuItemButton">Save changes</button>
             </div>
         </div>
     </div>
@@ -469,7 +450,7 @@
                 <div class="card-body">
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle"></i>
-                        <p>“Personas” are defined by the respective System Prompts, i.e. instructions that stir the behavior of large language models. Typically, system prompts start with “You are &lt;some character here&gt;” and may provide the model with information about the user so that the model can adapt its messages to the user’s knowledge and goals. <a target="_blank" href="https://promptengineering.org/system-prompts-in-large-language-models/" class="alert-link">Learn more about writing system prompts.</a></p>
+                        <p>“Personas” are defined by the respective System Prompts, i.e. instructions that steer the behavior of large language models. Typically, system prompts start with “You are &lt;some character here&gt;” and may provide the model with information about the user so that the model can adapt its messages to the user’s knowledge and goals. <a target="_blank" href="https://promptengineering.org/system-prompts-in-large-language-models/" class="alert-link">Learn more about writing system prompts.</a></p>
                     </div>
                     <button aria-label="Add persona" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
                     <table id="personasTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
@@ -522,23 +503,7 @@ if True:
                         <tr>
                             <th>Name</th>
                             <th>Handle</th>
-                            <th>Description</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card my-4">
-                <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-menu-app"></i> Custom context menu items</h5></div>
-                <div class="card-body">
-                    <button aria-label="Add a context menu item" class="btn btn-outline-primary my-3 px-2" id="newMenuItem"><i class="bi bi-plus-square-fill"></i> Add menu item</button>
-                    <table id="menuItemsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Path in menu</th>
+                            <th>Menu item</th>
                             <th>Description</th>
                             <th></th>
                         </tr>

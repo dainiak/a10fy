@@ -26,6 +26,7 @@ export async function fillCustomActionsTable() {
         tr.innerHTML = `
             <td class="custom-action-name"></td>
             <td><code class="custom-action-handle"></code></td>
+            <td class="custom-action-menu-item"></td>
             <td class="custom-action-description"></td>
             <td>
                 <button class="btn btn-outline-secondary btn-sm edit-btn" aria-label="Edit action" title="Edit action"><i class="bi bi-pencil"></i></button>
@@ -34,11 +35,16 @@ export async function fillCustomActionsTable() {
         `;
         (tr.querySelector('td.custom-action-name') as HTMLTableCellElement).textContent = action.name;
         (tr.querySelector('code.custom-action-handle') as HTMLElement).textContent = action.handle;
+        (tr.querySelector('td.custom-action-menu-item') as HTMLTableCellElement).innerHTML = action.pathInContextMenu ? `<i class="bi bi-check"></i>` : "";
         (tr.querySelector('td.custom-action-description') as HTMLTableCellElement).textContent = action.description;
         (tr.querySelector('button.edit-btn') as HTMLButtonElement).onclick = () => editAction(action.id);
         (tr.querySelector('button.delete-btn') as HTMLButtonElement).onclick = () => deleteAction(action.id, tr);
         tbody.appendChild(tr);
     });
+
+    if(!actions.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center">No custom actions defined</td></tr>`;
+    }
 }
 
 async function editAction(actionId: string) {
@@ -50,10 +56,14 @@ async function editAction(actionId: string) {
     nameInput.value = action.name;
     const handleInput = document.getElementById("customActionHandle") as HTMLInputElement;
     handleInput.value = action.handle;
+    const pathInContextMenuInput = document.getElementById("customActionPathInContextMenu") as HTMLInputElement;
+    pathInContextMenuInput.value = action.pathInContextMenu;
     const descriptionInput = document.getElementById("customActionDescription") as HTMLInputElement;
     descriptionInput.value = action.description;
     const systemInstructionInput = document.getElementById("customActionSystemInstruction") as HTMLInputElement;
     systemInstructionInput.value = action.systemInstruction;
+    const messageTextInput = document.getElementById("customActionMessage") as HTMLInputElement;
+    messageTextInput.value = action.messageText;
     const jsonModeInput = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
     jsonModeInput.checked = action.jsonMode;
     const modelSelect = document.getElementById("customActionModel") as HTMLSelectElement;
@@ -89,42 +99,47 @@ async function editAction(actionId: string) {
         playersSelect.appendChild(option);
     });
 
-    const customActionModelJSONMode = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
-    customActionModelJSONMode.checked = action.jsonMode;
-    const customActionSelectorInput = document.getElementById("customActionSelector") as HTMLInputElement;
-    customActionSelectorInput.value = action.targetsFilter.selector;
-    const customActionSelectorBehaviorSelect = document.getElementById("customActionSelectorBehavior") as HTMLSelectElement;
-    customActionSelectorBehaviorSelect.value = action.targetsFilter.selectorBehavior;
-    const customActionSelectorImageRequired = document.getElementById("customActionSelectorImageRequired") as HTMLInputElement;
-    customActionSelectorImageRequired.checked = action.targetsFilter.imageRequired;
-    const customActionSelectorAllowChildSelection = document.getElementById("customActionSelectorAllowSearchInDescendants") as HTMLInputElement;
-    customActionSelectorAllowChildSelection.checked = action.targetsFilter.allowSearchInDescendants;
-    const customActionSelectorAllowSearchInSelection = document.getElementById("customActionSelectorAllowSearchInSelection") as HTMLInputElement;
-    customActionSelectorAllowSearchInSelection.checked = action.targetsFilter.allowSearchInPageSelection;
-    const customActionResultsPresentationSelect = document.getElementById("customActionResultsPresentation") as HTMLSelectElement;
-    customActionResultsPresentationSelect.value = action.resultsPresentation;
-    const customActionElementSnapshot = document.getElementById("customActionSendElementSnapshotToLLM") as HTMLInputElement;
-    customActionElementSnapshot.checked = action.context.elementSnapshot;
-    const customActionPageSnapshot = document.getElementById("customActionSendPageSnapshotToLLM") as HTMLInputElement;
-    customActionPageSnapshot.checked = action.context.pageSnapshot;
+    const modelJSONModeCheckbox = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
+    modelJSONModeCheckbox.checked = action.jsonMode;
+    const textSelectionRegExpInput = document.getElementById("customActionTextSelectionRegExp") as HTMLInputElement;
+    textSelectionRegExpInput.value = action.selectedTextRegExp;
+    const targetSelectorInput = document.getElementById("customActionSelector") as HTMLInputElement;
+    targetSelectorInput.value = action.targetsFilter.selector;
+    const selectorBehaviorSelect = document.getElementById("customActionSelectorBehavior") as HTMLSelectElement;
+    selectorBehaviorSelect.value = action.targetsFilter.selectorBehavior;
+    const selectorImageRequiredCheckbox = document.getElementById("customActionSelectorImageRequired") as HTMLInputElement;
+    selectorImageRequiredCheckbox.checked = action.targetsFilter.imageRequired;
+    const allowChildSelectionCheckbox = document.getElementById("customActionSelectorAllowSearchInDescendants") as HTMLInputElement;
+    allowChildSelectionCheckbox.checked = action.targetsFilter.allowSearchInDescendants;
+    const allowSearchInSelectionCheckbox = document.getElementById("customActionSelectorAllowSearchInSelection") as HTMLInputElement;
+    allowSearchInSelectionCheckbox.checked = action.targetsFilter.allowSearchInPageSelection;
+    const resultsPresentationSelect = document.getElementById("customActionResultsPresentation") as HTMLSelectElement;
+    resultsPresentationSelect.value = action.resultsPresentation;
+    const elementSnapshotCheckbox = document.getElementById("customActionSendElementSnapshotToLLM") as HTMLInputElement;
+    elementSnapshotCheckbox.checked = action.context.elementSnapshot;
+    const pageSnapshotCheckbox = document.getElementById("customActionSendPageSnapshotToLLM") as HTMLInputElement;
+    pageSnapshotCheckbox.checked = action.context.pageSnapshot;
 
     const saveButton = document.getElementById("saveCustomActionButton") as HTMLButtonElement;
     saveButton.onclick = async () => {
         action.name = nameInput.value.trim();
         action.handle = handleInput.value.trim();
+        action.pathInContextMenu = pathInContextMenuInput.value.trim();
         action.description = descriptionInput.value.trim();
         action.systemInstruction = systemInstructionInput.value.trim();
+        action.messageText = messageTextInput.value.trim();
         action.jsonMode = jsonModeInput.checked;
         action.modelId = modelSelect.value;
         action.playerId = playersSelect.value;
-        action.targetsFilter.selector = customActionSelectorInput.value.trim();
-        action.targetsFilter.selectorBehavior = customActionSelectorBehaviorSelect.value as CustomActionTargetSelectorBehavior;
-        action.targetsFilter.imageRequired = customActionSelectorImageRequired.checked;
-        action.targetsFilter.allowSearchInDescendants = customActionSelectorAllowChildSelection.checked;
-        action.targetsFilter.allowSearchInPageSelection = customActionSelectorAllowSearchInSelection.checked;
-        action.resultsPresentation = customActionResultsPresentationSelect.value as CustomActionResultsPresentation;
-        action.context.elementSnapshot = customActionElementSnapshot.checked;
-        action.context.pageSnapshot = customActionPageSnapshot.checked;
+        action.selectedTextRegExp = textSelectionRegExpInput.value.trim();
+        action.targetsFilter.selector = targetSelectorInput.value.trim();
+        action.targetsFilter.selectorBehavior = selectorBehaviorSelect.value as CustomActionTargetSelectorBehavior;
+        action.targetsFilter.imageRequired = selectorImageRequiredCheckbox.checked;
+        action.targetsFilter.allowSearchInDescendants = allowChildSelectionCheckbox.checked;
+        action.targetsFilter.allowSearchInPageSelection = allowSearchInSelectionCheckbox.checked;
+        action.resultsPresentation = resultsPresentationSelect.value as CustomActionResultsPresentation;
+        action.context.elementSnapshot = elementSnapshotCheckbox.checked;
+        action.context.pageSnapshot = pageSnapshotCheckbox.checked;
         await setToStorage(storageKeys.customActions, actions);
         actionModal.hide();
         await fillCustomActionsTable();
@@ -136,7 +151,10 @@ async function editAction(actionId: string) {
 async function deleteAction(actionId: string, tr: HTMLTableRowElement) {
     const actions: SerializedCustomAction[] = (await getFromStorage(storageKeys.customActions) || []).filter((action: SerializedCustomAction) => action.id !== actionId);
     await setToStorage(storageKeys.customActions, actions);
-    tr.remove();
+    if(actions.length > 0)
+        tr.remove();
+    else
+        await fillCustomActionsTable();
 }
 
 export function setupNewCustomActionButton(){
@@ -147,8 +165,10 @@ export function setupNewCustomActionButton(){
             name: "",
             description: "",
             handle: "",
+            pathInContextMenu: "",
             jsonMode: false,
             systemInstruction: "",
+            messageText: "",
             modelId: "",
             playerId: "",
             targetsFilter: {
@@ -158,6 +178,7 @@ export function setupNewCustomActionButton(){
                 allowSearchInDescendants: false,
                 allowSearchInPageSelection: false
             },
+            selectedTextRegExp: ".*",
             context: {
                 elementSnapshot: false,
                 pageSnapshot: false
