@@ -55,6 +55,9 @@ export async function fillPersonasTable() {
         (tr.querySelector("button.move-down-btn") as HTMLButtonElement).onclick = () => movePersonaDown(persona.id, tr);
         tbody.appendChild(tr);
     });
+    if(!personas.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center">No personas defined</td></tr>`;
+    }
 }
 
 async function editPersona(personaId: string) {

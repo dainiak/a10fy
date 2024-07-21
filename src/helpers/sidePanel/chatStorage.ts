@@ -25,13 +25,14 @@ export interface SerializedMessage {
 }
 
 export interface SerializedChat {
-    id: string;
-    timestamp: string;
-    topic: string;
-    persona: string;
-    model: string;
-    messages: SerializedMessage[];
-    draft: SerializedMessage;
+    id: string,
+    timestamp: string,
+    topic: string,
+    persona: string,
+    model: string,
+    messages: SerializedMessage[],
+    draft: SerializedMessage,
+    storageVersion?: number
 }
 
 export const a10fyDatabase = new Dexie('Chats') as Dexie & {

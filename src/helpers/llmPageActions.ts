@@ -1,5 +1,5 @@
 import {TourGuideClient} from "@sjmc11/tourguidejs";
-import {findElementByIndex} from "./domManipulation";
+import {findElementByIndex} from "./domTools";
 import {tourGuideStyleContent} from "./styleStrings";
 import ActionQueue from "./actionQueue";
 import {ActionRequest} from "./constants";

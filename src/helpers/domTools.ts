@@ -1,8 +1,26 @@
-import {cssPrefix, cssPrefixFallbackSymbol, ActionRequest} from "./constants";
+import {cssPrefix, cssPrefixFallbackSymbol, storageKeys} from "./constants";
 import {standardHTMLAttributes} from "./standardHtmlAttributes";
+import {CustomActionTargetSelectorBehavior, SerializedCustomAction} from "./settings/dataModels";
+import {getFromStorage} from "./storageHandling";
 
 const elementMap = new Map();
 
+export function escapeToHTML(text: string | null | string[], wrapperTag?: string) {
+    if(!text)
+        return "";
+    const div = document.createElement("div");
+    if(!wrapperTag && Array.isArray(text)) {
+        text = text.join(", ");
+    }
+    if(typeof text === "string") {
+        div.textContent = text;
+        return wrapperTag ? `<${wrapperTag}>${div.innerHTML}</${wrapperTag}>` : div.innerHTML;
+    }
+    return text.map(s => {
+        div.textContent = s;
+        return `<${wrapperTag}>${div.innerHTML}</${wrapperTag}>`
+    }).join(", ");
+}
 
 export function findElementByIndex(index: number | string | null): null | Node {
     if (index === null || index === undefined)
@@ -173,30 +191,89 @@ export function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}
         const metaTagsHTML = !keepMetaTags ? "" : Array.from(document.getElementsByTagName("meta")).map(
             (element) => element.outerHTML
         ).join("");
-        const titleHTML = includeTitle ? `<title>${document.title}</title>` : "";
+        const titleHTML = includeTitle ? `<title>${escapeToHTML(document.title)}</title>` : "";
         return `<html><head>${metaTagsHTML}${titleHTML}</head>${bodyHTML}</html>`
     }
     return "";
 }
 
-export function gatherElementsOnPathToRoot(element: HTMLElement, options: {tags?: string[], shouldHaveImage?: boolean}) {
+export function gatherElementsOnPathToRoot(element: HTMLElement, options: {selector?: string, shouldHaveImage?: boolean}) {
     const shouldHaveImage = options.shouldHaveImage === true;
-    const tags = options.tags || [];
     const elements = [];
     let currentElement: HTMLElement | null = element;
     while(currentElement) {
-        if (tags.length && tags.includes(currentElement.tagName.toLowerCase())) {
-            const needToInclude = (
-                !shouldHaveImage
-                || currentElement.tagName.toLowerCase() === "img"
-                || !["", "none"].includes(window.getComputedStyle(currentElement).backgroundImage)
-                || !["", "none"].includes(window.getComputedStyle(currentElement, ":before").backgroundImage)
-                || !["", "none"].includes(window.getComputedStyle(currentElement, ":after").backgroundImage)
-            );
-
-            if(needToInclude)
-                elements.push(currentElement);
+        if ((!options.selector || currentElement.matches(options.selector)) && (
+            !shouldHaveImage
+            || currentElement.tagName.toLowerCase() === "img"
+            || !["", "none"].includes(window.getComputedStyle(currentElement).backgroundImage)
+            || !["", "none"].includes(window.getComputedStyle(currentElement, ":before").backgroundImage)
+            || !["", "none"].includes(window.getComputedStyle(currentElement, ":after").backgroundImage)
+        )) {
+            elements.push(currentElement);
         }
         currentElement = currentElement.parentElement;
     }
+}
+
+
+export async function gatherElementsForCustomActions(baseElement: HTMLElement | null) {
+    const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
+    const actionsToElementsMapping = new Map<string, Element>();
+
+    const searchForElements = (element: Element, isFallback= false) => {
+        let currentElement: Element | null = element;
+        while(currentElement) {
+            for(const action of actions) {
+                if(isFallback && (actionsToElementsMapping.has(action.id) || !action.targetsFilter.allowSearchInPageSelection))
+                    continue;
+
+                if ((!action.targetsFilter.selector || currentElement.matches(action.targetsFilter.selector)) && (
+                    !action.targetsFilter.imageRequired
+                    || currentElement.tagName.toLowerCase() === "img"
+                    || !["", "none"].includes(window.getComputedStyle(currentElement).backgroundImage)
+                    || !["", "none"].includes(window.getComputedStyle(currentElement, ":before").backgroundImage)
+                    || !["", "none"].includes(window.getComputedStyle(currentElement, ":after").backgroundImage)
+                )) {
+                    if (action.targetsFilter.selectorBehavior === CustomActionTargetSelectorBehavior.exact && currentElement === baseElement) {
+                        actionsToElementsMapping.set(action.id, currentElement);
+                    }
+                    else if (action.targetsFilter.selectorBehavior === CustomActionTargetSelectorBehavior.deepest) {
+                        if (!actionsToElementsMapping.has(action.id))
+                            actionsToElementsMapping.set(action.id, currentElement);
+                    } else if(action.targetsFilter.selectorBehavior === CustomActionTargetSelectorBehavior.closestToRoot) {
+                        actionsToElementsMapping.set(action.id, currentElement);
+                    }
+                }
+            }
+            currentElement = currentElement.parentElement;
+        }
+
+        for (let action of actions) {
+            if (!actionsToElementsMapping.has(action.id) && action.targetsFilter.allowSearchInDescendants) {
+                const matchingChildren = element.querySelectorAll(action.targetsFilter.selector || "*");
+                for (let child of Array.from(matchingChildren)) {
+                    if (!action.targetsFilter.imageRequired
+                        || child.tagName.toLowerCase() === "img"
+                        || !["", "none"].includes(window.getComputedStyle(child).backgroundImage)
+                        || !["", "none"].includes(window.getComputedStyle(child, ":before").backgroundImage)
+                        || !["", "none"].includes(window.getComputedStyle(child, ":after").backgroundImage)
+                    ) {
+                        actionsToElementsMapping.set(action.id, child);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if(baseElement)
+        searchForElements(baseElement);
+    const selection = window.getSelection();
+    if(selection) {
+        if(selection.focusNode instanceof Element)
+            searchForElements(selection.focusNode, true)
+        if(selection.anchorNode instanceof Element)
+            searchForElements(selection.anchorNode, true)
+    }
+
+    return actionsToElementsMapping;
 }

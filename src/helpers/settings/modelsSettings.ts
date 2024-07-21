@@ -63,6 +63,9 @@ export async function fillModelsTable() {
         (tr.querySelector("button.move-down-btn") as HTMLButtonElement).onclick = () => moveModelDown(model.id, tr);
         tbody.appendChild(tr);
     });
+    if(!models.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center">No models defined</td></tr>`;
+    }
 }
 
 async function moveModelUp(modelId: string, tr: HTMLTableRowElement) {

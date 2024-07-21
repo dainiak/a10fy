@@ -8,6 +8,7 @@ import {
 import {getFromStorage, setToStorage} from "../storageHandling";
 import {storageKeys} from "../constants";
 import Modal from "bootstrap/js/dist/modal";
+import {uniqueString} from "../uniqueId";
 
 const actionModalElement = document.getElementById("editCustomActionModal") as HTMLDivElement;
 const actionModal = Modal.getOrCreateInstance(actionModalElement);
@@ -15,7 +16,11 @@ const actionModal = Modal.getOrCreateInstance(actionModalElement);
 export async function fillCustomActionsTable() {
     const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
     const table = document.getElementById("customActionsTable") as HTMLTableElement;
-    table.innerHTML = "";
+    const tbody = table.querySelector("tbody") as HTMLTableSectionElement;
+    tbody.innerHTML = "";
+    if(!actions.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center">No custom actions defined</td></tr>`;
+    }
     actions.forEach((action: SerializedCustomAction) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -32,7 +37,7 @@ export async function fillCustomActionsTable() {
         (tr.querySelector('td.custom-action-description') as HTMLTableCellElement).textContent = action.description;
         (tr.querySelector('button.edit-btn') as HTMLButtonElement).onclick = () => editAction(action.id);
         (tr.querySelector('button.delete-btn') as HTMLButtonElement).onclick = () => deleteAction(action.id, tr);
-        table.appendChild(tr);
+        tbody.appendChild(tr);
     });
 }
 
@@ -49,7 +54,7 @@ async function editAction(actionId: string) {
     descriptionInput.value = action.description;
     const systemInstructionInput = document.getElementById("customActionSystemInstruction") as HTMLInputElement;
     systemInstructionInput.value = action.systemInstruction;
-    const jsonModeInput = document.getElementById("customActionJsonMode") as HTMLInputElement;
+    const jsonModeInput = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
     jsonModeInput.checked = action.jsonMode;
     const modelSelect = document.getElementById("customActionModel") as HTMLSelectElement;
     const models: SerializedModel[] = (await getFromStorage(storageKeys.models)|| []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
@@ -67,20 +72,22 @@ async function editAction(actionId: string) {
             option.selected = true;
         modelSelect.appendChild(option);
     });
-    modelSelect.value = action.modelId;
 
     const playersSelect = document.getElementById("customActionPlayer") as HTMLSelectElement;
     const codePlayers: SerializedCustomCodePlayer[] = await getFromStorage(storageKeys.codePlayers) || [];
     playersSelect.innerHTML = "";
+    const emptyPlayerOption = document.createElement("option");
+    emptyPlayerOption.value = "";
+    emptyPlayerOption.text = "";
+    playersSelect.appendChild(emptyPlayerOption);
     codePlayers.forEach((player: SerializedCustomCodePlayer) => {
         const option = document.createElement("option");
         option.value = player.id;
         option.text = player.name;
         if(player.id === action.playerId)
             option.selected = true;
-        modelSelect.appendChild(option);
+        playersSelect.appendChild(option);
     });
-    playersSelect.value = action.playerId;
 
     const customActionModelJSONMode = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
     customActionModelJSONMode.checked = action.jsonMode;
@@ -90,11 +97,15 @@ async function editAction(actionId: string) {
     customActionSelectorBehaviorSelect.value = action.targetsFilter.selectorBehavior;
     const customActionSelectorImageRequired = document.getElementById("customActionSelectorImageRequired") as HTMLInputElement;
     customActionSelectorImageRequired.checked = action.targetsFilter.imageRequired;
+    const customActionSelectorAllowChildSelection = document.getElementById("customActionSelectorAllowSearchInDescendants") as HTMLInputElement;
+    customActionSelectorAllowChildSelection.checked = action.targetsFilter.allowSearchInDescendants;
+    const customActionSelectorAllowSearchInSelection = document.getElementById("customActionSelectorAllowSearchInSelection") as HTMLInputElement;
+    customActionSelectorAllowSearchInSelection.checked = action.targetsFilter.allowSearchInPageSelection;
     const customActionResultsPresentationSelect = document.getElementById("customActionResultsPresentation") as HTMLSelectElement;
     customActionResultsPresentationSelect.value = action.resultsPresentation;
-    const customActionElementSnapshot = document.getElementById("customActionElementSnapshot") as HTMLInputElement;
+    const customActionElementSnapshot = document.getElementById("customActionSendElementSnapshotToLLM") as HTMLInputElement;
     customActionElementSnapshot.checked = action.context.elementSnapshot;
-    const customActionPageSnapshot = document.getElementById("customActionPageSnapshot") as HTMLInputElement;
+    const customActionPageSnapshot = document.getElementById("customActionSendPageSnapshotToLLM") as HTMLInputElement;
     customActionPageSnapshot.checked = action.context.pageSnapshot;
 
     const saveButton = document.getElementById("saveCustomActionButton") as HTMLButtonElement;
@@ -109,6 +120,8 @@ async function editAction(actionId: string) {
         action.targetsFilter.selector = customActionSelectorInput.value.trim();
         action.targetsFilter.selectorBehavior = customActionSelectorBehaviorSelect.value as CustomActionTargetSelectorBehavior;
         action.targetsFilter.imageRequired = customActionSelectorImageRequired.checked;
+        action.targetsFilter.allowSearchInDescendants = customActionSelectorAllowChildSelection.checked;
+        action.targetsFilter.allowSearchInPageSelection = customActionSelectorAllowSearchInSelection.checked;
         action.resultsPresentation = customActionResultsPresentationSelect.value as CustomActionResultsPresentation;
         action.context.elementSnapshot = customActionElementSnapshot.checked;
         action.context.pageSnapshot = customActionPageSnapshot.checked;
@@ -130,7 +143,7 @@ export function setupNewCustomActionButton(){
     (document.getElementById("newCustomActionButton") as HTMLButtonElement).onclick = async () => {
         const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
         const newAction: SerializedCustomAction = {
-            id: Math.random().toString(36).substring(2),
+            id: uniqueString(),
             name: "",
             description: "",
             handle: "",
@@ -141,7 +154,9 @@ export function setupNewCustomActionButton(){
             targetsFilter: {
                 selector: "",
                 selectorBehavior: CustomActionTargetSelectorBehavior.deepest,
-                imageRequired: false
+                imageRequired: false,
+                allowSearchInDescendants: false,
+                allowSearchInPageSelection: false
             },
             context: {
                 elementSnapshot: false,

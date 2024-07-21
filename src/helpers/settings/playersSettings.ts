@@ -4,6 +4,7 @@ import {storageKeys} from "../constants";
 import {uniqueString} from "../uniqueId";
 import Modal from "bootstrap/js/dist/modal";
 import {customPlayerFactory} from "../players/custom";
+import {escapeToHTML} from "../domTools";
 
 const playerModalElement = document.getElementById("editCodePlayerModal") as HTMLDivElement;
 const playerModal = Modal.getOrCreateInstance(playerModalElement);
@@ -26,12 +27,15 @@ export async function fillPlayersTable() {
         `;
 
         (tr.querySelector('td.player-name') as HTMLTableCellElement).textContent = player.name;
-        (tr.querySelector('td.player-language-tags') as HTMLTableCellElement).innerHTML = player.languageTags.map(tag => `<code>${tag}</code>`).join(", ");
+        (tr.querySelector('td.player-language-tags') as HTMLTableCellElement).innerHTML = escapeToHTML(player.languageTags, "code");
         (tr.querySelector('td.player-description') as HTMLTableCellElement).textContent = player.description;
         (tr.querySelector('button.edit-btn') as HTMLButtonElement).onclick = () => editPlayer(player.id);
         (tr.querySelector('button.delete-btn') as HTMLButtonElement).onclick = () => deletePlayer(player.id, tr);
         tbody.appendChild(tr);
     });
+    if(!players.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center">No custom code players defined</td></tr>`;
+    }
 }
 
 async function editPlayer(playerId: string) {

@@ -1,4 +1,5 @@
 import {HarmBlockThreshold} from "@google/generative-ai";
+import {b} from "vite/dist/node/types.d-aGj9QkWt";
 
 export interface SerializedPersona {
     sortingIndex: number,
@@ -7,7 +8,8 @@ export interface SerializedPersona {
     description: string,
     defaultModel: string,
     systemInstruction: string,
-    isVisibleInChat: boolean
+    isVisibleInChat: boolean,
+    storageVersion?: number
 }
 
 export interface SerializedModel {
@@ -26,7 +28,8 @@ export interface SerializedModel {
         hateSpeech: HarmBlockThreshold,
         harassment: HarmBlockThreshold,
         sexuallyExplicit: HarmBlockThreshold
-    }
+    },
+    storageVersion?: number
 }
 
 export interface SerializedCustomCodePlayer {
@@ -39,7 +42,8 @@ export interface SerializedCustomCodePlayer {
     customCSS: string,
     customJS: string
     customHTML: string,
-    testCode: string
+    testCode: string,
+    storageVersion?: number
 }
 
 export enum CustomActionResultsPresentation {
@@ -70,11 +74,14 @@ export interface SerializedCustomAction {
     targetsFilter: {
         selector: string,
         selectorBehavior: CustomActionTargetSelectorBehavior,
+        allowSearchInDescendants: boolean,
+        allowSearchInPageSelection: boolean,
         imageRequired: boolean
     },
     context: {
         elementSnapshot: boolean,
         pageSnapshot: boolean
     },
-    resultsPresentation: CustomActionResultsPresentation
+    resultsPresentation: CustomActionResultsPresentation,
+    storageVersion?: number
 }

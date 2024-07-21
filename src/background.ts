@@ -158,6 +158,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
+chrome.contextMenus.removeAll();
+    chrome.contextMenus.update(
+    "dsf",
+    {
+        visible:
+    }
+)
+
 chrome.contextMenus.create({
     title: "A test menu parent item 1",
     id: "testParentItem",

@@ -15,6 +15,9 @@
     <option>gemini-1.5-pro</option>
     <option>gemini-1.5-pro-latest</option>
 </datalist>
+<datalist id="embeddingModelsDataList">
+    <option>text-embedding-004</option>
+</datalist>
 <div id="editModelModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
@@ -151,7 +154,7 @@
 </div>
 
 <div id="editCustomActionModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit custom action</h5>
@@ -159,7 +162,7 @@
             </div>
             <div class="modal-body" style="text-align: left;">
                 <form>
-                    <h5 class="card-title mt-5 mb-2">General settings</h5>
+                    <h5 class="card-title mb-2">General settings</h5>
                     <div class="mb-3 form-floating">
                         <input type="text" class="form-control" id="customActionName">
                         <label for="customActionName" class="form-label">Name</label>
@@ -175,10 +178,13 @@
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i> The action’s handle is a short name that can be used to call action from a chat.
                     </div>
-                    <h5 class="card-title mt-5 mb-2">Code player and system instruction</h5>
+                    <h5 class="card-title mt-3 mb-2">Code player and system instruction</h5>
                     <div class="mb-3 form-floating">
                         <select class="form-select" id="customActionPlayer"></select>
                         <label for="customActionPlayer" class="form-label">Code player used to produce the result</label>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle mb-2"></i> If no player is selected, then the result of the action is considered to be just the direct output of the model. It will be displayed as markdown in the chat or in the action pane.
                     </div>
                     <div class="mb-3 form-floating">
                         <textarea class="form-control" id="customActionSystemInstruction" style="font-family: monospace"></textarea>
@@ -186,9 +192,9 @@
                     </div>
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_direct_call_</code>.</p>
-                        <p>You can use any combination of the following placeholders anywhere inside the system instruction to provide LLM with relevant context: <code>__DOCUMENT_HTML__</code> for complete HTML contents of the document, <code>__ELEMENT_HTML__</code> for element's OuterHTML, <code>__ELEMENT_TEXT__</code> for element's textContent.
+                        <p>You can use any combination of the following placeholders anywhere inside the system instruction to provide LLM with relevant context: <code>__DOCUMENT_HTML__</code> for complete HTML contents of the document, <code>__ELEMENT_HTML__</code> for element's OuterHTML, <code>__ELEMENT_TEXT__</code> for element's textContent, and <code>__SELECTION_TEXT__</code> for the selected text on the page.
                     </div>
-                    <h5 class="card-title mt-5 mb-2">Model settings</h5>
+                    <h5 class="card-title mt-3 mb-2">Model settings</h5>
                     <div class="mb-3 form-floating">
                         <select class="form-select" id="customActionModel"></select>
                         <label for="customActionModel" class="form-label">Model</label>
@@ -200,7 +206,7 @@
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i> If you call LLM in JSON mode, it will produce valid JSON which will be passed to the player as the code to process. The language tag passed to the player will then equal to <code>_json_</code>. If LLM is not called in JSON mode, then the first fenced block with language tag matching the tags supported by the code player will be extracted from LLM’s output and passed to the player.
                     </div>
-                    <h5 class="card-title mt-5 mb-2">Target element of the webpage</h5>
+                    <h5 class="card-title mt-3 mb-2">Target element of the webpage</h5>
                     <div class="mb-3 form-floating">
                         <input type="text" class="form-control" style="font-family: monospace" id="customActionSelector">
                         <label for="customActionSelector" class="form-label">CSS selector</label>
@@ -210,12 +216,20 @@
                         <label for="customActionSelectorImageRequired" class="form-label">Take element with image content only</label>
                     </div>
                     <div class="mb-3">
-                        <label for="customActionSelectorBehaviour" class="form-label">Element selection strategy</label>
-                        <select class="form-select" id="customActionSelectorBehaviour">
+                        <label for="customActionSelectorBehavior" class="form-label">Element selection strategy</label>
+                        <select class="form-select" id="customActionSelectorBehavior">
                             <option value="exact">Take the exact clicked element if possible</option>
                             <option value="deepest">Take the deepest element in DOM tree</option>
                             <option value="closestToRoot">Take the element closest to DOM tree root</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="customActionSelectorAllowSearchInDescendants">
+                        <label for="customActionSelectorAllowSearchInDescendants" class="form-label">Search element’s descendants if element itself does not match</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="customActionSelectorAllowSearchInSelection">
+                        <label for="customActionSelectorAllowSearchInSelection" class="form-label">Search in selection on page if nothing else matches</label>
                     </div>
                     <div class="mb-3">
                         <input type="checkbox" class="form-check-input" id="customActionSendElementSnapshotToLLM">
@@ -225,7 +239,7 @@
                         <input type="checkbox" class="form-check-input" id="customActionSendPageSnapshotToLLM">
                         <label for="customActionSendPageSnapshotToLLM" class="form-label">Send element’s graphical snapshot to LLM</label>
                     </div>
-                    <h5 class="card-title mt-5 mb-2">Results presentation</h5>
+                    <h5 class="card-title mt-3 mb-2">Results presentation</h5>
                     <label for="customActionResultsPresentation" class="form-label">How the LLM/player call results are presented in the side panel</label>
                     <select class="form-select" id="customActionResultsPresentation">
                         <option value="chatPaneComplete">Chat pane; keep non-code LLM output</option>
@@ -441,7 +455,7 @@
                         <label for="embeddingModelApiKey" class="form-label">Embedding model API key</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" style="font-family: monospace" class="form-control" id="embeddingModelTechnicalName" placeholder="Technical name">
+                        <input list="embeddingModelsDataList" type="text" style="font-family: monospace" class="form-control" id="embeddingModelTechnicalName" placeholder="Technical name">
                         <label for="embeddingModelTechnicalName" class="form-label">Embedding model technical name</label>
                     </div>
                 </div>
@@ -502,7 +516,7 @@ if True:
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-magic"></i> Custom actions</h5></div>
                 <div class="card-body">
-                    <button aria-label="Add custom action" class="btn btn-outline-primary my-3 px-2" id="newCustomActionButton"><i class="bi bi-plus-square-fill"></i> Add menu item</button>
+                    <button aria-label="Add custom action" class="btn btn-outline-primary my-3 px-2" id="newCustomActionButton"><i class="bi bi-plus-square-fill"></i> Add custom action</button>
                     <table id="customActionsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
                         <tr>

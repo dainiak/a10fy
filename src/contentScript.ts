@@ -9,7 +9,7 @@ import {
     ElementPropertiesRequest,
     RegisterContextMenuEventRequest
 } from "./helpers/constants";
-import {getDocumentSkeleton, findElementByIndex} from "./helpers/domManipulation";
+import {getDocumentSkeleton, findElementByIndex} from "./helpers/domTools";
 import {enqueuePageAction} from "./helpers/llmPageActions";
 
 import ActionQueue from "./helpers/actionQueue";
