@@ -9,6 +9,12 @@
     <title>A10fy Welcome Screen</title>
 </head>
 <body>
+<datalist id="modelTechnicalNamesList">
+    <option>gemini-1.5-flash</option>
+    <option>gemini-1.5-flash-latest</option>
+    <option>gemini-1.5-pro</option>
+    <option>gemini-1.5-pro-latest</option>
+</datalist>
 <div id="editModelModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
@@ -27,7 +33,7 @@
                         <label for="modelDescription" class="form-label">Description</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" style="font-family: monospace" class="form-control" id="modelTechnicalName" placeholder="Model technical name" required>
+                        <input list="modelTechnicalNamesList" type="text" style="font-family: monospace" class="form-control" id="modelTechnicalName" placeholder="Model technical name" required>
                         <label for="modelTechnicalName" class="form-label">Model technical name</label>
                     </div>
                     <div class="mb-3">
@@ -139,6 +145,102 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="savePersonaButton">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editCustomActionModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit custom action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="text-align: left;">
+                <form>
+                    <h5 class="card-title mt-5 mb-2">General settings</h5>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="customActionName">
+                        <label for="customActionName" class="form-label">Name</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="customActionDescription">
+                        <label for="customActionDescription" class="form-label">Description</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" id="customActionHandle" style="font-family: monospace">
+                        <label for="customActionHandle" class="form-label">Handle</label>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle mb-2"></i> The action’s handle is a short name that can be used to call action from a chat.
+                    </div>
+                    <h5 class="card-title mt-5 mb-2">Code player and system instruction</h5>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="customActionPlayer"></select>
+                        <label for="customActionPlayer" class="form-label">Code player used to produce the result</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <textarea class="form-control" id="customActionSystemInstruction" style="font-family: monospace"></textarea>
+                        <label for="customActionSystemInstruction" class="form-label">System instruction</label>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_direct_call_</code>.</p>
+                        <p>You can use any combination of the following placeholders anywhere inside the system instruction to provide LLM with relevant context: <code>__DOCUMENT_HTML__</code> for complete HTML contents of the document, <code>__ELEMENT_HTML__</code> for element's OuterHTML, <code>__ELEMENT_TEXT__</code> for element's textContent.
+                    </div>
+                    <h5 class="card-title mt-5 mb-2">Model settings</h5>
+                    <div class="mb-3 form-floating">
+                        <select class="form-select" id="customActionModel"></select>
+                        <label for="customActionModel" class="form-label">Model</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="customActionModelJSONMode">
+                        <label for="customActionModelJSONMode" class="form-label">Call LLM in JSON mode</label>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle mb-2"></i> If you call LLM in JSON mode, it will produce valid JSON which will be passed to the player as the code to process. The language tag passed to the player will then equal to <code>_json_</code>. If LLM is not called in JSON mode, then the first fenced block with language tag matching the tags supported by the code player will be extracted from LLM’s output and passed to the player.
+                    </div>
+                    <h5 class="card-title mt-5 mb-2">Target element of the webpage</h5>
+                    <div class="mb-3 form-floating">
+                        <input type="text" class="form-control" style="font-family: monospace" id="customActionSelector">
+                        <label for="customActionSelector" class="form-label">CSS selector</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="customActionSelectorImageRequired">
+                        <label for="customActionSelectorImageRequired" class="form-label">Take element with image content only</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customActionSelectorBehaviour" class="form-label">Element selection strategy</label>
+                        <select class="form-select" id="customActionSelectorBehaviour">
+                            <option value="exact">Take the exact clicked element if possible</option>
+                            <option value="deepest">Take the deepest element in DOM tree</option>
+                            <option value="closestToRoot">Take the element closest to DOM tree root</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="customActionSendElementSnapshotToLLM">
+                        <label for="customActionSendElementSnapshotToLLM" class="form-label">Send element’s graphical snapshot to LLM</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="customActionSendPageSnapshotToLLM">
+                        <label for="customActionSendPageSnapshotToLLM" class="form-label">Send element’s graphical snapshot to LLM</label>
+                    </div>
+                    <h5 class="card-title mt-5 mb-2">Results presentation</h5>
+                    <label for="customActionResultsPresentation" class="form-label">How the LLM/player call results are presented in the side panel</label>
+                    <select class="form-select" id="customActionResultsPresentation">
+                        <option value="chatPaneComplete">Chat pane; keep non-code LLM output</option>
+                        <option value="chatPane">Chat pane; omit non-code LLM output</option>
+                        <option value="actionPane">Action pane; omit non-code LLM output</option>
+                        <option value="actionOrChatPaneComplete">Action (priority) or chat pane; keep non-code LLM output if in chat</option>
+                        <option value="actionOrChatPane">Action (priority) or chat pane; omit non-code LLM output if in chat</option>
+                        <option value="chatOrActionPaneComplete">Chat (priority) or action pane; keep non-code LLM output if in chat</option>
+                        <option value="chatOrActionPane">Chat (priority) or action pane; omit non-code LLM output if in chat</option>
+                    </select>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveCustomActionButton">Save changes</button>
             </div>
         </div>
     </div>
@@ -321,7 +423,7 @@
                         <label for="assistantModelApiKey" class="form-label">Assistant model API key</label>
                     </div>
                     <div class="mb-3 form-floating">
-                        <input type="text" style="font-family: monospace" class="form-control" id="assistantModelTechnicalName" placeholder="Technical name">
+                        <input list="modelTechnicalNamesList" type="text" style="font-family: monospace" class="form-control" id="assistantModelTechnicalName" placeholder="Technical name">
                         <label for="assistantModelTechnicalName" class="form-label">Assistant model technical name</label>
                     </div>
                     <button aria-label="Edit assistant model" class="btn btn-outline-primary my-3 px-2" id="editAssistantModelButton"><i class="bi bi-pencil-square"></i> Edit advanced assistant model settings</button>
@@ -398,6 +500,23 @@ if True:
                 </div>
             </div>
             <div class="card my-4">
+                <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-magic"></i> Custom actions</h5></div>
+                <div class="card-body">
+                    <button aria-label="Add custom action" class="btn btn-outline-primary my-3 px-2" id="newCustomActionButton"><i class="bi bi-plus-square-fill"></i> Add menu item</button>
+                    <table id="customActionsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Handle</th>
+                            <th>Description</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-menu-app"></i> Custom context menu items</h5></div>
                 <div class="card-body">
                     <button aria-label="Add a context menu item" class="btn btn-outline-primary my-3 px-2" id="newMenuItem"><i class="bi bi-plus-square-fill"></i> Add menu item</button>
@@ -456,6 +575,7 @@ if True:
                             <li><a target="_blank" href="https://katex.org/">KaTeX</a> — a math typesetting library. <a target="_blank" href="https://github.com/KaTeX/KaTeX/blob/main/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://github.com/markdown-it/markdown-it">Markdown-it</a> — an extensible Markdown parser. <a target="_blank" href="https://github.com/markdown-it/markdown-it/blob/master/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://mermaid.js.org/">Mermaid</a> — a JavaScript diagramming and charting tool. <a target="_blank" href="https://github.com/mermaid-js/mermaid/blob/develop/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://github.com/nodeca/pako">pako</a> — a JavaScript port of zlib. <a target="_blank" href="https://github.com/nodeca/pako/blob/master/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://github.com/pyodide/pyodide">Pyodide</a> — a Python distribution for the browser. <a target="_blank" href="https://github.com/pyodide/pyodide/blob/main/LICENSE">Mozilla Public License Version 2.0.</a></li>
                             <li><a target="_blank" href="https://github.com/mixmark-io/turndown">Turndown</a> — a tool to convert HTML to markdown. <a target="_blank" href="https://github.com/mixmark-io/turndown/blob/master/LICENSE">MIT License</a>.</li>
                         </ul>

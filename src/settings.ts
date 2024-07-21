@@ -9,6 +9,7 @@ import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/perso
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
 import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
 import * as Bootstrap from "bootstrap";
+import {fillCustomActionsTable, setupNewCustomActionButton} from "./helpers/settings/actionsSettings";
 
 const quickSetupTab = Bootstrap.Tab.getOrCreateInstance(document.getElementById("setupTab") as HTMLElement);
 
@@ -49,3 +50,5 @@ setupNewPersonaButton();
 fillPersonasTable().catch();
 setupNewPlayerButton();
 fillPlayersTable().catch();
+setupNewCustomActionButton();
+fillCustomActionsTable().catch()

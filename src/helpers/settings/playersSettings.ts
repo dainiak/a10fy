@@ -2,8 +2,11 @@ import {SerializedCustomCodePlayer} from "./dataModels";
 import {getFromStorage, setToStorage} from "../storageHandling";
 import {storageKeys} from "../constants";
 import {uniqueString} from "../uniqueId";
-import * as Bootstrap from "bootstrap";
+import Modal from "bootstrap/js/dist/modal";
 import {customPlayerFactory} from "../players/custom";
+
+const playerModalElement = document.getElementById("editCodePlayerModal") as HTMLDivElement;
+const playerModal = Modal.getOrCreateInstance(playerModalElement);
 
 export async function fillPlayersTable() {
     const players: SerializedCustomCodePlayer[] = (await getFromStorage(storageKeys.codePlayers) || []);
@@ -32,8 +35,6 @@ export async function fillPlayersTable() {
 }
 
 async function editPlayer(playerId: string) {
-    const modalElement = document.getElementById("editCodePlayerModal") as HTMLDivElement;
-    const modal = Bootstrap.Modal.getOrCreateInstance(modalElement);
     const players: SerializedCustomCodePlayer[] = (await getFromStorage(storageKeys.codePlayers) || []);
     const player = players.find((player: SerializedCustomCodePlayer) => player.id === playerId);
     if (!player)
@@ -78,7 +79,7 @@ async function editPlayer(playerId: string) {
         debugOutputElement.innerHTML = "";
         await setToStorage(storageKeys.codePlayers, players);
         await fillPlayersTable();
-        modal.hide();
+        playerModal.hide();
     }
     debugOutputElement.innerHTML = "";
     debugButton.onclick = async () => {
@@ -94,7 +95,7 @@ async function editPlayer(playerId: string) {
             debugOutputElement
         );
     }
-    modal.show();
+    playerModal.show();
 }
 
 async function deletePlayer(playerId: string, tr: HTMLTableRowElement) {
@@ -104,7 +105,7 @@ async function deletePlayer(playerId: string, tr: HTMLTableRowElement) {
 }
 
 export function setupNewPlayerButton() {
-    (document.getElementById("newCodePlayer") as HTMLButtonElement).addEventListener("click", async () => {
+    (document.getElementById("newCodePlayer") as HTMLButtonElement).onclick = async () => {
         const players: SerializedCustomCodePlayer[] = await getFromStorage(storageKeys.codePlayers) || [];
         const newPlayer: SerializedCustomCodePlayer = {
             id: uniqueString(),
@@ -127,5 +128,5 @@ export function setupNewPlayerButton() {
         await setToStorage(storageKeys.codePlayers, [...players, newPlayer]);
         await fillPlayersTable();
         await editPlayer(newPlayer.id);
-    });
+    };
 }

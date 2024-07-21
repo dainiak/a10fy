@@ -1,9 +1,13 @@
 import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "./dataModels";
-import * as Bootstrap from "bootstrap";
+import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
 import {getDefaultChatSystemPromptTemplate} from "../prompts";
 import {getFromStorage, setToStorage} from "../storageHandling";
+
+const personaModalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
+const personaModal = Modal.getOrCreateInstance(personaModalElement);
+
 
 export async function fillPersonasTable() {
     let personas = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
@@ -59,8 +63,6 @@ async function editPersona(personaId: string) {
     if (!persona)
         return;
 
-    const modalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
-    const modal = Bootstrap.Modal.getOrCreateInstance(modalElement);
     const nameInput = document.getElementById("personaName") as HTMLInputElement;
     const descriptionInput = document.getElementById("personaDescription") as HTMLInputElement;
     const modelSelect = document.getElementById("personaModel") as HTMLSelectElement;
@@ -96,11 +98,11 @@ async function editPersona(personaId: string) {
         persona.systemInstruction = systemInstructionInput.value.trim();
         persona.isVisibleInChat = isVisibleInChatCheckbox.checked;
         await setToStorage(storageKeys.personas, personas);
-        modal.hide();
+        personaModal.hide();
         await fillPersonasTable();
     };
 
-    modal.show();
+    personaModal.show();
 }
 
 async function deletePersona(personaId: string, tr: HTMLTableRowElement) {
@@ -137,7 +139,7 @@ async function movePersonaDown(personaId: string, tr: HTMLTableRowElement) {
 }
 
 export function setupNewPersonaButton() {
-    (document.getElementById("newPersonaButton") as HTMLButtonElement).addEventListener("click", async () => {
+    (document.getElementById("newPersonaButton") as HTMLButtonElement).onclick = async () => {
         const personas: SerializedPersona[] = await  getFromStorage(storageKeys.personas) || [];
         const newPersona: SerializedPersona = {
             sortingIndex: personas.length,
@@ -151,5 +153,5 @@ export function setupNewPersonaButton() {
         await setToStorage(storageKeys.personas, [...personas, newPersona]);
         await fillPersonasTable();
         await editPersona(newPersona.id);
-    });
+    };
 }

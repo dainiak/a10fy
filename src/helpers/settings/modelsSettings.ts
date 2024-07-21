@@ -1,9 +1,13 @@
 import {storageKeys} from "../constants";
 import {SerializedModel} from "./dataModels";
-import * as Bootstrap from "bootstrap";
+import Modal from "bootstrap/js/dist/modal";
 import {HarmBlockThreshold} from "@google/generative-ai";
 import {uniqueString} from "../uniqueId";
 import {getFromStorage, setToStorage} from "../storageHandling";
+
+const modelModalElement = document.getElementById("editModelModal") as HTMLDivElement;
+const modelModal = Modal.getOrCreateInstance(modelModalElement);
+
 
 export async function fillModelsTable() {
     let models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
@@ -172,8 +176,6 @@ export async function setupEmbeddingModelSettings() {
 }
 
 async function editModel(modelId: string, isAssistantModel: boolean = false) {
-    const modalElement = document.getElementById("editModelModal") as HTMLDivElement;
-    const modal = Bootstrap.Modal.getOrCreateInstance(modalElement);
     let models: SerializedModel[] = [];
     let model: SerializedModel;
     if(isAssistantModel) {
@@ -257,13 +259,13 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
         }
 
         saveButton.onclick = null;
-        modal.hide();
+        modelModal.hide();
     };
-    modal.show();
+    modelModal.show();
 }
 
 export function setupNewModelButton() {
-    (document.getElementById("newModelButton") as HTMLButtonElement).addEventListener("click", async () => {
+    (document.getElementById("newModelButton") as HTMLButtonElement).onclick = async () => {
         const models = await getFromStorage(storageKeys.models) || [];
         const newModel: SerializedModel = {
             sortingIndex: models.length,
@@ -286,5 +288,5 @@ export function setupNewModelButton() {
         await setToStorage(storageKeys.models, [...models, newModel]);
         await fillModelsTable();
         await editModel(newModel.id);
-    });
+    };
 }
