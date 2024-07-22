@@ -9,6 +9,9 @@ export enum extensionActions {
     processUserAudioQuery = "processUserAudioQuery",
     getDomElementProperties = "getDomElementProperties",
     registerContextMenuEvent = "registerContextMenuEvent",
+    rebuildContextMenus = "rebuildContextMenus",
+    requestDataForCustomAction = "requestDataForCustomAction",
+    executeCustomActionInSidePanel = "executeCustomActionInSidePanel",
     modifyImage = "modifyImage",
     runInSandbox = "runInSandbox",
     sandboxedTaskResultsUpdate = "sandboxedTaskResultsUpdate",
@@ -65,6 +68,36 @@ export interface TabDocumentInfo {
 
 export interface ExtensionMessageRequest {
     action: extensionActions;
+}
+
+export interface DataForCustomActionRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.requestDataForCustomAction,
+    actionId: string,
+}
+
+export interface DataForCustomActionResult {
+    elementHTML?: string,
+    documentHTML?: string,
+    elementText?: string,
+    selectionText?: string,
+    elementBoundingRect?: DOMRect,
+    viewportRect?: {width: number, height: number},
+    error?: string
+}
+
+export interface CustomActionContext {
+    elementHTML?: string,
+    documentHTML?: string,
+    elementText?: string,
+    selectionText?: string,
+    elementSnapshot?: string,
+    pageSnapshot?: string,
+}
+
+export interface ExecuteCustomActionInSidePanelRequest extends ExtensionMessageRequest {
+    action: typeof extensionActions.executeCustomActionInSidePanel,
+    actionId: string,
+    context: CustomActionContext
 }
 
 export interface ExecutePageActionRequest extends ExtensionMessageRequest {

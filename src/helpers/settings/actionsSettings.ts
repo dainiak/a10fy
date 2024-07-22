@@ -6,12 +6,18 @@ import {
     SerializedModel
 } from "./dataModels";
 import {getFromStorage, setToStorage} from "../storageHandling";
-import {storageKeys} from "../constants";
+import {extensionActions, storageKeys} from "../constants";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
 
 const actionModalElement = document.getElementById("editCustomActionModal") as HTMLDivElement;
 const actionModal = Modal.getOrCreateInstance(actionModalElement);
+
+function rebuildContextMenus() {
+    if(chrome.runtime) {
+        chrome.runtime.sendMessage({action: extensionActions.rebuildContextMenus}).catch();
+    }
+}
 
 export async function fillCustomActionsTable() {
     const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
@@ -61,9 +67,9 @@ async function editAction(actionId: string) {
     const descriptionInput = document.getElementById("customActionDescription") as HTMLInputElement;
     descriptionInput.value = action.description;
     const systemInstructionInput = document.getElementById("customActionSystemInstruction") as HTMLInputElement;
-    systemInstructionInput.value = action.systemInstruction;
+    systemInstructionInput.value = action.systemInstructionTemplate;
     const messageTextInput = document.getElementById("customActionMessage") as HTMLInputElement;
-    messageTextInput.value = action.messageText;
+    messageTextInput.value = action.messageTemplate;
     const jsonModeInput = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
     jsonModeInput.checked = action.jsonMode;
     const modelSelect = document.getElementById("customActionModel") as HTMLSelectElement;
@@ -126,8 +132,8 @@ async function editAction(actionId: string) {
         action.handle = handleInput.value.trim();
         action.pathInContextMenu = pathInContextMenuInput.value.trim();
         action.description = descriptionInput.value.trim();
-        action.systemInstruction = systemInstructionInput.value.trim();
-        action.messageText = messageTextInput.value.trim();
+        action.systemInstructionTemplate = systemInstructionInput.value.trim();
+        action.messageTemplate = messageTextInput.value.trim();
         action.jsonMode = jsonModeInput.checked;
         action.modelId = modelSelect.value;
         action.playerId = playersSelect.value;
@@ -143,6 +149,7 @@ async function editAction(actionId: string) {
         await setToStorage(storageKeys.customActions, actions);
         actionModal.hide();
         await fillCustomActionsTable();
+        rebuildContextMenus();
     };
 
     actionModal.show();
@@ -155,6 +162,8 @@ async function deleteAction(actionId: string, tr: HTMLTableRowElement) {
         tr.remove();
     else
         await fillCustomActionsTable();
+
+    rebuildContextMenus();
 }
 
 export function setupNewCustomActionButton(){
@@ -167,8 +176,8 @@ export function setupNewCustomActionButton(){
             handle: "",
             pathInContextMenu: "",
             jsonMode: false,
-            systemInstruction: "",
-            messageText: "",
+            systemInstructionTemplate: "",
+            messageTemplate: "",
             modelId: "",
             playerId: "",
             targetsFilter: {

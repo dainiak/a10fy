@@ -1,5 +1,4 @@
 import {HarmBlockThreshold} from "@google/generative-ai";
-import {b} from "vite/dist/node/types.d-aGj9QkWt";
 
 export interface SerializedPersona {
     sortingIndex: number,
@@ -69,8 +68,8 @@ export interface SerializedCustomAction {
     handle: string,
     pathInContextMenu: string,
     jsonMode: boolean,
-    systemInstruction: string,
-    messageText: string,
+    systemInstructionTemplate: string,
+    messageTemplate: string,
     modelId: string,
     playerId: string,
     targetsFilter: {

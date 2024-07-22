@@ -160,4 +160,41 @@ async function getGeminiTextModel(model: SerializedModel, persona: SerializedPer
     });
 }
 
+export async function getModelForCustomAction(model: SerializedModel, systemInstruction: string, jsonMode: boolean = false) {
+    const apiKey = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    const generationConfig: GenerationConfig = {
+        temperature: model.temperature || 0,
+        topK: model.topK || 64,
+        topP: model.topP || 0.95,
+        maxOutputTokens: 8192,
+        responseMimeType: jsonMode ? "application/json" : "text/plain"
+    };
+
+    const safetySettings = [
+        {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: model.safetySettings.dangerousContent
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: model.safetySettings.hateSpeech
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: model.safetySettings.harassment
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: model.safetySettings.sexuallyExplicit
+        }
+    ];
+
+    return (new GoogleGenerativeAI(apiKey)).getGenerativeModel({
+        model: model.technicalName,
+        generationConfig: generationConfig,
+        safetySettings: safetySettings,
+        systemInstruction: systemInstruction
+    });
+}
+
 export {asyncRequestAndParse, getTextEmbedding, getGeminiTextModel};

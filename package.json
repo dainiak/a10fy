@@ -58,6 +58,7 @@
     "dexie": "^4.0.8",
     "highlight.js": "^11.9.0",
     "hnsw": "^1.0.2",
+    "liquidjs": "^10.16.0",
     "markdown-it": "^14.1.0",
     "mermaid": "^10.9.1",
     "pako": "^2.1.0",

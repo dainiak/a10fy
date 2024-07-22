@@ -82,5 +82,5 @@ export default [
     constructJsConfig('popup', jsPluginConfigs),
     constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),
     constructJsConfig('settings', jsPluginConfigs),
-    // constructJsConfig('sidePanel', jsPluginConfigs),
+    constructJsConfig('sidePanel', jsPluginConfigs),
 ];

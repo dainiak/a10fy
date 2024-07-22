@@ -7,7 +7,7 @@ import {
     PromptUserRequest,
     ExtensionMessageRequest,
     ElementPropertiesRequest,
-    RegisterContextMenuEventRequest, storageKeys
+    RegisterContextMenuEventRequest, storageKeys, DataForCustomActionRequest, DataForCustomActionResult
 } from "./helpers/constants";
 import {getDocumentSkeleton, findElementByIndex, gatherElementsForCustomActions} from "./helpers/domTools";
 import {enqueuePageAction} from "./helpers/llmPageActions";
@@ -16,13 +16,13 @@ import ActionQueue from "./helpers/actionQueue";
 import {SerializedCustomAction} from "./helpers/settings/dataModels";
 import {getFromStorage} from "./helpers/storageHandling";
 
-let lastContextMenuEvent: MouseEvent | null = null;
-
 const pageActionQueue = new ActionQueue();
 setInterval(
     () => pageActionQueue.executeNext(),
     20
 );
+
+let contextMenuPossibleActionTargets: Map<string, Element|null> = new Map();
 
 
 function getDomElementProperties(element: Node, propertyNames: Array<string>){
@@ -88,11 +88,38 @@ chrome.runtime.onMessage.addListener(
             }
             sendResponse(getDomElementProperties(element, propertiesRequest.propertyNames) as ElementPropertiesResult);
         }
+        else if (request.action === extensionActions.requestDataForCustomAction) {
+            const actionId = (request as DataForCustomActionRequest).actionId;
+            getFromStorage(storageKeys.customActions).then(actions => {
+                const action = (actions as SerializedCustomAction[] || []).find(action => action.id === actionId);
+
+                if(action) {
+                    const element = contextMenuPossibleActionTargets.get(action.id);
+                    const result: DataForCustomActionResult = {
+                        elementHTML: element ? element.outerHTML : "",
+                        documentHTML: document.body.outerHTML,
+                        elementText: element ? element.textContent || "" : "",
+                        selectionText: window.getSelection()?.toString() || ""
+                    };
+
+                    if(action.context.elementSnapshot && element) {
+                        const properties = getDomElementProperties(element, ["boundingRect"]);
+                        result.elementBoundingRect = properties.boundingRect;
+                        result.viewportRect = {
+                            width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
+                            height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+                        };
+                    }
+                    sendResponse(result);
+                } else {
+                    sendResponse({error: "Action not found."} as DataForCustomActionResult);
+                }
+            })
+        }
     }
 );
 
 document.addEventListener("contextmenu", async (event) => {
-    lastContextMenuEvent = event;
     const element = event.target as HTMLElement;
     const selection = window.getSelection();
     const selectedText = selection ? selection.toString() : "";
@@ -100,12 +127,12 @@ document.addEventListener("contextmenu", async (event) => {
         return action.pathInContextMenu && (!action.selectedTextRegExp || selectedText.match(RegExp(action.selectedTextRegExp)))
     });
     const possibleActionsElements = await gatherElementsForCustomActions(actions, element);
+    contextMenuPossibleActionTargets = possibleActionsElements;
     // const properties = getDomElementProperties(element, ["boundingRect"]);
     chrome.runtime.sendMessage({
         action: extensionActions.registerContextMenuEvent,
         availableCustomActions: Array.from(possibleActionsElements.keys()),
         selectedText: selectedText,
-
         // boundingRect: properties.boundingRect,
         // viewportRect: {
         //     width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
