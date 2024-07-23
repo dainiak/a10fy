@@ -10,11 +10,12 @@ import {
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
-import {getAssistantSystemPrompt, getChatSystemPrompt} from "./prompts";
+import {getAssistantSystemPrompt} from "./prompts";
 import {getFromStorage} from "./storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
+import {liquidEngine} from "./sidePanel/liquid";
 
-async function getJSONGeminiModel() {
+async function getAssistantJSONModel() {
     const systemInstruction = getAssistantSystemPrompt();
     const assistantModelSettings: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
     const apiKey = assistantModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
@@ -77,13 +78,13 @@ async function getJSONGeminiModel() {
     );
 }
 
-async function asyncRequestAndParse(requestData: GenerateContentRequest, jsonPaths: Array<string>, onValueCallback: (parsedElementInfo: ParsedElementInfo) => void) {
+async function asyncRequestAndParseJSON(requestData: GenerateContentRequest, jsonPaths: Array<string>, onValueCallback: (parsedElementInfo: ParsedElementInfo) => void) {
     const parser = new JSONParser({stringBufferSize: undefined, paths: jsonPaths});
 
     parser.onValue = onValueCallback;
     parser.onError = (error) => console.log("Error while parsing JSON: ", error);
 
-    const gemini = await getJSONGeminiModel();
+    const gemini = await getAssistantJSONModel();
     console.log("Request complete data: ", requestData);
     gemini.countTokens(requestData).then((count) => console.log(count));
 
@@ -152,11 +153,29 @@ async function getGeminiTextModel(model: SerializedModel, persona: SerializedPer
         }
     ];
 
+    const date = new Date();
+    const systemInstruction = liquidEngine.parseAndRenderSync(persona.systemInstruction, {
+        currentDate: {
+            iso: date.toISOString(),
+            date: date.toDateString(),
+            year: date.getFullYear(),
+            dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
+        },
+        model: {
+            name: model.name,
+            description: model.description
+        },
+        persona: {
+            name: persona.name,
+            description: persona.description
+        }
+    });
+
     return (new GoogleGenerativeAI(apiKey)).getGenerativeModel({
         model: model.technicalName,
         generationConfig: generationConfig,
         safetySettings: safetySettings,
-        systemInstruction: getChatSystemPrompt(persona.systemInstruction)
+        systemInstruction: systemInstruction
     });
 }
 
@@ -197,4 +216,4 @@ export async function getModelForCustomAction(model: SerializedModel, systemInst
     });
 }
 
-export {asyncRequestAndParse, getTextEmbedding, getGeminiTextModel};
+export {asyncRequestAndParseJSON, getTextEmbedding, getGeminiTextModel};

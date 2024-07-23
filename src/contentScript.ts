@@ -100,9 +100,9 @@ chrome.runtime.onMessage.addListener(
                     const result: DataForCustomActionResult = {
                         elementOuterHTML: element ? element.outerHTML : "",
                         elementInnerHTML: element ? element.innerHTML : "",
-                        documentHTML: document.body.outerHTML,
+                        documentSimplifiedHTML: document.body.outerHTML,
                         documentTitle: document.title,
-                        elementTextContent: element ? element.textContent || "" : "",
+                        elementInnerText: element instanceof HTMLElement ? element.innerText || "" : "",
                         selectionText: window.getSelection()?.toString() || ""
                     };
 

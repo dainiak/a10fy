@@ -24,14 +24,15 @@ import {
     SerializedCustomCodePlayer,
     SerializedModel
 } from "./helpers/settings/dataModels";
-import {Liquid} from 'liquidjs';
+import {liquidEngine} from "./helpers/sidePanel/liquid";
 import {getModelForCustomAction} from "./helpers/geminiInterfacing";
 import {getInlineDataPart} from "./helpers/promptParts";
 import {Part} from "@google/generative-ai";
 import {customPlayerFactory} from "./helpers/players/custom";
 import {markdownRenderer} from "./helpers/sidePanel/markdown";
 
-const liquidEngine = new Liquid();
+
+
 
 async function loadChatToChatPane(chatId: string) {
     showChatPane();
@@ -96,25 +97,38 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
 
     const context = request.context;
     if(systemInstruction) {
+        const date = new Date();
         const liquidScope = {
             "element": {
-                "innerHTML": context.elementInnerHTML,
-                "outerHTML": context.elementOuterHTML,
-                "textContent": context.elementTextContent
+                "innerHTML": context?.elementInnerHTML,
+                "outerHTML": context?.elementOuterHTML,
+                "innerText": context?.elementInnerText
             },
             "document": {
-                "body": context.documentHTML,
-                "title": context.documentTitle
+                "simplifiedHTML": context?.documentSimplifiedHTML,
+                "title": context?.documentTitle
             },
             "selection": {
-                "text": context.selectionText
+                "text": context?.selectionText
+            },
+            currentDate: {
+                iso: date.toISOString(),
+                date: date.toDateString(),
+                year: date.getFullYear(),
+                dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
+            },
+            model: {
+                name: model?.name,
+                description: model?.description
+            },
+            player: {
+                name: player?.name,
+                description: player?.description
             }
         };
-        const systemInstructionTemplate = liquidEngine.parse(systemInstruction);
-        const renderedSystemInstruction = await liquidEngine.render(systemInstructionTemplate, liquidScope);
+        const renderedSystemInstruction = liquidEngine.parseAndRenderSync(systemInstruction, liquidScope);
         const geminiModel = await getModelForCustomAction(model, renderedSystemInstruction, action.jsonMode);
-        const messageTemplate = liquidEngine.parse(action.messageTemplate);
-        const renderedMessage = await liquidEngine.render(messageTemplate, liquidScope);
+        const renderedMessage = liquidEngine.parseAndRenderSync(action.messageTemplate, liquidScope);
         const parts: Part[] = [{text: renderedMessage}];
         if(action.context.pageSnapshot && context.pageSnapshot) {
             parts.push(getInlineDataPart(context.pageSnapshot));
