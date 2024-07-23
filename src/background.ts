@@ -109,7 +109,7 @@ async function textBasedCommandOnPage() {
 
 async function rebuildContextMenus() {
     await chrome.contextMenus.removeAll();
-    const actions = await getFromStorage(storageKeys.customActions) as SerializedCustomAction[];
+    const actions = (await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[];
     const createdParentItems = new Set<string>();
     for (const action of actions) {
         if(action.pathInContextMenu) {
@@ -216,15 +216,21 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
         return;
     }
 
-    const data = await chrome.runtime.sendMessage({action: extensionActions.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
+    let [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if(!tab)
+        return;
+    //@ts-ignore
+    const data = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
     const context: CustomActionContext = {
         ...data
     };
+
     if(action.context.pageSnapshot || action.context.elementSnapshot && data) {
         const tabScreenshot = await chrome.tabs.captureVisibleTab({"format": "png"});
         if(action.context.pageSnapshot) {
             context.pageSnapshot = tabScreenshot;
         }
+
         if(action.context.elementSnapshot && data.elementBoundingRect) {
             await setupOffscreenDocument();
             const imageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
@@ -244,23 +250,25 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
                     quality: 50
                 }
             } as ExtensionMessageImageModificationRequest);
+
             if(imageModificationResult.image)
                 context.elementSnapshot = imageModificationResult.image;
         }
     }
-    let [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    const window = await chrome.windows.getLastFocused();
+    // let [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    // const window = await chrome.windows.getLastFocused();
     //@ts-ignore
-    chrome.sidePanel.open({tabId: tab.id, windowId: window.id}, () => {
+    // chrome.sidePanel.open({tabId: tab.id, windowId: window.id}, () => {
         chrome.runtime.sendMessage({
             action: extensionActions.executeCustomActionInSidePanel,
             actionId: action.id,
             context: context,
         } as ExecuteCustomActionInSidePanelRequest);
-    });
+    // });
 });
 
 chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest) => {
+    console.log(request);
     if (request.action === extensionActions.registerContextMenuEvent) {
         const menuEventRequest = request as RegisterContextMenuEventRequest;
         const availableCustomActions = (await getFromStorage(storageKeys.customActions) || []).filter((a: SerializedCustomAction) => menuEventRequest.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
@@ -284,9 +292,6 @@ chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest) =>
                 }
             );
         }
-
-
-
         // console.log(result);
     } else if (request.action === extensionActions.rebuildContextMenus) {
         await rebuildContextMenus();

@@ -199,7 +199,7 @@
                         <label for="customActionMessage" class="form-label">Message</label>
                     </div>
                     <div class="alert alert-info" role="alert">
-                        <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_direct_call_</code>.
+                        <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_json_call_</code>.
                         Both system instruction and message are written using Liquid.JS, see <a target="_blank" class="alert-link" href="https://liquidjs.com/playground.html#eyUgaWYgc2VsZWN0aW9uLnRleHQgJX0KVGhlIHVzZXIgaGFzIHNlbGVjdGVkIHRoZSBmb2xsb3dpbmcgdGV4dDoKYGBgCnt7IHNlbGVjdGlvbi50ZXh0IHwgc3RyaXAgfX0KYGBgCnslIGVuZGlmICV9CnslLSBpZiBkb2N1bWVudC50aXRsZSAlfQpUaGUgdGl0bGUgb2YgdGhlIGRvY3VtZW50IGlzOgpgYGAKe3sgZG9jdW1lbnQudGl0bGUgfX0KYGBgCnslLSBlbmRpZiAlfQoKRGVzY3JpYmUgaWYgdGhlIHRleHQgaXMgcmVsZXZhbnQgdG8gdGhlIGRvY3VtZW50IHRvcGljLiAKT3V0cHV0IGEgSlNPTiBvYmplY3QgbGlrZSB0aGlzOgp7CiAgInJlbGV2YW5jZVNjb3JlIjogbnVtYmVyLAogICJleHBsYW5hdGlvbiI6IHN0cmluZwp9CndoZXJlIHJlbGV2YW5jZVNjb3JlIGlzIGZyb20gMSB0byAzLCAKYW5kIGV4cGxhbmF0aW9uIGlzIGEgc2luZ2xlIHNlbnRlbmNlIGV4cGxhaW5pbmcgd2h5IHlvdSBhc3NpZ25lZCAKYSBwYXJ0aWN1bGFyIHJlbGV2YW5jZSBzY29yZS4=,ewogICJlbGVtZW50IjogewogICAgImlubmVySFRNTCI6ICI8c3Ryb25nPkExMGZ5PC9zdHJvbmc+IGlmIGNvb2wiLAogICAgIm91dGVySFRNTCI6ICI8c3Bhbj48c3Ryb25nPkExMGZ5PC9zdHJvbmc+IGlmIGNvb2w8L3NwYW4+IiwKICAgICJ0ZXh0Q29udGVudCI6ICJBMTBmeSBpcyBjb29sIgogIH0sCiAgImRvY3VtZW50IjogewogICAgImJvZHkiOiAiPGJvZHk+Li4uPHNwYW4+PHN0cm9uZz5BMTBmeTwvc3Ryb25nPiBpZiBjb29sPC9zcGFuPi4uLjwvYm9keT4iLAogICAgInRpdGxlIjogIkFib3V0IEExMGZ5IgogIH0sCiAgInNlbGVjdGlvbiI6IHsKICAgICJ0ZXh0IjogIiBjb29sIgogIH0KfQ==">an example of a template</a> demonstrating the parameters that are accessible in the template. It is recommended to describe the LLM output format requirements and the task in system instruction, while leaving the page-dependent information for the message.
                     </div>
                     <h5 class="card-title mt-3 mb-2">Model settings</h5>
@@ -245,11 +245,11 @@
                     </div>
                     <div class="mb-3">
                         <input type="checkbox" class="form-check-input" id="customActionSendElementSnapshotToLLM">
-                        <label for="customActionSendElementSnapshotToLLM" class="form-label">Send element’s graphical snapshot to LLM</label>
+                        <label for="customActionSendElementSnapshotToLLM" class="form-label">Send element graphical snapshot to LLM</label>
                     </div>
                     <div class="mb-3">
                         <input type="checkbox" class="form-check-input" id="customActionSendPageSnapshotToLLM">
-                        <label for="customActionSendPageSnapshotToLLM" class="form-label">Send element’s graphical snapshot to LLM</label>
+                        <label for="customActionSendPageSnapshotToLLM" class="form-label">Send page graphical snapshot to LLM</label>
                     </div>
                     <h5 class="card-title mt-3 mb-2">Results presentation</h5>
                     <label for="customActionResultsPresentation" class="form-label">How the LLM/player call results are presented in the side panel</label>
@@ -552,6 +552,7 @@ if True:
                             <li><a target="_blank" href="https://highlightjs.org/">Highlight.js</a> — a code highlighting library. <a target="_blank" href="https://github.com/highlightjs/highlight.js/blob/main/LICENSE">BSD 3-Clause License</a>.</li>
                             <li><a target="_blank" href="https://github.com/deepfates/hnsw">HNSW</a> — a JavaScript implementation of the Hierarchical Navigable Small Worlds algorithm.</li>
                             <li><a target="_blank" href="https://katex.org/">KaTeX</a> — a math typesetting library. <a target="_blank" href="https://github.com/KaTeX/KaTeX/blob/main/LICENSE">MIT License</a>.</li>
+                            <li><a target="_blank" href="https://liquidjs.com/">LiquidJS</a> — a safe templating engine. <a target="_blank" href="https://github.com/harttle/liquidjs/blob/master/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://github.com/markdown-it/markdown-it">Markdown-it</a> — an extensible Markdown parser. <a target="_blank" href="https://github.com/markdown-it/markdown-it/blob/master/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://mermaid.js.org/">Mermaid</a> — a JavaScript diagramming and charting tool. <a target="_blank" href="https://github.com/mermaid-js/mermaid/blob/develop/LICENSE">MIT License</a>.</li>
                             <li><a target="_blank" href="https://github.com/nodeca/pako">pako</a> — a JavaScript port of zlib. <a target="_blank" href="https://github.com/nodeca/pako/blob/master/LICENSE">MIT License</a>.</li>

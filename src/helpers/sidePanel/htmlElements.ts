@@ -7,6 +7,7 @@ export const chatPaneChatArea = document.querySelector('.a10fy-chat-area') as HT
 export const chatPaneInputArea = document.querySelector(".a10fy-input-area") as HTMLDivElement;
 export const chatInputFormElement = document.querySelector('.a10fy-input-area form') as HTMLFormElement;
 export const chatListTab = document.getElementById("chatListTab") as HTMLElement;
+export const actionResultsContainer = document.getElementById("actionResultsContainer") as HTMLDivElement;
 
 export const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 
@@ -24,18 +25,18 @@ export function makeUserInputAreaAutoexpandable() {
     updateInputAreaHeight();
 }
 
-export function showChatTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("chatTab") as HTMLElement)?.show()
+export function showChatPane() {
+    Bootstrap.Tab.getOrCreateInstance(document.getElementById("chatTab") as HTMLElement).show()
 }
 
-export function showChatListTab() {
-    Bootstrap.Tab.getInstance(chatListTab)?.show()
+export function showChatListPane() {
+    Bootstrap.Tab.getOrCreateInstance(chatListTab).show()
 }
 
-export function showActionsTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("browserActionsTab") as HTMLElement)?.show()
+export function showActionsPane() {
+    Bootstrap.Tab.getOrCreateInstance(document.getElementById("browserActionsTab") as HTMLElement).show()
 }
 
-export function showSettingsTab() {
-    Bootstrap.Tab.getInstance(document.getElementById("settingsTab") as HTMLElement)?.show()
+export function showSettingsPane() {
+    Bootstrap.Tab.getOrCreateInstance(document.getElementById("settingsTab") as HTMLElement).show()
 }

@@ -53,6 +53,7 @@ function getDomElementProperties(element: Node, propertyNames: Array<string>){
 
 chrome.runtime.onMessage.addListener(
     function (request: ExtensionMessageRequest, sender, sendResponse) {
+        console.log(request, sender);
         if (sender.tab)
             return;
         if (request.action === extensionActions.getDocumentInfo) {
@@ -95,10 +96,13 @@ chrome.runtime.onMessage.addListener(
 
                 if(action) {
                     const element = contextMenuPossibleActionTargets.get(action.id);
+
                     const result: DataForCustomActionResult = {
-                        elementHTML: element ? element.outerHTML : "",
+                        elementOuterHTML: element ? element.outerHTML : "",
+                        elementInnerHTML: element ? element.innerHTML : "",
                         documentHTML: document.body.outerHTML,
-                        elementText: element ? element.textContent || "" : "",
+                        documentTitle: document.title,
+                        elementTextContent: element ? element.textContent || "" : "",
                         selectionText: window.getSelection()?.toString() || ""
                     };
 
@@ -115,6 +119,7 @@ chrome.runtime.onMessage.addListener(
                     sendResponse({error: "Action not found."} as DataForCustomActionResult);
                 }
             })
+            return true;
         }
     }
 );

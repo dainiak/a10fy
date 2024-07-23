@@ -266,7 +266,7 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
         }
 
         addBootstrapStyling(llmMessageCardTextElement);
-        addPlayers(llmMessageCardTextElement);
+        await addPlayers(llmMessageCardTextElement);
         activateEditMessageTextButton(llmMessageCardElement, llmMessageText, serializedAssistantMessage.id);
     });
 }

@@ -68,7 +68,8 @@ const copyPluginConfig = copy({
 
 const replaceSessionStorageString = replace({
     'typeof sessionStorage=="object"': 'true',
-    delimiters: ['', '']
+    delimiters: ['', ''],
+    preventAssignment: false
 });
 
 

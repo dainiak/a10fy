@@ -76,9 +76,11 @@ export interface DataForCustomActionRequest extends ExtensionMessageRequest {
 }
 
 export interface DataForCustomActionResult {
-    elementHTML?: string,
+    elementInnerHTML?: string,
+    elementOuterHTML?: string,
     documentHTML?: string,
-    elementText?: string,
+    documentTitle?: string,
+    elementTextContent?: string,
     selectionText?: string,
     elementBoundingRect?: DOMRect,
     viewportRect?: {width: number, height: number},
@@ -86,9 +88,11 @@ export interface DataForCustomActionResult {
 }
 
 export interface CustomActionContext {
-    elementHTML?: string,
+    elementInnerHTML?: string,
+    elementOuterHTML?: string,
     documentHTML?: string,
-    elementText?: string,
+    documentTitle?: string,
+    elementTextContent?: string,
     selectionText?: string,
     elementSnapshot?: string,
     pageSnapshot?: string,
