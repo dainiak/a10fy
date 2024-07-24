@@ -159,7 +159,8 @@ async function getGeminiTextModel(model: SerializedModel, persona: SerializedPer
             iso: date.toISOString(),
             date: date.toDateString(),
             year: date.getFullYear(),
-            dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
+            dayOfWeek: date.getDay(),
+            dayOfWeekName: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
         },
         model: {
             name: model.name,
