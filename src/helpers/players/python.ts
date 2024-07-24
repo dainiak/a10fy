@@ -1,7 +1,7 @@
-import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "../constants";
+import {extensionMessageGoals, RunInSandboxRequest, SandboxedTaskResult} from "../constants";
 import {uniqueString} from "../uniqueId";
 
-function playPython(_: string, code: string, outputElement: HTMLElement) {
+export function playPython(_: string, code: string, outputElement: HTMLElement) {
     outputElement.style.setProperty("display", "");
     outputElement.innerHTML = '<div class="dot-pulse"></div><pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
     const codeResultElement = outputElement.querySelector("code") as HTMLElement;
@@ -10,7 +10,7 @@ function playPython(_: string, code: string, outputElement: HTMLElement) {
     const requestId = uniqueString();
 
     const resultMessageHandler = (event: MessageEvent) => {
-        if(event.data.action !== extensionActions.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
+        if(event.data.action !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
             return;
         const result = event.data as SandboxedTaskResult;
         codeResultElement.textContent = result.result.stdout;
@@ -22,7 +22,7 @@ function playPython(_: string, code: string, outputElement: HTMLElement) {
     window.addEventListener("message", resultMessageHandler);
 
     sandbox.contentWindow?.postMessage({
-        action: extensionActions.runInSandbox,
+        messageGoal: extensionMessageGoals.runInSandbox,
         taskType: "python",
         taskParams: {
             code: code,
@@ -30,7 +30,3 @@ function playPython(_: string, code: string, outputElement: HTMLElement) {
         requestId: requestId
     } as RunInSandboxRequest, "*");
 }
-
-
-
-export {playPython};

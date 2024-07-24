@@ -1,4 +1,4 @@
-const standardHTMLAttributes: {[key: string]: {essential: string[], other: string[]}} = {
+export const standardHTMLAttributes: {[key: string]: {essential: string[], other: string[]}} = {
     "a": {
         "essential": ["href"],
         "other": ["target", "download", "ping", "rel", "hreflang", "type"]
@@ -440,5 +440,3 @@ const standardHTMLAttributes: {[key: string]: {essential: string[], other: strin
         "other": []
     }
 };
-
-export {standardHTMLAttributes};

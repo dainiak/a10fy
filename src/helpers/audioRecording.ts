@@ -9,7 +9,7 @@ let audioResultSuccessHandler: Function | null = null;
 let audioResultErrorHandler: Function | null = null;
 
 
-function recordAudio() {
+export function recordAudio() {
     if (audioResultErrorHandler) {
         audioResultErrorHandler("New audio recording requested");
     }
@@ -45,7 +45,7 @@ function recordAudio() {
     })
 }
 
-function stopRecording() {
+export function stopRecording() {
     if (!audioRecorder)
         return false;
 
@@ -68,5 +68,3 @@ function stopRecording() {
     mediaStream = null;
     return true;
 }
-
-export { recordAudio, stopRecording };

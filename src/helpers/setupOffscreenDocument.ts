@@ -1,6 +1,6 @@
 let creatingOffscreenDocument: Promise<void> | null = null;
 
-async function setupOffscreenDocument() {
+export async function setupOffscreenDocument() {
     const offscreenUrl = chrome.runtime.getURL("offscreen.html");
     chrome.runtime.getContexts({
         contextTypes:  [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
@@ -21,5 +21,3 @@ async function setupOffscreenDocument() {
         }
     });
 }
-
-export { setupOffscreenDocument };

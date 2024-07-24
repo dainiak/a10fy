@@ -6,7 +6,7 @@ export interface SerializedPersona {
     name: string,
     description: string,
     defaultModel: string,
-    systemInstruction: string,
+    systemInstructionTemplate: string,
     isVisibleInChat: boolean,
     storageVersion?: number
 }

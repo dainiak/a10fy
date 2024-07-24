@@ -2,7 +2,7 @@ import mermaid from "mermaid";
 import {themeType} from "../sidePanel/htmlElements";
 import {uniqueString} from "../uniqueId";
 
-function playMermaid(_: string, code: string, outputElement: HTMLElement) {
+export function playMermaid(_: string, code: string, outputElement: HTMLElement) {
     outputElement.className = "rounded-2 p-3 mb-0 hljs";
     outputElement.style.setProperty("display", "");
     outputElement.style.setProperty("text-align", "center");
@@ -25,5 +25,3 @@ function playMermaid(_: string, code: string, outputElement: HTMLElement) {
         outputElement.textContent = `Failed to render the diagram: ${e}`;
     });
 }
-
-export {playMermaid};

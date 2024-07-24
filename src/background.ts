@@ -1,5 +1,5 @@
 import {
-    extensionActions,
+    extensionMessageGoals,
     cssPrefix,
     UserRequest,
     TabDocumentInfo,
@@ -63,7 +63,7 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
 
         if (llmPageActions.hasOwnProperty(actionName as string) && tab.id) {
             chrome.tabs.sendMessage(tab.id, {
-                action: extensionActions.executePageAction,
+                messageGoal: extensionMessageGoals.executePageAction,
                 elementIndex: elementIndex,
                 actionName: actionName,
                 actionParams: actionParams
@@ -88,7 +88,7 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
         }
     );
 
-    const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.getDocumentInfo} as ExtensionMessageRequest);
+    const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.getDocumentInfo} as ExtensionMessageRequest);
     tabDocumentInfo.screenshot = tabScreenshot;
     return tabDocumentInfo;
 }
@@ -100,7 +100,7 @@ async function textBasedCommandOnPage() {
     });
 
     // @ts-ignore
-    const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.promptUser} as PromptUserRequest);
+    const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {action: extensionMessageGoals.promptUser} as PromptUserRequest);
     if (response.userResponse !== null && response.userResponse !== "") {
         const tabDocumentInfo = await getTabDocumentInfo(tab);
         await submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab);
@@ -153,7 +153,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (command === "voiceCommandRecord") {
         await setupOffscreenDocument();
         chrome.tts.stop();
-        chrome.runtime.sendMessage({action: extensionActions.startAudioCapture} as ExtensionMessageRequest).then(
+        chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.startAudioCapture} as ExtensionMessageRequest).then(
             async (response: AudioRecordingResult) => {
                 if (response.audio) {
                     const [tab] = await chrome.tabs.query({
@@ -170,7 +170,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
     if (command === "voiceCommandExecute") {
         await setupOffscreenDocument();
-        await chrome.runtime.sendMessage({action: extensionActions.stopAudioCapture});
+        await chrome.runtime.sendMessage({action: extensionMessageGoals.stopAudioCapture});
     }
     if (command === "showWelcomeScreen") {
         await chrome.tabs.create({
@@ -231,7 +231,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         }
 
         //@ts-ignore
-        const data = await chrome.tabs.sendMessage(tab.id, {action: extensionActions.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
+        const data = await chrome.tabs.sendMessage(tab.id, {action: extensionMessageGoals.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
         const context: CustomActionContext = {
             ...data
         };
@@ -245,7 +245,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             if(action.context.elementSnapshot && data.elementBoundingRect) {
                 await setupOffscreenDocument();
                 const imageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
-                    action: extensionActions.modifyImage,
+                    messageGoal: extensionMessageGoals.modifyImage,
                     modification: "crop",
                     image: tabScreenshot,
                     parameters: {
@@ -268,7 +268,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         }
 
         await chrome.runtime.sendMessage({
-            action: extensionActions.executeCustomActionInSidePanel,
+            messageGoal: extensionMessageGoals.executeCustomActionInSidePanel,
             actionId: action.id,
             context: context,
         } as ExecuteCustomActionInSidePanelRequest);
@@ -277,7 +277,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest) => {
     console.log(request);
-    if (request.action === extensionActions.registerContextMenuEvent) {
+    if (request.messageGoal === extensionMessageGoals.registerContextMenuEvent) {
         const menuEventRequest = request as RegisterContextMenuEventRequest;
         const availableCustomActions = (await getFromStorage(storageKeys.customActions) || []).filter((a: SerializedCustomAction) => menuEventRequest.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
         for (const action of availableCustomActions) {
@@ -301,7 +301,7 @@ chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest) =>
             );
         }
         // console.log(result);
-    } else if (request.action === extensionActions.rebuildContextMenus) {
+    } else if (request.messageGoal === extensionMessageGoals.rebuildContextMenus) {
         await rebuildContextMenus();
     }
 });

@@ -1,5 +1,5 @@
 import {
-    extensionActions,
+    extensionMessageGoals,
     ElementPropertiesResult,
     DocumentInfoResult,
     PromptUserResult,
@@ -56,14 +56,14 @@ chrome.runtime.onMessage.addListener(
         console.log(request, sender);
         if (sender.tab)
             return;
-        if (request.action === extensionActions.getDocumentInfo) {
+        if (request.messageGoal === extensionMessageGoals.getDocumentInfo) {
             sendResponse({
                 html: getDocumentSkeleton(),
                 text: document.body.innerText,
                 url: document.location.href,
                 title: document.title
             } as DocumentInfoResult);
-        } else if (request.action === extensionActions.executePageAction) {
+        } else if (request.messageGoal === extensionMessageGoals.executePageAction) {
             const executePageActionRequest = request as ExecutePageActionRequest;
             enqueuePageAction(
                 pageActionQueue,
@@ -74,13 +74,13 @@ chrome.runtime.onMessage.addListener(
                 }
             );
         }
-        else if (request.action === extensionActions.promptUser) {
+        else if (request.messageGoal === extensionMessageGoals.promptUser) {
             const promptRequest = request as PromptUserRequest;
             const promptText = promptRequest.promptText || "Enter your query:";
             const userResponse = prompt(promptText);
             sendResponse({userResponse: userResponse} as PromptUserResult);
         }
-        else if (request.action === extensionActions.getDomElementProperties) {
+        else if (request.messageGoal === extensionMessageGoals.getDomElementProperties) {
             const propertiesRequest = request as ElementPropertiesRequest;
             const element = findElementByIndex(propertiesRequest.elementIndex) as HTMLElement;
             if (!element) {
@@ -89,7 +89,7 @@ chrome.runtime.onMessage.addListener(
             }
             sendResponse(getDomElementProperties(element, propertiesRequest.propertyNames) as ElementPropertiesResult);
         }
-        else if (request.action === extensionActions.requestDataForCustomAction) {
+        else if (request.messageGoal === extensionMessageGoals.requestDataForCustomAction) {
             const actionId = (request as DataForCustomActionRequest).actionId;
             getFromStorage(storageKeys.customActions).then(actions => {
                 const action = (actions as SerializedCustomAction[] || []).find(action => action.id === actionId);
@@ -135,7 +135,7 @@ document.addEventListener("contextmenu", async (event) => {
     contextMenuPossibleActionTargets = possibleActionsElements;
     // const properties = getDomElementProperties(element, ["boundingRect"]);
     chrome.runtime.sendMessage({
-        action: extensionActions.registerContextMenuEvent,
+        messageGoal: extensionMessageGoals.registerContextMenuEvent,
         availableCustomActions: Array.from(possibleActionsElements.keys()),
         selectedText: selectedText,
         // boundingRect: properties.boundingRect,

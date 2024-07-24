@@ -5,11 +5,20 @@ import {
     setupEmbeddingModelSettings,
     setupNewModelButton
 } from "./helpers/settings/modelsSettings";
-import {fillPersonasTable, setupNewPersonaButton} from "./helpers/settings/personasSettings";
+import {
+    destroyPersonaCodeMirrors,
+    fillPersonasTable,
+    personaModalElement,
+    setupNewPersonaButton
+} from "./helpers/settings/personasSettings";
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
 import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
 import * as Bootstrap from "bootstrap";
-import {fillCustomActionsTable, setupNewCustomActionButton} from "./helpers/settings/actionsSettings";
+import {
+    actionModalElement, destroyCustomActionCodeMirrors,
+    fillCustomActionsTable,
+    setupNewCustomActionButton
+} from "./helpers/settings/actionsSettings";
 
 
 function setupGeneral() {
@@ -62,4 +71,12 @@ setupNewPlayerButton();
 fillPlayersTable().catch();
 
 setupNewCustomActionButton();
-fillCustomActionsTable().catch()
+fillCustomActionsTable().catch();
+
+personaModalElement.addEventListener("hidden.bs.modal", () => {
+    destroyPersonaCodeMirrors();
+});
+
+actionModalElement.addEventListener("hidden.bs.modal", () => {
+    destroyCustomActionCodeMirrors();
+});

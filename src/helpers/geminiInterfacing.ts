@@ -10,7 +10,11 @@ import {
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
-import {getAssistantSystemPrompt} from "./prompts";
+import {
+    ChatSystemInstructionLiquidScope,
+    getAssistantSystemPrompt,
+    getChatSystemInstructionDummyScope
+} from "./prompts";
 import {getFromStorage} from "./storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
 import {liquidEngine} from "./sidePanel/liquid";
@@ -78,7 +82,7 @@ async function getAssistantJSONModel() {
     );
 }
 
-async function asyncRequestAndParseJSON(requestData: GenerateContentRequest, jsonPaths: Array<string>, onValueCallback: (parsedElementInfo: ParsedElementInfo) => void) {
+export async function asyncRequestAndParseJSON(requestData: GenerateContentRequest, jsonPaths: Array<string>, onValueCallback: (parsedElementInfo: ParsedElementInfo) => void) {
     const parser = new JSONParser({stringBufferSize: undefined, paths: jsonPaths});
 
     parser.onValue = onValueCallback;
@@ -105,7 +109,7 @@ async function asyncRequestAndParseJSON(requestData: GenerateContentRequest, jso
     }
 }
 
-async function getTextEmbedding(data: string | string[]) {
+export async function getTextEmbedding(data: string | string[]) {
     const embeddingModelSettings: SerializedModel | null = await getFromStorage(storageKeys.embeddingModel);
     const apiKey = embeddingModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const modelName = embeddingModelSettings?.technicalName || "text-embedding-004";
@@ -124,7 +128,7 @@ async function getTextEmbedding(data: string | string[]) {
     }
 }
 
-async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona) {
+export async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona) {
     const apiKey = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const generationConfig: GenerationConfig = {
         temperature: model.temperature || 0,
@@ -153,24 +157,12 @@ async function getGeminiTextModel(model: SerializedModel, persona: SerializedPer
         }
     ];
 
-    const date = new Date();
-    const systemInstruction = liquidEngine.parseAndRenderSync(persona.systemInstruction, {
-        currentDate: {
-            iso: date.toISOString(),
-            date: date.toDateString(),
-            year: date.getFullYear(),
-            dayOfWeek: date.getDay(),
-            dayOfWeekName: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
-        },
-        model: {
-            name: model.name,
-            description: model.description
-        },
-        persona: {
-            name: persona.name,
-            description: persona.description
-        }
-    });
+    const scope = getChatSystemInstructionDummyScope();
+    scope.model.name = model.name;
+    scope.model.description = model.description;
+    scope.persona.name = persona.name;
+    scope.persona.description = persona.description;
+    const systemInstruction = liquidEngine.parseAndRenderSync(persona.systemInstructionTemplate, scope);
 
     return (new GoogleGenerativeAI(apiKey)).getGenerativeModel({
         model: model.technicalName,
@@ -216,5 +208,3 @@ export async function getModelForCustomAction(model: SerializedModel, systemInst
         systemInstruction: systemInstruction
     });
 }
-
-export {asyncRequestAndParseJSON, getTextEmbedding, getGeminiTextModel};

@@ -1,7 +1,7 @@
 import {Liquid} from "liquidjs";
 import {FilterHandler} from "liquidjs/dist/template/filter-impl-options";
 
-const liquidFilters: {name: string, fn: FilterHandler, description: string, usageExamples: {input: string, output: string}[]}[] = [
+export const liquidFilters: {name: string, fn: FilterHandler, description: string, usageExamples: {input: string, output: string}[]}[] = [
     {
         name: 'regexp_split',
         fn: (str: string, pattern: string, flags?: string) => flags ? str.split(RegExp(pattern, flags)) : str.split(RegExp(pattern)),
@@ -88,9 +88,7 @@ const liquidFilters: {name: string, fn: FilterHandler, description: string, usag
     }
 ];
 
-const liquidEngine = new Liquid();
+export const liquidEngine = new Liquid();
 for (const filter of liquidFilters) {
     liquidEngine.registerFilter(filter.name, filter.fn);
 }
-
-export {liquidEngine, liquidFilters};

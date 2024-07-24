@@ -1,8 +1,8 @@
 import {loadPyodide, version as pyodideVersion} from "pyodide";
-import {extensionActions, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
+import {extensionMessageGoals, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
 
 window.addEventListener('message', function (event) {
-    if (event.data.action !== extensionActions.runInSandbox)
+    if (event.data.action !== extensionMessageGoals.runInSandbox)
         return;
 
     const request = event.data as RunInSandboxRequest;
@@ -14,7 +14,7 @@ window.addEventListener('message', function (event) {
     const sendUpdateMessage = (content: string, isFinal: boolean = false) => {
         event.source?.postMessage(
             {
-                action: extensionActions.sandboxedTaskResultsUpdate,
+                messageGoal: extensionMessageGoals.sandboxedTaskResultsUpdate,
                 requestId: request.requestId,
                 result: {
                     stdout: content,

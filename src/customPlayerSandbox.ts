@@ -1,12 +1,12 @@
 import {
     CustomPlayerRequestParams, CustomPlayerResult,
-    extensionActions,
+    extensionMessageGoals,
     RunInSandboxRequest,
     SandboxedTaskResult
 } from "./helpers/constants";
 
 window.addEventListener('message', function (event) {
-    if (event.data.action !== extensionActions.runInSandbox)
+    if (event.data.action !== extensionMessageGoals.runInSandbox)
         return;
 
     const request = event.data as RunInSandboxRequest;
@@ -21,7 +21,7 @@ window.addEventListener('message', function (event) {
     window.sendCustomCodePlayerResult = (result: CustomPlayerResult) => {
         event.source?.postMessage(
             {
-                action: extensionActions.sandboxedTaskResultsUpdate,
+                messageGoal: extensionMessageGoals.sandboxedTaskResultsUpdate,
                 requestId: request.requestId,
                 result: result
             } as SandboxedTaskResult, {

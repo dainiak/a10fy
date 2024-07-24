@@ -5,13 +5,13 @@ import TurndownService from "turndown";
 import {hljsDarkStyleContent, hljsLightStyleContent} from "../styleStrings";
 import {hljsStyle, themeType} from "./htmlElements";
 
-const turndownService = new TurndownService({
+export const turndownService = new TurndownService({
     headingStyle: 'atx',
 });
 
 hljsStyle.textContent = themeType === "dark" ? hljsDarkStyleContent : hljsLightStyleContent;
 
-const markdownRenderer: any  = markdownit({
+export const markdownRenderer: any  = markdownit({
     html:         false,
     xhtmlOut:     false,
     breaks:       false,
@@ -21,7 +21,7 @@ const markdownRenderer: any  = markdownit({
     quotes: `“”‘’`,
     highlight: (str, lang) => {
         let hljsLang = lang;
-        if (lang === "json-vega-lite") {
+        if (lang.includes("json")) {
             hljsLang = "json";
         }
         let highlightedCode = "";
@@ -71,6 +71,3 @@ function markdownInlineMathRule(state: StateInline, silent: boolean) {
 }
 
 markdownRenderer.inline.ruler.after('text', 'escaped_bracket', markdownInlineMathRule);
-
-
-export {markdownRenderer, turndownService};

@@ -13,7 +13,7 @@ import {loadChatAsCurrent, startNewChat,} from "./helpers/sidePanel/chatPane";
 import {deleteChat} from "./helpers/sidePanel/chatStorage";
 import {
     ExecuteCustomActionInSidePanelRequest,
-    extensionActions,
+    extensionMessageGoals,
     ExtensionMessageRequest,
     storageKeys
 } from "./helpers/constants";
@@ -30,6 +30,7 @@ import {getInlineDataPart} from "./helpers/promptParts";
 import {Part} from "@google/generative-ai";
 import {customPlayerFactory} from "./helpers/players/custom";
 import {markdownRenderer} from "./helpers/sidePanel/markdown";
+import {CustomActionSystemInstructionLiquidScope} from "./helpers/prompts";
 
 
 
@@ -99,23 +100,24 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
     if(systemInstruction) {
         const date = new Date();
         const liquidScope = {
-            "element": {
-                "innerHTML": context?.elementInnerHTML,
-                "outerHTML": context?.elementOuterHTML,
-                "innerText": context?.elementInnerText
+            element: {
+                innerHTML: context?.elementInnerHTML,
+                outerHTML: context?.elementOuterHTML,
+                innerText: context?.elementInnerText
             },
-            "document": {
-                "simplifiedHTML": context?.documentSimplifiedHTML,
-                "title": context?.documentTitle
+            document: {
+                simplifiedHTML: context?.documentSimplifiedHTML,
+                title: context?.documentTitle
             },
-            "selection": {
-                "text": context?.selectionText
+            selection: {
+                text: context?.selectionText
             },
             currentDate: {
                 iso: date.toISOString(),
                 date: date.toDateString(),
                 year: date.getFullYear(),
-                dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
+                dayOfWeek: date.getDay(),
+                dayOfWeekName: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]
             },
             model: {
                 name: model?.name,
@@ -125,7 +127,7 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
                 name: player?.name,
                 description: player?.description
             }
-        };
+        } as CustomActionSystemInstructionLiquidScope;
         const renderedSystemInstruction = liquidEngine.parseAndRenderSync(systemInstruction, liquidScope);
         const geminiModel = await getModelForCustomAction(model, renderedSystemInstruction, action.jsonMode);
         const renderedMessage = liquidEngine.parseAndRenderSync(action.messageTemplate, liquidScope);
@@ -195,7 +197,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender) 
     console.log(request, sender);
     if(sender.tab)
         return;
-    if(request.action === extensionActions.executeCustomActionInSidePanel) {
+    if(request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
         executeCustomAction(request as ExecuteCustomActionInSidePanelRequest).catch();
     }
 });

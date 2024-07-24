@@ -1,4 +1,4 @@
-export enum extensionActions {
+export enum extensionMessageGoals {
     getDocumentInfo = "getDocumentInfo",
     executePageAction = "executePageAction",
     promptUser = "promptUser",
@@ -67,11 +67,11 @@ export interface TabDocumentInfo {
 }
 
 export interface ExtensionMessageRequest {
-    action: extensionActions;
+    messageGoal: extensionMessageGoals;
 }
 
 export interface DataForCustomActionRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.requestDataForCustomAction,
+    messageGoal: typeof extensionMessageGoals.requestDataForCustomAction,
     actionId: string,
 }
 
@@ -99,13 +99,13 @@ export interface CustomActionContext {
 }
 
 export interface ExecuteCustomActionInSidePanelRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.executeCustomActionInSidePanel,
+    messageGoal: typeof extensionMessageGoals.executeCustomActionInSidePanel,
     actionId: string,
     context: CustomActionContext
 }
 
 export interface ExecutePageActionRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.executePageAction,
+    messageGoal: typeof extensionMessageGoals.executePageAction,
     actionName: string;
     elementIndex: string;
     actionParams: string;
@@ -123,7 +123,7 @@ export interface PromptUserResult {
 }
 
 export interface ExtensionMessageImageModificationRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.modifyImage,
+    messageGoal: typeof extensionMessageGoals.modifyImage,
     image: string,
     output: {
         format: "jpeg" | "png" | "bmp" | "gif" | "webp",
@@ -146,7 +146,7 @@ export interface ImageModificationResult {
 }
 
 export interface RunInSandboxRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.runInSandbox,
+    messageGoal: typeof extensionMessageGoals.runInSandbox,
     executor: "offscreen" | "sidePanel",
     taskType: string,
     taskParams: any,
@@ -168,7 +168,7 @@ export interface CustomPlayerResult {
 }
 
 export interface SandboxedTaskResult extends ExtensionMessageRequest {
-    action: typeof extensionActions.sandboxedTaskResultsUpdate,
+    messageGoal: typeof extensionMessageGoals.sandboxedTaskResultsUpdate,
     requestId: string,
     result: any,
     isFinal: boolean
@@ -180,18 +180,18 @@ export interface AudioRecordingResult {
 }
 
 export interface PromptUserRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.promptUser,
+    messageGoal: typeof extensionMessageGoals.promptUser,
     promptText?: string
 }
 
 export interface ElementPropertiesRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.getDomElementProperties,
+    messageGoal: typeof extensionMessageGoals.getDomElementProperties,
     elementIndex: string,
     propertyNames: string[]
 }
 
 export interface RegisterContextMenuEventRequest extends ExtensionMessageRequest {
-    action: typeof extensionActions.registerContextMenuEvent,
+    messageGoal: typeof extensionMessageGoals.registerContextMenuEvent,
     availableCustomActions: string[],
     selectedText: string
 }

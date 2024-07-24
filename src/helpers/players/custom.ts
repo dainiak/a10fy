@@ -2,7 +2,7 @@ import {uniqueString} from "../uniqueId";
 import {
     CustomPlayerRequestParams,
     CustomPlayerResult,
-    extensionActions,
+    extensionMessageGoals,
     RunInSandboxRequest
 } from "../constants";
 
@@ -23,7 +23,7 @@ export function customPlayerFactory(customCSS: string, customJS: string, customH
         outputElement.appendChild(sandbox);
 
         const resultMessageHandler = (event: MessageEvent) => {
-            if (event.data.action !== extensionActions.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
+            if (event.data.action !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
                 return;
             window.removeEventListener("message", resultMessageHandler);
             try {
@@ -60,7 +60,7 @@ export function customPlayerFactory(customCSS: string, customJS: string, customH
         }
         sandbox.onload = () => {
             sandbox.contentWindow?.postMessage({
-                action: extensionActions.runInSandbox,
+                messageGoal: extensionMessageGoals.runInSandbox,
                 taskType: "custom",
                 taskParams: params,
                 requestId: requestId

@@ -110,7 +110,7 @@ async function processItemsAddedToInputChat(transferredData: DataTransfer, proce
 }
 
 
-function setInputAreaAttachmentEventListeners() {
+export function setInputAreaAttachmentEventListeners() {
     chatPaneInputTextArea.onpaste = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -153,5 +153,3 @@ function setInputAreaAttachmentEventListeners() {
             processItemsAddedToInputChat(event.dataTransfer, false).catch();
     });
 }
-
-export {setInputAreaAttachmentEventListeners};

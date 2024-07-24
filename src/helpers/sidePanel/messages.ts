@@ -1,8 +1,8 @@
 import {playPython} from "../players/python";
 import {playMermaid} from "../players/mermaid";
 import {playVegaLite} from "../players/vegaLite";
-import {chatPaneChatArea, chatPaneInputTextArea, themeType} from "./htmlElements";
-import {createCodeMirror, EditorView} from "../codeMirror";
+import {chatPaneChatArea, chatPaneInputTextArea} from "./htmlElements";
+import {createMarkdownCodeMirror, EditorView} from "../codeMirror";
 import {markdownRenderer} from "./markdown";
 import {
     ChatMessageTypes,
@@ -34,7 +34,7 @@ async function addPlayers(messageCardTextElement: HTMLElement){
             autoplay: true,
             hideCode: true
         },
-        "json-vega-lite": {
+        "vega-lite-json": {
             player: playVegaLite,
             autoplay: true,
             hideCode: true
@@ -94,7 +94,7 @@ function activateEditMessageTextButton(messageCard: HTMLElement, messageText: st
     const cardBodyElement = messageCard.querySelector('.card-body') as HTMLElement;
     let cmView: EditorView | null = null;
     const editButton = messageCard.querySelector('button.edit-message-text') as HTMLButtonElement;
-    const saveMessage = (editorView: EditorView) => {
+    const saveMessage = async (editorView: EditorView) => {
         messageText = editorView.state.doc.toString();
         editorView.destroy();
         cmView = null;
@@ -107,17 +107,17 @@ function activateEditMessageTextButton(messageCard: HTMLElement, messageText: st
         }
         cardBodyElement.innerHTML = markdownRenderer.render(messageText);
         addBootstrapStyling(cardBodyElement);
-        addPlayers(cardBodyElement);
+        await addPlayers(cardBodyElement);
         editButton.innerHTML = '<i class="bi bi-pencil-square"></i>';
     }
 
-    editButton?.addEventListener('click', () => {
+    editButton?.addEventListener('click', async () => {
         if (cmView) {
-            saveMessage(cmView);
+            await saveMessage(cmView);
             return;
         }
         cardBodyElement.innerHTML = '';
-        cmView = createCodeMirror(cardBodyElement, messageText, saveMessage, themeType);
+        cmView = createMarkdownCodeMirror(cardBodyElement, messageText, saveMessage);
         editButton.innerHTML = '<i class="bi bi-floppy"></i>';
     });
 }
@@ -195,13 +195,13 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
     );
 }
 
-export function addMessageCardToChatPane(messageType: ChatMessageTypes, message: string, messageId: string) {
+export async function addMessageCardToChatPane(messageType: ChatMessageTypes, message: string, messageId: string) {
     const messageCard = createMessageCard(messageType, messageId);
     const cardBody = messageCard.querySelector('.card-body') as HTMLElement;
     cardBody.innerHTML = markdownRenderer.render(message);
 
     addBootstrapStyling(cardBody);
-    addPlayers(cardBody);
+    await addPlayers(cardBody);
     activateEditMessageTextButton(messageCard, message, messageId);
     return messageCard;
 }

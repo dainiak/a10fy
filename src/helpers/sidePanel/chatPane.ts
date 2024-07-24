@@ -70,11 +70,11 @@ export async function loadChatAsCurrent(chatId: string) {
     if (chat) {
         setCurrentChat(chat);
         chatPaneChatArea.innerHTML = "";
-        setupChatSettingsCard(chat);
+        await setupChatSettingsCard(chat);
 
         let lastMessageCard = null;
         for (const message of chat.messages) {
-            lastMessageCard = addMessageCardToChatPane(message.type, message.content, message.id);
+            lastMessageCard = await addMessageCardToChatPane(message.type, message.content, message.id);
         }
 
         if(chat.messages.length > 0 && chat.messages[chat.messages.length - 1].type === ChatMessageTypes.MODEL && lastMessageCard) {
@@ -98,6 +98,6 @@ export function startNewChat() {
     };
     setCurrentChat(newChat);
     chatPaneChatArea.innerHTML = "";
-    setupChatSettingsCard(newChat);
+    setupChatSettingsCard(newChat).catch();
     chatPaneInputTextArea.value = "";
 }

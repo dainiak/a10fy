@@ -2,12 +2,14 @@ import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
-import {getDefaultChatSystemPromptTemplate} from "../prompts";
+import {getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate} from "../prompts";
 import {getFromStorage, setToStorage} from "../storageHandling";
+import {createLiquidCodeMirror} from "../codeMirror";
+import {EditorView} from "@codemirror/view";
 
-const personaModalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
+export const personaModalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
 const personaModal = Modal.getOrCreateInstance(personaModalElement);
-
+let personaModalSystemInstructionCodeMirrorView: EditorView | null = null;
 
 export async function fillPersonasTable() {
     let personas = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
@@ -48,7 +50,7 @@ export async function fillPersonasTable() {
         const modelForPersona = models.find((model: SerializedModel) => model.id === persona.defaultModel);
         (tr.querySelector("td.persona-model") as HTMLTableCellElement).textContent = modelForPersona ? modelForPersona.name : "(default)";
 
-        (tr.querySelector("td.persona-system-instruction") as HTMLTableCellElement).textContent = persona.systemInstruction.length > 60 ? persona.systemInstruction.slice(0, 50) + "…" : persona.systemInstruction;
+        (tr.querySelector("td.persona-system-instruction") as HTMLTableCellElement).textContent = persona.systemInstructionTemplate.length > 60 ? persona.systemInstructionTemplate.slice(0, 50) + "…" : persona.systemInstructionTemplate;
         (tr.querySelector("button.edit-btn") as HTMLButtonElement).onclick = () => editPersona(persona.id);
         (tr.querySelector("button.delete-btn") as HTMLButtonElement).onclick = () => deletePersona(persona.id, tr);
         (tr.querySelector("button.move-up-btn") as HTMLButtonElement).onclick = () => movePersonaUp(persona.id, tr);
@@ -69,7 +71,9 @@ async function editPersona(personaId: string) {
     const nameInput = document.getElementById("personaName") as HTMLInputElement;
     const descriptionInput = document.getElementById("personaDescription") as HTMLInputElement;
     const modelSelect = document.getElementById("personaModel") as HTMLSelectElement;
-    const systemInstructionInput = document.getElementById("personaSystemInstruction") as HTMLInputElement;
+    // const systemInstructionInput = document.getElementById("personaSystemInstruction") as HTMLInputElement;
+    // systemInstructionInput.value = persona.systemInstruction;
+    const systemInstructionInputContainer = document.getElementById("personaSystemInstruction") as HTMLDivElement;
     const isVisibleInChatCheckbox = document.getElementById("personaVisibleInChat") as HTMLInputElement;
     nameInput.value = persona.name;
     descriptionInput.value = persona.description;
@@ -90,15 +94,24 @@ async function editPersona(personaId: string) {
         modelSelect.appendChild(option);
     });
     modelSelect.value = persona.defaultModel;
-    systemInstructionInput.value = persona.systemInstruction;
+
     isVisibleInChatCheckbox.checked = persona.isVisibleInChat;
+
+    const saveSystemInstruction = async (editorView: EditorView) => {
+        persona.systemInstructionTemplate = editorView.state.doc.toString();
+        editorView.destroy();
+        personaModalSystemInstructionCodeMirrorView = null;
+    };
+
+    personaModalSystemInstructionCodeMirrorView = createLiquidCodeMirror(systemInstructionInputContainer, persona.systemInstructionTemplate, saveSystemInstruction, getChatSystemInstructionDummyScope());
 
     const saveButton = document.getElementById("savePersonaButton") as HTMLButtonElement;
     saveButton.onclick = async () => {
         persona.name = nameInput.value.trim();
         persona.description = descriptionInput.value.trim();
         persona.defaultModel = modelSelect.value;
-        persona.systemInstruction = systemInstructionInput.value.trim();
+        await saveSystemInstruction(personaModalSystemInstructionCodeMirrorView!);
+        // persona.systemInstruction = systemInstructionInput.value;
         persona.isVisibleInChat = isVisibleInChatCheckbox.checked;
         await setToStorage(storageKeys.personas, personas);
         personaModal.hide();
@@ -150,11 +163,18 @@ export function setupNewPersonaButton() {
             name: "New Persona",
             description: "Description",
             defaultModel: "",
-            systemInstruction: "You are a helpful assistant.",
+            systemInstructionTemplate: "You are a helpful assistant.",
             isVisibleInChat: true,
         };
         await setToStorage(storageKeys.personas, [...personas, newPersona]);
         await fillPersonasTable();
         await editPersona(newPersona.id);
     };
+}
+
+export function destroyPersonaCodeMirrors() {
+    if(personaModalSystemInstructionCodeMirrorView) {
+        personaModalSystemInstructionCodeMirrorView.destroy();
+        personaModalSystemInstructionCodeMirrorView = null;
+    }
 }

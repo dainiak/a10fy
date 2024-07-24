@@ -6,16 +6,21 @@ import {
     SerializedModel
 } from "./dataModels";
 import {getFromStorage, setToStorage} from "../storageHandling";
-import {extensionActions, storageKeys} from "../constants";
+import {extensionMessageGoals, storageKeys} from "../constants";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
+import {EditorView} from "@codemirror/view";
+import {createLiquidCodeMirror} from "../codeMirror";
+import {getChatSystemInstructionDummyScope, getCustomActionSystemInstructionDummyScope} from "../prompts";
 
-const actionModalElement = document.getElementById("editCustomActionModal") as HTMLDivElement;
+export const actionModalElement = document.getElementById("editCustomActionModal") as HTMLDivElement;
 const actionModal = Modal.getOrCreateInstance(actionModalElement);
+let actionSystemInstructionCodeMirrorView: EditorView | null = null;
+let actionMessageCodeMirrorView: EditorView | null = null;
 
 function rebuildContextMenus() {
     if(chrome.runtime) {
-        chrome.runtime.sendMessage({action: extensionActions.rebuildContextMenus}).catch();
+        chrome.runtime.sendMessage({action: extensionMessageGoals.rebuildContextMenus}).catch();
     }
 }
 
@@ -66,10 +71,31 @@ async function editAction(actionId: string) {
     pathInContextMenuInput.value = action.pathInContextMenu;
     const descriptionInput = document.getElementById("customActionDescription") as HTMLInputElement;
     descriptionInput.value = action.description;
-    const systemInstructionInput = document.getElementById("customActionSystemInstruction") as HTMLInputElement;
-    systemInstructionInput.value = action.systemInstructionTemplate;
-    const messageTextInput = document.getElementById("customActionMessage") as HTMLInputElement;
-    messageTextInput.value = action.messageTemplate;
+    // const systemInstructionInput = document.getElementById("customActionSystemInstruction") as HTMLInputElement;
+    // systemInstructionInput.value = action.systemInstructionTemplate;
+    // const messageTextInput = document.getElementById("customActionMessage") as HTMLInputElement;
+    // messageTextInput.value = action.messageTemplate;
+    const systemInstructionInputContainer = document.getElementById("customActionSystemInstruction") as HTMLDivElement;
+
+    const saveSystemInstruction = async (editorView: EditorView) => {
+        action.systemInstructionTemplate = editorView.state.doc.toString();
+        editorView.destroy();
+        actionSystemInstructionCodeMirrorView = null;
+    }
+    actionSystemInstructionCodeMirrorView = createLiquidCodeMirror(
+        systemInstructionInputContainer, action.systemInstructionTemplate, saveSystemInstruction, getCustomActionSystemInstructionDummyScope()
+    );
+
+    const messageTextInputContainer = document.getElementById("customActionMessage") as HTMLDivElement;
+    const saveMessage = async (editorView: EditorView) => {
+        action.messageTemplate = editorView.state.doc.toString();
+        editorView.destroy();
+        actionMessageCodeMirrorView = null;
+    }
+    actionMessageCodeMirrorView = createLiquidCodeMirror(
+        messageTextInputContainer, action.messageTemplate, saveMessage, getChatSystemInstructionDummyScope()
+    );
+
     const jsonModeInput = document.getElementById("customActionModelJSONMode") as HTMLInputElement;
     jsonModeInput.checked = action.jsonMode;
     const modelSelect = document.getElementById("customActionModel") as HTMLSelectElement;
@@ -132,8 +158,10 @@ async function editAction(actionId: string) {
         action.handle = handleInput.value.trim();
         action.pathInContextMenu = pathInContextMenuInput.value.trim();
         action.description = descriptionInput.value.trim();
-        action.systemInstructionTemplate = systemInstructionInput.value.trim();
-        action.messageTemplate = messageTextInput.value.trim();
+        // action.systemInstructionTemplate = systemInstructionInput.value.trim();
+        // action.messageTemplate = messageTextInput.value.trim();
+        await saveSystemInstruction(actionSystemInstructionCodeMirrorView!);
+        await saveMessage(actionMessageCodeMirrorView!);
         action.jsonMode = jsonModeInput.checked;
         action.modelId = modelSelect.value;
         action.playerId = playersSelect.value;
@@ -199,4 +227,15 @@ export function setupNewCustomActionButton(){
         await fillCustomActionsTable();
         await editAction(newAction.id);
     };
+}
+
+export function destroyCustomActionCodeMirrors() {
+    if(actionSystemInstructionCodeMirrorView) {
+        actionSystemInstructionCodeMirrorView.destroy();
+        actionSystemInstructionCodeMirrorView = null;
+    }
+    if(actionMessageCodeMirrorView) {
+        actionMessageCodeMirrorView.destroy();
+        actionMessageCodeMirrorView = null;
+    }
 }

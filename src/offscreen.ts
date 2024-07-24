@@ -1,5 +1,5 @@
 import {
-    extensionActions,
+    extensionMessageGoals,
     ExtensionMessageRequest,
     ExtensionMessageImageModificationRequest,
     ImageModificationResult, AudioRecordingResult, RunInSandboxRequest, SandboxedTaskResult
@@ -14,8 +14,8 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
     if (sender.tab)
         return;
 
-    if([extensionActions.startAudioCapture, extensionActions.stopAudioCapture].includes(request.action)) {
-        if (request.action === extensionActions.startAudioCapture) {
+    if([extensionMessageGoals.startAudioCapture, extensionMessageGoals.stopAudioCapture].includes(request.messageGoal)) {
+        if (request.messageGoal === extensionMessageGoals.startAudioCapture) {
             recordingNotificationSound.onended = () => {
                 recordingNotificationSound.onended = null;
                 recordAudio().then((data: any) => {
@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
             recordingNotificationSound.play();
             return true;
         }
-        else if (request.action === extensionActions.stopAudioCapture) {
+        else if (request.messageGoal === extensionMessageGoals.stopAudioCapture) {
             stopRecording() && recordingNotificationSound.play();
         }
     // }
@@ -45,7 +45,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
     //     }).catch((err) => {
     //         sendResponse({error: err});
     //     });
-    } else if (request.action === extensionActions.modifyImage) {
+    } else if (request.messageGoal === extensionMessageGoals.modifyImage) {
         const modificationRequest = request as ExtensionMessageImageModificationRequest;
         const crop = modificationRequest.parameters;
         const canvas = document.createElement("canvas");
@@ -69,7 +69,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
         img.onerror = () => sendResponse({error: "Failed to load image"} as ImageModificationResult);
         img.src = modificationRequest.image;
         return true;
-    } else if (request.action === extensionActions.runInSandbox && (request as RunInSandboxRequest).executor === "offscreen") {
+    } else if (request.messageGoal === extensionMessageGoals.runInSandbox && (request as RunInSandboxRequest).executor === "offscreen") {
         if (!document.getElementById("sandbox")) {
             const newSandbox = document.createElement("iframe");
             newSandbox.id = "sandbox";
@@ -83,7 +83,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
             const requestId = (request as RunInSandboxRequest).requestId;
 
             const resultMessageHandler = (event: MessageEvent) => {
-                if(event.data.action !== extensionActions.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
+                if(event.data.action !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
                     return;
                 const result = event.data as SandboxedTaskResult;
                 if (result.isFinal) {
