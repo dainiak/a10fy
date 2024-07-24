@@ -13,16 +13,17 @@ import {
 } from "./helpers/settings/personasSettings";
 import {getFromStorage, setToStorage} from "./helpers/storageHandling";
 import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
-import * as Bootstrap from "bootstrap";
+import Tab from "bootstrap/js/dist/tab";
 import {
-    actionModalElement, destroyCustomActionCodeMirrors,
+    actionModalElement,
+    destroyCustomActionCodeMirrors,
     fillCustomActionsTable,
     setupNewCustomActionButton
 } from "./helpers/settings/actionsSettings";
 
 
 function setupGeneral() {
-    const quickSetupTab = Bootstrap.Tab.getOrCreateInstance(document.getElementById("setupTab") as HTMLElement);
+    const quickSetupTab = Tab.getOrCreateInstance(document.getElementById("setupTab") as HTMLElement);
 
     document.querySelectorAll("a.open-quick-setup").forEach(element => element.addEventListener("click", () => quickSetupTab.show()));
 

@@ -53,7 +53,6 @@ function getDomElementProperties(element: Node, propertyNames: Array<string>){
 
 chrome.runtime.onMessage.addListener(
     function (request: ExtensionMessageRequest, sender, sendResponse) {
-        console.log(request, sender);
         if (sender.tab)
             return;
         if (request.messageGoal === extensionMessageGoals.getDocumentInfo) {

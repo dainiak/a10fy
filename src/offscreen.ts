@@ -10,7 +10,6 @@ import {send} from "vite";
 const recordingNotificationSound = document.getElementById("startRecordingNotification") as HTMLAudioElement;
 
 chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, sendResponse) => {
-    console.log(request, sender);
     if (sender.tab)
         return;
 

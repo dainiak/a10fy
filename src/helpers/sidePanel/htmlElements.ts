@@ -1,4 +1,4 @@
-import * as Bootstrap from "bootstrap";
+import Tab from "bootstrap/js/dist/tab";
 
 export const themeType: ("dark" | "light") = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
 
@@ -26,17 +26,17 @@ export function makeUserInputAreaAutoexpandable() {
 }
 
 export function showChatPane() {
-    Bootstrap.Tab.getOrCreateInstance(document.getElementById("chatTab") as HTMLElement).show()
+    Tab.getOrCreateInstance(document.getElementById("chatTab") as HTMLElement).show()
 }
 
 export function showChatListPane() {
-    Bootstrap.Tab.getOrCreateInstance(chatListTab).show()
+    Tab.getOrCreateInstance(chatListTab).show()
 }
 
 export function showActionsPane() {
-    Bootstrap.Tab.getOrCreateInstance(document.getElementById("browserActionsTab") as HTMLElement).show()
+    Tab.getOrCreateInstance(document.getElementById("browserActionsTab") as HTMLElement).show()
 }
 
 export function showSettingsPane() {
-    Bootstrap.Tab.getOrCreateInstance(document.getElementById("settingsTab") as HTMLElement).show()
+    Tab.getOrCreateInstance(document.getElementById("settingsTab") as HTMLElement).show()
 }

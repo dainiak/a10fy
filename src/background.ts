@@ -276,7 +276,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest) => {
-    console.log(request);
     if (request.messageGoal === extensionMessageGoals.registerContextMenuEvent) {
         const menuEventRequest = request as RegisterContextMenuEventRequest;
         const availableCustomActions = (await getFromStorage(storageKeys.customActions) || []).filter((a: SerializedCustomAction) => menuEventRequest.availableCustomActions.includes(a.id)) as SerializedCustomAction[];

@@ -6,7 +6,7 @@ import {themeType} from "./sidePanel/htmlElements";
 import {liquid} from "@codemirror/lang-liquid";
 import {liquidFilters} from "./sidePanel/liquid";
 
-import {closeBrackets, closeBracketsKeymap, autocompletion} from '@codemirror/autocomplete';
+import {autocompletion, closeBrackets, closeBracketsKeymap} from '@codemirror/autocomplete';
 import {defaultKeymap, history, historyKeymap} from '@codemirror/commands';
 import {highlightSelectionMatches, searchKeymap} from '@codemirror/search';
 import {EditorState, Prec} from '@codemirror/state';
@@ -19,6 +19,8 @@ import {
     syntaxHighlighting
 } from '@codemirror/language';
 import {
+    crosshairCursor,
+    drawSelection,
     dropCursor,
     EditorView,
     highlightActiveLine,
@@ -26,9 +28,7 @@ import {
     highlightSpecialChars,
     keymap,
     lineNumbers,
-    rectangularSelection,
-    drawSelection,
-    crosshairCursor
+    rectangularSelection
 } from '@codemirror/view';
 
 export function createMarkdownCodeMirror(targetElement: HTMLElement, initialText: string, saveCommand: (_: EditorView) => void) {
@@ -90,7 +90,6 @@ export function createLiquidCodeMirror(targetElement: HTMLElement, initialText: 
             }
         }),
         autocompletion(),
-        lineNumbers(),
         highlightActiveLineGutter(),
         highlightSpecialChars(),
         history(),

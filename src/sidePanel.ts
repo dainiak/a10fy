@@ -194,7 +194,6 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
 }
 
 chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender) => {
-    console.log(request, sender);
     if(sender.tab)
         return;
     if(request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
