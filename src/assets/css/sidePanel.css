@@ -88,6 +88,20 @@ body, html {
     font-size: xx-large;
 }
 
+.a10fy-input-area-icons .icon i.bi-trash {
+    display: none;
+}
+
+.a10fy-input-area-icons .icon:hover i.bi-trash {
+    display: block;
+    box-shadow: black 0 0 200px;
+    color: #dc3545;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 @keyframes icon-appear {
     0% {
         width: 0;

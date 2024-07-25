@@ -6,9 +6,9 @@ import {createMarkdownCodeMirror, EditorView} from "../codeMirror";
 import {markdownRenderer} from "./markdown";
 import {
     ChatMessageTypes,
-    createSerializedChat,
+    createSerializedChat, deleteChat,
     getEmptyAssistantMessage,
-    getEmptyDraft,
+    getEmptyDraft, MessageAttachmentTypes,
     saveUpdatedChat,
     SerializedChat
 } from "./chatStorage";
@@ -18,6 +18,7 @@ import {storageKeys} from "../constants";
 import {SerializedCustomCodePlayer, SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {getFromStorage} from "../storageHandling";
 import {customPlayerFactory} from "../players/custom";
+import {uniqueString} from "../uniqueId";
 
 
 let currentChat: SerializedChat | null = null;
@@ -227,7 +228,7 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
         (message) => {
             return {
                 role: message.type === ChatMessageTypes.USER ? "user" : "model",
-                parts: [{text: message.content}, ...message.attachments.map((attachment) => getInlineDataPart(attachment.data))]
+                parts: [...message.attachments.map((attachment) => getInlineDataPart(attachment.data)), {text: message.content}]
             }
         }
     );
@@ -304,6 +305,29 @@ export function updateCurrentChatDraftContent() {
         currentChat.draft.content = chatPaneInputTextArea.value;
         if (currentChat.timestamp)
             saveUpdatedChat(currentChat);
+    }
+}
+
+export function addAttachmentToCurrentDraft(attachment: {type: MessageAttachmentTypes, data: string}) {
+    const id = uniqueString();
+    if(!currentChat) {
+        currentChat = createSerializedChat();
+    }
+    currentChat.draft.attachments.push({id, ...attachment});
+    if (currentChat.timestamp)
+        saveUpdatedChat(currentChat);
+    return id;
+}
+
+export function removeAttachmentFromCurrentDraft(attachmentId: string) {
+    if(currentChat) {
+        currentChat.draft.attachments = currentChat.draft.attachments.filter((attachment) => attachment.id !== attachmentId);
+        if (currentChat.timestamp)
+            saveUpdatedChat(currentChat);
+        if(currentChat.messages.length == 0 && currentChat.draft.attachments.length == 0 && currentChat.draft.content == "") {
+            deleteChat(currentChat.id);
+            currentChat = null;
+        }
     }
 }
 

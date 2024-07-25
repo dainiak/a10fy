@@ -1,30 +1,33 @@
 import Modal from "bootstrap/js/dist/modal";
 import {turndownService} from "./markdown";
 import {chatPaneInputArea, chatPaneInputTextArea, updateInputAreaHeight} from "./htmlElements";
+import {MessageAttachmentTypes} from "./chatStorage";
+import {addAttachmentToCurrentDraft, removeAttachmentFromCurrentDraft} from "./messages";
 
 const pasteFormatChoiceModalElement = document.getElementById("pasteFormatChoiceModal") as HTMLDivElement;
 const pasteFormatChoiceButtonGroup = pasteFormatChoiceModalElement.querySelector(".btn-group") as HTMLDivElement;
 const pasteFormatChoiceModal = Modal.getOrCreateInstance(pasteFormatChoiceModalElement);
 
+const iconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
 
-function addImageIcon(src: any) {
-    const iconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
+function addAttachment(type: MessageAttachmentTypes, data: string) {
+    const attachmentId = addAttachmentToCurrentDraft({type, data});
+    if (!attachmentId)
+        return;
     const iconContainer = document.createElement("div");
     iconContainer.className = "icon";
-    const img = document.createElement("img");
-    img.src = src;
-    iconContainer.appendChild(img);
-    iconsContainer.appendChild(iconContainer);
-}
-
-function addAudioIcon() {
-    const iconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
-    const iconContainer = document.createElement("div");
-    iconContainer.className = "icon";
-    const icon = document.createElement("i");
-    icon.classList.add("bi", "bi-file-earmark-music");
+    const icon = type === MessageAttachmentTypes.IMAGE ? document.createElement("img") : document.createElement("i");
+    type === MessageAttachmentTypes.IMAGE ? (icon as HTMLImageElement).src = data : icon.className = "bi bi-file-earmark-music";
     iconContainer.appendChild(icon);
     iconsContainer.appendChild(iconContainer);
+    const trashIcon = document.createElement("i");
+    trashIcon.className = "bi bi-trash";
+    iconContainer.appendChild(trashIcon);
+    iconContainer.onclick = () => {
+        iconContainer.innerHTML = "";
+        iconContainer.remove();
+        removeAttachmentFromCurrentDraft(attachmentId);
+    };
 }
 
 type AttachableItemFormat = "image" | "audio" | "textHTML" | "textPlain" | "textMarkdown";
@@ -54,7 +57,7 @@ function pasteTextToInputArea(text: string) {
     chatPaneInputTextArea.focus();
 }
 
-async function processItemsAddedToInputChat(transferredData: DataTransfer, processClipboard = true, detectOnly = false) {
+async function processTransferredItems(transferredData: DataTransfer, processClipboard = true, detectOnly = false) {
     const attachableItems: AttachableItem[] = [];
 
     const files = transferredData.files;
@@ -163,7 +166,7 @@ async function processItemsAddedToInputChat(transferredData: DataTransfer, proce
     return attachableItems;
 }
 
-function pasteTextOrAttachImage(variations: {data: string, format:AttachableItemFormat}[]) {
+function chooseAttachmentFormatAndAttach(variations: {data: string, format:AttachableItemFormat}[]) {
     const imageVariation = variations.find((variation) => variation.format === "image");
     const plainTextVariation = variations.find((variation) => variation.format === "textPlain");
     const markdownVariation = variations.find((variation) => variation.format === "textMarkdown");
@@ -182,7 +185,7 @@ function pasteTextOrAttachImage(variations: {data: string, format:AttachableItem
     if(imageVariation)
         (pasteFormatChoiceButtonGroup.querySelector("#pasteAsImageButton") as HTMLButtonElement).onclick = () => {
             pasteFormatChoiceModal.hide();
-            addImageIcon(imageVariation!.data);
+            addAttachment(MessageAttachmentTypes.IMAGE, imageVariation!.data);
         }
     if(plainTextVariation)
         (pasteFormatChoiceButtonGroup.querySelector("#pasteAsPlainTextButton") as HTMLButtonElement).onclick = () => {
@@ -209,24 +212,25 @@ export function setInputAreaAttachmentEventListeners() {
         event.stopPropagation();
 
         if(event.clipboardData)
-            processItemsAddedToInputChat(event.clipboardData).then(
+            processTransferredItems(event.clipboardData).then(
                 (attachableItems ) => {
                     if(Array.isArray(attachableItems) && attachableItems.length > 0) {
                         for(let item of attachableItems) {
                             if(item.variations?.length === 1) {
                                 item = item.variations[0];
                             }
-                            if(item.format === "audio") {
-                                addAudioIcon()
+                            if(item.format === "audio" && item.data) {
+                                addAttachment(MessageAttachmentTypes.AUDIO, item.data);
                             }
-                            else if(item.format === "image") {
-                                addImageIcon(item.data);
+                            else if(item.format === "image" && item.data) {
+                                addAttachment(MessageAttachmentTypes.IMAGE, item.data);
                             }
                             else if(!item.variations && ["textPlain", "textHTML"].includes(item.format || "")) {
                                 pasteTextToInputArea(item.data || "");
                             }
                             else if(item.variations) {
-                                pasteTextOrAttachImage(item.variations);
+                                chooseAttachmentFormatAndAttach(item.variations);
+                                break;
                             }
                         }
                     }
@@ -245,7 +249,7 @@ export function setInputAreaAttachmentEventListeners() {
     `);
 
         if(event.dataTransfer)
-            processItemsAddedToInputChat(event.dataTransfer, false, true).then((isCompatibleData) => {
+            processTransferredItems(event.dataTransfer, false, true).then((isCompatibleData) => {
                 if (isCompatibleData) {
                     chatPaneInputArea.classList.add("droppable")
                 }
@@ -264,24 +268,24 @@ export function setInputAreaAttachmentEventListeners() {
         chatPaneInputArea.classList.remove("droppable");
         chatPaneInputArea.setAttribute("style", "");
         if (event.dataTransfer)
-            processItemsAddedToInputChat(event.dataTransfer, false).then(
+            processTransferredItems(event.dataTransfer, false).then(
                 (attachableItems ) => {
                     if(Array.isArray(attachableItems) && attachableItems.length > 0) {
                         for(let item of attachableItems) {
                             if(item.variations?.length === 1) {
                                 item = item.variations[0];
                             }
-                            if(item.format === "audio") {
-                                addAudioIcon()
+                            if(item.format === "audio" && item.data) {
+                                addAttachment(MessageAttachmentTypes.AUDIO, item.data);
                             }
-                            else if(item.format === "image") {
-                                addImageIcon(item.data);
+                            else if(item.format === "image" && item.data) {
+                                addAttachment(MessageAttachmentTypes.IMAGE, item.data);
                             }
                             else if(!item.variations && ["textPlain", "textHTML"].includes(item.format || "")) {
                                 pasteTextToInputArea(item.data || "");
                             }
                             else if(item.variations) {
-                                pasteTextOrAttachImage(item.variations);
+                                chooseAttachmentFormatAndAttach(item.variations);
                             }
                         }
                     }
