@@ -1,5 +1,5 @@
 import {initializeChatListTable} from "./helpers/sidePanel/chatList";
-import {sendUserMessageToChat, updateCurrentChatDraftContent} from "./helpers/sidePanel/messages";
+import {isCurrentChatUnset, sendUserMessageToChat, updateCurrentChatDraftContent} from "./helpers/sidePanel/messages";
 import {
     actionResultsContainer,
     chatInputFormElement,
@@ -63,14 +63,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateCurrentChatDraftContent();
     });
 
-    (document.getElementById("newChatButton") as HTMLButtonElement).addEventListener("click", async () => {
+    (document.getElementById("newChatButton") as HTMLButtonElement).onclick = async () => {
         startNewChat();
         showChatPane();
-    });
+    };
 
-    (document.getElementById("openSettingsPageButton") as HTMLButtonElement).addEventListener("click", async () => {
-        await chrome.runtime.openOptionsPage();
-    })
+    if(chrome && chrome.runtime) {
+        (document.getElementById("openSettingsPageButton") as HTMLButtonElement).onclick = async () => {
+            await chrome.runtime.openOptionsPage();
+        }
+    }
+    else {
+        const settingsPane = document.getElementById("settingsPane") as HTMLDivElement;
+        const iframe = document.createElement("iframe");
+        iframe.className = "border-0 py-0 px-0 my-0 mx-0";
+        iframe.src = "settings.html";
+        // iframe.width = "100%";
+        // iframe.height = `${document.body.getBoundingClientRect().height - 40}px`;
+        iframe.style.setProperty("width", "100vw")
+        iframe.style.setProperty("height", "calc(100vh - 40px)");
+        settingsPane.innerHTML = ``;
+        settingsPane.appendChild(iframe);
+    }
 
     initializeChatListTable(loadChatToChatPane, (chatId) => deleteChat(chatId)).catch();
     makeUserInputAreaAutoexpandable();
@@ -205,4 +219,8 @@ if(chrome && chrome.runtime) {
             executeCustomAction(request as ExecuteCustomActionInSidePanelRequest).catch();
         }
     });
+}
+
+if(isCurrentChatUnset()) {
+    startNewChat();
 }

@@ -6,7 +6,7 @@
     <link href="css/datatables.css" rel="stylesheet">
     <link href="css/bootstrap-icons.css" rel="stylesheet">
 
-    <title>A10fy Welcome Screen</title>
+    <title>A10fy Settings</title>
 </head>
 <body>
 <datalist id="modelTechnicalNamesList">
@@ -350,8 +350,8 @@
 </div>
 
 
-<div class="container-fluid d-flex flex-column">
-    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+<div class="fixed-top bg-body">
+    <ul class="nav nav-tabs bg-body" id="mainTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="setupTab" data-bs-toggle="tab" data-bs-target="#setupPane" type="button" role="tab" aria-controls="setupPane" aria-selected="true"><i class="bi bi-gift"></i> Quick Setup</button>
         </li>
@@ -371,11 +371,13 @@
             <button class="nav-link" id="aboutTab" data-bs-toggle="tab" data-bs-target="#aboutPane" type="button" role="tab" aria-controls="aboutPane" aria-selected="false"><i class="bi bi-info-circle"></i> About</button>
         </li>
     </ul>
+</div>
+<div class="container-fluid d-flex flex-column" style="padding-top: 40px;">
     <div class="tab-content">
-        <div class="tab-pane fade show active" id="setupPane" role="tabpanel" aria-labelledby="setupTab">
-            <div class="card" style="border-top-left-radius: 0; border-top-right-radius: 0;">
+        <div class="tab-pane fade show active container-lg" id="setupPane" role="tabpanel" aria-labelledby="setupTab">
+            <div class="card my-4">
+                <div class="card-header"><h5 class="card-title mt-1">Let’s set up the extension!</h5></div>
                 <div class="card-body">
-                    <h5 class="card-title mb-3">Let’s set up the extension!</h5>
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i>
                         <p>The A10fy extension is powered by Google Gemini family of large language models available under <a target="_blank" href="https://ai.google.dev/pricing" class="alert-link">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid" class="alert-link">if you are on Free tier of the Google Gemini, the data that comes to Gemini API may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>. According to Google’s <a target="_blank" href="https://ai.google.dev/gemini-api/terms#age-requirements" class="alert-link">Terms of Service</a>, <strong>you must be at least 18 years old</strong> to use the services that power the A10fy extension.</p>

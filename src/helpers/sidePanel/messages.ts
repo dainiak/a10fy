@@ -23,6 +23,10 @@ import {uniqueString} from "../uniqueId";
 
 let currentChat: SerializedChat | null = null;
 
+export function isCurrentChatUnset() {
+    return !currentChat;
+}
+
 async function addPlayers(messageCardTextElement: HTMLElement){
     const players: {[key: string]: {player: Function, autoplay: boolean, hideCode: boolean}} = {
         "python": {

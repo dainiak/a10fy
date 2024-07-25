@@ -4,35 +4,14 @@ import Modal from "bootstrap/js/dist/modal";
 import {HarmBlockThreshold} from "@google/generative-ai";
 import {uniqueString} from "../uniqueId";
 import {getFromStorage, setToStorage} from "../storageHandling";
+import {ensureNonEmptyModels} from "./ensureNonEmpty";
 
 const modelModalElement = document.getElementById("editModelModal") as HTMLDivElement;
 const modelModal = Modal.getOrCreateInstance(modelModalElement);
 
 
 export async function fillModelsTable() {
-    let models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
-    if (models.length === 0) {
-        models = [{
-            sortingIndex: 0,
-            id: uniqueString(),
-            name: "Default",
-            description: "Default model",
-            technicalName: "gemini-1.5-flash-latest",
-            topK: null,
-            topP: null,
-            temperature: null,
-            isVisibleInChat: true,
-            apiKey: "",
-            safetySettings: {
-                dangerousContent: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,
-                hateSpeech: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,
-                harassment: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,
-                sexuallyExplicit: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED
-            }
-        }];
-        await setToStorage(storageKeys.models, models);
-    }
-
+    let models: SerializedModel[] = await ensureNonEmptyModels();
     const modelsTable = document.getElementById("modelsTable") as HTMLTableElement;
     const tbody = modelsTable.querySelector("tbody") as HTMLTableSectionElement;
     tbody.innerHTML = "";
@@ -69,7 +48,7 @@ export async function fillModelsTable() {
 }
 
 async function moveModelUp(modelId: string, tr: HTMLTableRowElement) {
-    const models = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models = await ensureNonEmptyModels();
     const modelIndex = models.findIndex((model: SerializedModel) => model.id === modelId);
     if (modelIndex === 0)
         return;
@@ -80,7 +59,7 @@ async function moveModelUp(modelId: string, tr: HTMLTableRowElement) {
 }
 
 async function moveModelDown(modelId: string, tr: HTMLTableRowElement) {
-    const models = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models = await ensureNonEmptyModels();
     const modelIndex = models.findIndex((model: SerializedModel) => model.id === modelId);
     if (modelIndex === models.length - 1)
         return;
@@ -92,12 +71,10 @@ async function moveModelDown(modelId: string, tr: HTMLTableRowElement) {
 
 async function deleteModel(modelId: string, tr: HTMLTableRowElement) {
     const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).filter((model: SerializedModel) => model.id !== modelId).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
-    models.forEach((model: SerializedModel, idx: number) => model.sortingIndex = idx)
+    models.forEach((model: SerializedModel, idx: number) => model.sortingIndex = idx);
     await setToStorage(storageKeys.models, models);
-    if (models.length > 0)
-        tr.remove();
-    else
-        await fillModelsTable();
+    await ensureNonEmptyModels();
+    await fillModelsTable();
 }
 
 export async function setupAssistantModelSettings() {

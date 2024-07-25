@@ -51,6 +51,14 @@ export function createMarkdownCodeMirror(targetElement: HTMLElement, initialText
         crosshairCursor(),
         highlightActiveLine(),
         highlightSelectionMatches(),
+        // EditorView.domEventHandlers({
+        //     drop(event, view) {
+        //         use turndownService to convert HTML to markdown
+        //     },
+        //     paste(event, view) {
+        //         use turndownService to convert HTML to markdown
+        //     }
+        // }),
         keymap.of([
             ...closeBracketsKeymap,
             ...defaultKeymap,

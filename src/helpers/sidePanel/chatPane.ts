@@ -2,9 +2,10 @@ import {chatPaneChatArea, chatPaneInputTextArea} from './htmlElements';
 import {addMessageCardToChatPane, fillModelMessageCard, setCurrentChat, updateCurrentChatSettings} from "./messages";
 import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
 import {uniqueString} from "../uniqueId";
-import {getFromStorage} from "../storageHandling";
+import {getFromStorage, setToStorage} from "../storageHandling";
 import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
+import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";
 
 
 export async function setupChatSettingsCard(currentChat: SerializedChat) {
@@ -23,7 +24,7 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
     const personaList = currentChatSettingsCard.querySelector('#llmPersonaSelect') as HTMLSelectElement;
     const modelList = currentChatSettingsCard.querySelector('#llmModelSelect') as HTMLSelectElement;
 
-    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).filter((m: SerializedModel) => m.isVisibleInChat).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models: SerializedModel[] = (await ensureNonEmptyModels()).filter((m: SerializedModel) => m.isVisibleInChat).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas) || []).filter((p: SerializedPersona) => p.isVisibleInChat).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
     let personaFound = false;
     let modelFound = false;
@@ -38,7 +39,7 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
             personaFound = true;
         }
     });
-    if(!personaFound) {
+    if(!personaFound && personas.length) {
         updateCurrentChatSettings({persona: personas[0].id});
     }
 

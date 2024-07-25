@@ -6,6 +6,7 @@ import {getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate} 
 import {getFromStorage, setToStorage} from "../storageHandling";
 import {createLiquidCodeMirror} from "../codeMirror";
 import {EditorView} from "@codemirror/view";
+import {ensureNonEmptyModels} from "./ensureNonEmpty";
 
 export const personaModalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
 const personaModal = Modal.getOrCreateInstance(personaModalElement);
@@ -20,8 +21,8 @@ export async function fillPersonasTable() {
             name: "Default",
             description: "Default Persona",
             defaultModel: "",
-            systemInstruction: getDefaultChatSystemPromptTemplate()
-        }];
+            systemInstructionTemplate: getDefaultChatSystemPromptTemplate()
+        } as SerializedPersona];
         await setToStorage(storageKeys.personas, personas);
     }
 
@@ -78,7 +79,7 @@ async function editPersona(personaId: string) {
     nameInput.value = persona.name;
     descriptionInput.value = persona.description;
 
-    const models: SerializedModel[] = (await getFromStorage(storageKeys.models)|| []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
+    const models: SerializedModel[] = await ensureNonEmptyModels();
     modelSelect.innerHTML = "";
     const emptyModelOption = document.createElement("option");
     emptyModelOption.value = "";
