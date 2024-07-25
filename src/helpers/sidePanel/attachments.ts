@@ -60,6 +60,7 @@ async function processItemsAddedToInputChat(transferredData: DataTransfer, proce
     const files = transferredData.files;
     const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image"));
     const audioFiles = Array.from(files).filter((file) => file.type.startsWith("audio"));
+
     if (audioFiles.length > 0) {
         if(detectOnly)
             return true;
@@ -142,21 +143,23 @@ async function processItemsAddedToInputChat(transferredData: DataTransfer, proce
     else {
         if(detectOnly && imageFiles.length > 0)
             return true;
-        await Promise.all(imageFiles.map(async (file) => {
-            const fileReadPromise = new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    if(reader.result)
-                        resolve({format: "image", data: reader.result as string} as AttachableItem);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-            attachableItems.push(await fileReadPromise as AttachableItem);
-        }));
+        if(!textItems.find((item) => item.types.filter(type => type.startsWith("image")).length > 0))
+            await Promise.all(imageFiles.map(async (file) => {
+                const fileReadPromise = new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                        if(reader.result)
+                            resolve({format: "image", data: reader.result as string} as AttachableItem);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                attachableItems.push(await fileReadPromise as AttachableItem);
+            }));
     }
     if(detectOnly)
         return false;
+
     return attachableItems;
 }
 
@@ -236,8 +239,8 @@ export function setInputAreaAttachmentEventListeners() {
         chatPaneInputArea.classList.add("droppable");
         chatPaneInputArea.setAttribute("style", `
     background-image: 
-        radial-gradient(circle at center center, #444cf755, #e5e5f755), 
-        repeating-radial-gradient(circle at center center, #444cf755, #444cf755, transparent 20px, transparent 10px);
+        radial-gradient(circle at center center, #0b5ed755, #0a58ca55), 
+        repeating-radial-gradient(circle at center center, #0a58ca55, #0a58ca55, transparent 20px, transparent 10px);
     background-blend-mode: multiply;
     `);
 
@@ -261,6 +264,28 @@ export function setInputAreaAttachmentEventListeners() {
         chatPaneInputArea.classList.remove("droppable");
         chatPaneInputArea.setAttribute("style", "");
         if (event.dataTransfer)
-            processItemsAddedToInputChat(event.dataTransfer, false).catch();
+            processItemsAddedToInputChat(event.dataTransfer, false).then(
+                (attachableItems ) => {
+                    if(Array.isArray(attachableItems) && attachableItems.length > 0) {
+                        for(let item of attachableItems) {
+                            if(item.variations?.length === 1) {
+                                item = item.variations[0];
+                            }
+                            if(item.format === "audio") {
+                                addAudioIcon()
+                            }
+                            else if(item.format === "image") {
+                                addImageIcon(item.data);
+                            }
+                            else if(!item.variations && ["textPlain", "textHTML"].includes(item.format || "")) {
+                                pasteTextToInputArea(item.data || "");
+                            }
+                            else if(item.variations) {
+                                pasteTextOrAttachImage(item.variations);
+                            }
+                        }
+                    }
+                }
+            ).catch();
     });
 }

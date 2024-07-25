@@ -132,15 +132,9 @@ document.addEventListener("contextmenu", async (event) => {
     });
     const possibleActionsElements = await gatherElementsForCustomActions(actions, element);
     contextMenuPossibleActionTargets = possibleActionsElements;
-    // const properties = getDomElementProperties(element, ["boundingRect"]);
     chrome.runtime.sendMessage({
         messageGoal: extensionMessageGoals.registerContextMenuEvent,
         availableCustomActions: Array.from(possibleActionsElements.keys()),
         selectedText: selectedText,
-        // boundingRect: properties.boundingRect,
-        // viewportRect: {
-        //     width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
-        //     height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
-        // }
     } as RegisterContextMenuEventRequest);
 });

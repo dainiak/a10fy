@@ -16,10 +16,10 @@ body, html {
     overflow-y: scroll;
 }
 .a10fy-input-area {
-    height: 60px;
+    height: 70px;
 }
 .a10fy-input-area.droppable {
-    border: 2px dashed #28a745;
+    /*border: 2px dashed #28a745;*/
 }
 
 
