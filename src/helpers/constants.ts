@@ -82,6 +82,8 @@ export interface DataForCustomActionResult {
     documentTitle?: string,
     elementInnerText?: string,
     selectionText?: string,
+    selectionContainerOuterHTML?: string,
+    selectionContainerInnerText?: string,
     elementBoundingRect?: DOMRect,
     viewportRect?: {width: number, height: number},
     error?: string
@@ -94,6 +96,8 @@ export interface CustomActionContext {
     documentTitle?: string,
     elementInnerText?: string,
     selectionText?: string,
+    selectionContainerOuterHTML?: string,
+    selectionContainerInnerText?: string,
     elementSnapshot?: string,
     pageSnapshot?: string,
 }

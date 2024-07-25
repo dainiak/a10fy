@@ -110,7 +110,11 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
                 title: context?.documentTitle
             },
             selection: {
-                text: context?.selectionText
+                text: context?.selectionText,
+                container: {
+                    outerHTML: context?.selectionContainerOuterHTML,
+                    innerText: context?.selectionContainerInnerText
+                }
             },
             currentDate: {
                 iso: date.toISOString(),

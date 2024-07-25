@@ -95,6 +95,12 @@ chrome.runtime.onMessage.addListener(
 
                 if(action) {
                     const element = contextMenuPossibleActionTargets.get(action.id);
+                    let selectionContainer: Node | null = null;
+                    const selection = window.getSelection();
+                    try {
+                        selectionContainer = selection ? selection.getRangeAt(0).commonAncestorContainer : null;
+                    }
+                    catch {}
 
                     const result: DataForCustomActionResult = {
                         elementOuterHTML: element ? element.outerHTML : "",
@@ -102,7 +108,9 @@ chrome.runtime.onMessage.addListener(
                         documentSimplifiedHTML: document.body.outerHTML,
                         documentTitle: document.title,
                         elementInnerText: element instanceof HTMLElement ? element.innerText || "" : "",
-                        selectionText: window.getSelection()?.toString() || ""
+                        selectionText: selection ? selection.toString() : "",
+                        selectionContainerOuterHTML: selectionContainer instanceof HTMLElement ? selectionContainer.outerHTML : "",
+                        selectionContainerInnerText: selectionContainer instanceof HTMLElement ? selectionContainer.innerText : "",
                     };
 
                     if(action.context.elementSnapshot && element) {

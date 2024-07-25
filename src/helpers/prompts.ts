@@ -86,6 +86,10 @@ export interface CustomActionSystemInstructionLiquidScope {
     },
     selection: {
         text: string | undefined | null,
+        container: {
+            outerHTML: string | undefined | null,
+            innerText: string | undefined | null
+        }
     },
     currentDate: {
         iso: string,
@@ -117,7 +121,11 @@ export function getCustomActionSystemInstructionDummyScope() {
             title: ""
         },
         selection: {
-            text: ""
+            text: "",
+            container: {
+                outerHTML: "",
+                innerText: ""
+            }
         },
         currentDate: {
             iso: date.toISOString(),
