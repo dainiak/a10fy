@@ -81,7 +81,7 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
     if (!tab.id)
         return {};
 
-    const tabScreenshot = await chrome.tabs.captureVisibleTab(
+    const tabScreenshot = await chrome.tabs.captureVisibleTab(undefined,
         {
             "format": "jpeg",
             "quality": 40
@@ -99,8 +99,9 @@ async function textBasedCommandOnPage() {
         lastFocusedWindow: true
     });
 
-    // @ts-ignore
-    const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {action: extensionMessageGoals.promptUser} as PromptUserRequest);
+    if (!tab.id)
+        return;
+    const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.promptUser} as PromptUserRequest);
     if (response.userResponse !== null && response.userResponse !== "") {
         const tabDocumentInfo = await getTabDocumentInfo(tab);
         await submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab);
@@ -128,7 +129,7 @@ async function rebuildContextMenus() {
                     await chrome.contextMenus.update(parentItem, parentProperties);
                 }
                 else {
-                    await chrome.contextMenus.create({id: parentItem, ...parentProperties});
+                    chrome.contextMenus.create({id: parentItem, ...parentProperties});
                     createdItems.add(parentItem);
                 }
             }
@@ -140,7 +141,7 @@ async function rebuildContextMenus() {
             if(createdItems.has(action.id)) {
                 await chrome.contextMenus.update(action.id, itemProperties);
             } else {
-                await chrome.contextMenus.create({id: action.id, ...itemProperties});
+                chrome.contextMenus.create({id: action.id, ...itemProperties});
                 createdItems.add(action.id);
             }
         }
@@ -150,7 +151,7 @@ async function rebuildContextMenus() {
 chrome.commands.onCommand.addListener(async (command) => {
     if (command === "analysePage")
         return textBasedCommandOnPage();
-    if (command === "voiceCommandRecord") {
+    if (command === "voiceCommandRecordThenExecute") {
         await setupOffscreenDocument();
         chrome.tts.stop();
         chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.startAudioCapture} as ExtensionMessageRequest).then(
@@ -168,9 +169,9 @@ chrome.commands.onCommand.addListener(async (command) => {
         );
         return;
     }
-    if (command === "voiceCommandExecute") {
+    if (command === "voiceCommandStopRecording") {
         await setupOffscreenDocument();
-        await chrome.runtime.sendMessage({action: extensionMessageGoals.stopAudioCapture});
+        await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.stopAudioCapture} as ExtensionMessageRequest);
     }
     if (command === "showWelcomeScreen") {
         await chrome.tabs.create({
@@ -185,7 +186,8 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    const install: chrome.runtime.OnInstalledReason = "install";
+    if (details.reason === install) {
         await chrome.tabs.create({
             url: chrome.runtime.getURL("settings.html"),
             active: true
@@ -229,15 +231,15 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         if(!action) {
             return;
         }
-
-        //@ts-ignore
-        const data = await chrome.tabs.sendMessage(tab.id, {action: extensionMessageGoals.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
+        if(!tab.id)
+            return;
+        const data = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
         const context: CustomActionContext = {
             ...data
         };
 
         if(action.context.pageSnapshot || action.context.elementSnapshot && data) {
-            const tabScreenshot = await chrome.tabs.captureVisibleTab({"format": "png"});
+            const tabScreenshot = await chrome.tabs.captureVisibleTab(undefined, {"format": "png"});
             if(action.context.pageSnapshot) {
                 context.pageSnapshot = tabScreenshot;
             }
@@ -275,32 +277,35 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
 });
 
-chrome.runtime.onMessage.addListener(async (request: ExtensionMessageRequest) => {
-    if (request.messageGoal === extensionMessageGoals.registerContextMenuEvent) {
-        const menuEventRequest = request as RegisterContextMenuEventRequest;
-        const availableCustomActions = (await getFromStorage(storageKeys.customActions) || []).filter((a: SerializedCustomAction) => menuEventRequest.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
-        for (const action of availableCustomActions) {
-            let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
-            if (!menuItem) {
-                menuItem = parentItem;
-                parentItem = undefined;
-            }
-            if(parentItem)
-                chrome.contextMenus.update(
-                    parentItem,
-                    {
-                        visible: true
-                    }
-                );
-            chrome.contextMenus.update(
-                action.id,
+async function registerContextMenuEvent(request: RegisterContextMenuEventRequest) {
+    const availableCustomActions = (await getFromStorage(storageKeys.customActions) || []).filter((a: SerializedCustomAction) => request.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
+    for (const action of availableCustomActions) {
+        let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
+        if (!menuItem) {
+            menuItem = parentItem;
+            parentItem = undefined;
+        }
+        if(parentItem)
+            await chrome.contextMenus.update(
+                parentItem,
                 {
                     visible: true
                 }
             );
-        }
-        // console.log(result);
-    } else if (request.messageGoal === extensionMessageGoals.rebuildContextMenus) {
-        await rebuildContextMenus();
+        await chrome.contextMenus.update(
+            action.id,
+            {
+                visible: true
+            }
+        );
     }
+}
+
+chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {
+    if (request.messageGoal === extensionMessageGoals.registerContextMenuEvent) {
+        registerContextMenuEvent(request as RegisterContextMenuEventRequest).catch();
+    } else if (request.messageGoal === extensionMessageGoals.rebuildContextMenus) {
+        rebuildContextMenus().catch();
+    }
+    return undefined;
 });

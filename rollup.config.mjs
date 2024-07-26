@@ -8,14 +8,14 @@ import replace from '@rollup/plugin-replace';
 const enableTerser = false;
 
 const jsPluginConfigs = [
+    commonjs(),
     resolve(
         {
             main: true,
             browser: true,
             preferBuiltins: true
         }
-    ),
-    commonjs()
+    )
 ];
 
 
@@ -40,7 +40,8 @@ function constructJsConfig(input, pluginsList) {
             format: 'iife',
             inlineDynamicImports: true
         },
-        plugins: pluginsList
+        plugins: pluginsList,
+        external: ['chrome-types']
     };
 }
 
@@ -78,7 +79,7 @@ export default [
     constructJsConfig('background', [...jsPluginConfigs, copyPluginConfig]),
     constructJsConfig('contentScript', jsPluginConfigs),
     constructJsConfig('customPlayerSandbox', jsPluginConfigs),
-    // constructJsConfig('contentScriptTour', jsPluginConfigs),
+    constructJsConfig('contentScriptTour', jsPluginConfigs),
     constructJsConfig('offscreen', jsPluginConfigs),
     constructJsConfig('popup', jsPluginConfigs),
     constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),

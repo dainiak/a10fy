@@ -11,7 +11,6 @@ import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/Pa
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 import {
-    ChatSystemInstructionLiquidScope,
     getAssistantSystemPrompt,
     getChatSystemInstructionDummyScope
 } from "./prompts";

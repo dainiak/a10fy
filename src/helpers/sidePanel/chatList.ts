@@ -4,6 +4,12 @@ import 'datatables.net-fixedheader-bs5';
 import {chatListTab} from './htmlElements';
 import {getChats} from "./chatStorage";
 
+declare module 'datatables.net-bs5' {
+    interface Config {
+        fixedHeader?: any;
+        colReorder?: boolean;
+    }
+}
 
 export async function initializeChatListTable(openChatCallback: (chatId: string) => void, deleteChatCallback: (chatId: string) => void) {
     DataTable.ext.errMode = 'none';

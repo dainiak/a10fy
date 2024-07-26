@@ -54,7 +54,7 @@
       },
       "description": "Perform text-based command for the current page."
     },
-    "voiceCommandRecord": {
+    "voiceCommandRecordThenExecute": {
       "suggested_key": {
         "default": "Ctrl+Shift+V",
         "windows": "Ctrl+Shift+V",
@@ -62,7 +62,7 @@
       },
       "description": "Start recording voice command."
     },
-    "voiceCommandExecute": {
+    "voiceCommandStopRecording": {
       "suggested_key": {
         "default": "Ctrl+Shift+E",
         "windows": "Ctrl+Shift+E",
@@ -76,7 +76,7 @@
         "windows": "Ctrl+Shift+W",
         "mac": "Command+Shift+W"
       },
-      "description": "Show the welcome/setup screen."
+      "description": "Show the welcome/settings screen."
     }
   }
 }

@@ -2,7 +2,7 @@ import {chatPaneChatArea, chatPaneInputTextArea} from './htmlElements';
 import {addMessageCardToChatPane, fillModelMessageCard, setCurrentChat, updateCurrentChatSettings} from "./messages";
 import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
 import {uniqueString} from "../uniqueId";
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getFromStorage} from "../storageHandling";
 import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";

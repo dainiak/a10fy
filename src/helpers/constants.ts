@@ -111,7 +111,7 @@ export interface ExecuteCustomActionInSidePanelRequest extends ExtensionMessageR
 export interface ExecutePageActionRequest extends ExtensionMessageRequest {
     messageGoal: typeof extensionMessageGoals.executePageAction,
     actionName: string;
-    elementIndex: string;
+    elementIndex: string | number | null;
     actionParams: string;
 }
 

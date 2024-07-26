@@ -52,7 +52,7 @@ function getDomElementProperties(element: Node, propertyNames: Array<string>){
 }
 
 chrome.runtime.onMessage.addListener(
-    function (request: ExtensionMessageRequest, sender, sendResponse) {
+    function (request: ExtensionMessageRequest, sender, sendResponse: (_: any) => void) {
         if (sender.tab)
             return;
         if (request.messageGoal === extensionMessageGoals.getDocumentInfo) {
@@ -68,7 +68,7 @@ chrome.runtime.onMessage.addListener(
                 pageActionQueue,
                 {
                     actionName: executePageActionRequest.actionName,
-                    elementIndex: executePageActionRequest.elementIndex,
+                    elementIndex: executePageActionRequest.elementIndex?.toString() || "",
                     actionParams: executePageActionRequest.actionParams
                 }
             );
@@ -144,5 +144,5 @@ document.addEventListener("contextmenu", async (event) => {
         messageGoal: extensionMessageGoals.registerContextMenuEvent,
         availableCustomActions: Array.from(possibleActionsElements.keys()),
         selectedText: selectedText,
-    } as RegisterContextMenuEventRequest);
+    } as RegisterContextMenuEventRequest).catch();
 });

@@ -1,6 +1,6 @@
-import {extensionMessageGoals} from "./constants";
+import {ExecutePageActionRequest, extensionMessageGoals, ExtensionMessageRequest} from "./constants";
 import {llmPageActionNames} from "./llmPageActions";
-
+import 'chrome-types';
 
 export const llmGlobalActionNames = {
     speak: "speak",
@@ -50,7 +50,7 @@ async function speak(content: string, lang: string = "en-US") {
         }
     }
 
-    chrome.tts.speak(content, options);
+    await chrome.tts.speak(content, options);
 }
 
 
@@ -59,7 +59,7 @@ export const llmGlobalActions: LlmGlobalActions = {
         description: "Speak a given text using browser TTS engine. The elementIndex is null in this case. The actionParams is an object with two keys: \"content\" (what to speak) and \"lang\" (the language of the speech, assumed to be \"en-US\" if omitted). If in need to speak large paragraph(s) of text, do not cram them into the content of a single speak action, but rather emit multiple speak actions with smaller chunks of text per action. To avoid TTS engine cutting off the speech in the middle of a sentence or a word, only end chunks on punctuation marks.",
         execute: (_1, actionParams, _2) => {
             if (actionParams?.content)
-                speak(actionParams.content, actionParams?.lang || "en-US");
+                speak(actionParams.content, actionParams?.lang || "en-US").catch();
         }
     },
     [llmGlobalActionNames.speakElementText]: {
@@ -69,12 +69,12 @@ export const llmGlobalActions: LlmGlobalActions = {
                 return;
 
             chrome.tabs.sendMessage(tab.id, {
-                action: extensionMessageGoals.getDomElementProperties,
+                messageGoal: extensionMessageGoals.getDomElementProperties,
                 elementIndex: elementIndex,
                 propertyNames: ["innerText"]
-            }).then((response: any) => {
+            } as ExtensionMessageRequest).then((response: any) => {
                 if (response?.innerText)
-                    speak(response.innerText, actionParams?.lang || "en-US");
+                    speak(response.innerText, actionParams?.lang || "en-US").catch();
             });
         }
     },
@@ -86,9 +86,9 @@ export const llmGlobalActions: LlmGlobalActions = {
         description: "Copy the provided text to the clipboard. The elementIndex is null and the actionParams is a string to be copied.",
         execute: (_1, actionParams, _2) => {
             chrome.runtime.sendMessage({
-                action: extensionMessageGoals.copyTextToClipboard,
+                messageGoal: extensionMessageGoals.copyTextToClipboard,
                 text: actionParams
-            })
+            } as ExtensionMessageRequest).catch()
         }
     },
     [llmGlobalActionNames.copyElementPropertyToClipboard]: {
@@ -98,15 +98,15 @@ export const llmGlobalActions: LlmGlobalActions = {
                 return;
 
             chrome.tabs.sendMessage(tab.id, {
-                action: extensionMessageGoals.getDomElementProperties,
+                messageGoal: extensionMessageGoals.getDomElementProperties,
                 elementIndex: elementIndex,
                 propertyNames: [actionParams]
-            }).then((response: any) => {
+            } as ExtensionMessageRequest).then((response: any) => {
                 if (response?.[actionParams])
                     chrome.runtime.sendMessage({
-                        action: extensionMessageGoals.copyTextToClipboard,
+                        messageGoal: extensionMessageGoals.copyTextToClipboard,
                         text: response[actionParams?.propertyType || "innerText"]
-                    })
+                    } as ExtensionMessageRequest).catch()
             });
         }
     },
@@ -119,32 +119,32 @@ export const llmGlobalActions: LlmGlobalActions = {
             const tabId: number = tab.id;
 
             chrome.runtime.sendMessage({
-                action: extensionMessageGoals.getTextFromClipboard
-            }, (response: {text?: string}) => {
+                messageGoal: extensionMessageGoals.getTextFromClipboard
+            } as ExtensionMessageRequest).then((response: {text?: string}) => {
                 if (!response?.text)
                     return;
 
                 if (actionParams === "value")
                     chrome.tabs.sendMessage(tabId, {
-                        action: extensionMessageGoals.executePageAction,
+                        messageGoal: extensionMessageGoals.executePageAction,
                         actionName: llmPageActionNames.setValue,
                         elementIndex: elementIndex,
                         actionParams: response.text
-                    })
+                    } as ExecutePageActionRequest).catch()
                 else if (actionParams === "innerText")
                     chrome.tabs.sendMessage(tabId, {
-                        action: extensionMessageGoals.executePageAction,
+                        messageGoal: extensionMessageGoals.executePageAction,
                         actionName: llmPageActionNames.setText,
                         elementIndex: elementIndex,
                         actionParams: response.text
-                    })
+                    } as ExecutePageActionRequest).catch()
                 else if (actionParams === "innerHTML")
                     chrome.tabs.sendMessage(tabId, {
-                        action: extensionMessageGoals.executePageAction,
+                        messageGoal: extensionMessageGoals.executePageAction,
                         actionName: llmPageActionNames.setHTML,
                         elementIndex: elementIndex,
                         actionParams: response.text
-                    })
+                    } as ExecutePageActionRequest).catch()
             })
         }
     }

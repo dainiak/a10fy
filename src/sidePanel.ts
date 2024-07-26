@@ -213,11 +213,10 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
 
 if(chrome && chrome.runtime) {
     chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender) => {
-        if (sender.tab)
-            return;
-        if (request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
+        if (!sender.tab && request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
             executeCustomAction(request as ExecuteCustomActionInSidePanelRequest).catch();
         }
+        return undefined;
     });
 }
 

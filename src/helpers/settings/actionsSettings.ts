@@ -6,7 +6,7 @@ import {
     SerializedModel
 } from "./dataModels";
 import {getFromStorage, setToStorage} from "../storageHandling";
-import {extensionMessageGoals, storageKeys} from "../constants";
+import {extensionMessageGoals, ExtensionMessageRequest, storageKeys} from "../constants";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
 import {EditorView} from "@codemirror/view";
@@ -20,7 +20,7 @@ let actionMessageCodeMirrorView: EditorView | null = null;
 
 function rebuildContextMenus() {
     if(chrome.runtime) {
-        chrome.runtime.sendMessage({action: extensionMessageGoals.rebuildContextMenus}).catch();
+        chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.rebuildContextMenus} as ExtensionMessageRequest).catch();
     }
 }
 

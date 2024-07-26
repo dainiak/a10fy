@@ -3,7 +3,7 @@ let creatingOffscreenDocument: Promise<void> | null = null;
 export async function setupOffscreenDocument() {
     const offscreenUrl = chrome.runtime.getURL("offscreen.html");
     chrome.runtime.getContexts({
-        contextTypes:  [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+        contextTypes:  ["OFFSCREEN_DOCUMENT"],
         documentUrls: [offscreenUrl]
     }).then(async (contexts) => {
         if (contexts.length > 0)
@@ -13,7 +13,7 @@ export async function setupOffscreenDocument() {
         } else {
             creatingOffscreenDocument = chrome.offscreen.createDocument({
                 url: "offscreen.html",
-                reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK, chrome.offscreen.Reason.USER_MEDIA, chrome.offscreen.Reason.BLOBS],
+                reasons: ["AUDIO_PLAYBACK", "USER_MEDIA", "BLOBS"],
                 justification: "Allow the user do dictate voice commands."
             });
             await creatingOffscreenDocument;

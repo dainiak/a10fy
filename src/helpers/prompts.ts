@@ -1,6 +1,5 @@
 import {cssPrefix} from "./constants";
 import {getOutputFormatDescription} from "./promptParts";
-import {liquidEngine} from "./sidePanel/liquid";
 
 
 export function getDefaultChatSystemPromptTemplate() {
@@ -106,7 +105,7 @@ export interface CustomActionSystemInstructionLiquidScope {
         name:  string | undefined | null,
         description:  string | undefined | null,
     }
-};
+}
 
 export function getCustomActionSystemInstructionDummyScope() {
     const date = new Date();

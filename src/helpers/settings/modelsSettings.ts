@@ -73,8 +73,12 @@ async function deleteModel(modelId: string, tr: HTMLTableRowElement) {
     const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).filter((model: SerializedModel) => model.id !== modelId).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
     models.forEach((model: SerializedModel, idx: number) => model.sortingIndex = idx);
     await setToStorage(storageKeys.models, models);
-    await ensureNonEmptyModels();
-    await fillModelsTable();
+    if(models.length > 0)
+        tr.remove()
+    else {
+        await ensureNonEmptyModels();
+        await fillModelsTable();
+    }
 }
 
 export async function setupAssistantModelSettings() {

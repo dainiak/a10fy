@@ -5,6 +5,7 @@ export function playVegaLite(_: string, code: string, outputElement: HTMLElement
     outputElement.style.setProperty("display", "");
     outputElement.style.setProperty("text-align", "center");
     outputElement.innerHTML = "";
+
     // @ts-ignore
     window.vegaEmbed(outputElement, JSON.parse(code), {
         theme: themeType === "light" ? "ggplot2" : "dark",

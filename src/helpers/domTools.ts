@@ -1,7 +1,6 @@
-import {cssPrefix, cssPrefixFallbackSymbol, storageKeys} from "./constants";
+import {cssPrefix, cssPrefixFallbackSymbol} from "./constants";
 import {standardHTMLAttributes} from "./standardHtmlAttributes";
 import {CustomActionTargetSelectorBehavior, SerializedCustomAction} from "./settings/dataModels";
-import {getFromStorage} from "./storageHandling";
 
 const elementMap = new Map();
 

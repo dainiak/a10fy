@@ -46,15 +46,13 @@ All in all, your response should look like this:
 }
 
 export function getMainPromptParts(userRequest: UserRequest): Part[] {
-    const outputDescription = getOutputFormatDescription();
     if (userRequest.text) {
         const userRequestText = userRequest.text.trim().replace(/`/g, "'").replace(/\s+/g, " ");
-        return [{text: `The user has the following request: \`\`\`${userRequestText}\`\`\`.`}]// Your response must be a ${outputDescription}
+        return [{text: `The user has the following request: \`\`\`${userRequestText}\`\`\`.`}]
     } else if (userRequest.audio) {
         return [
             {text: "The user has dictated a request using voice input below."},
-            getInlineDataPart(userRequest.audio),
-            // {text: outputDescription}
+            getInlineDataPart(userRequest.audio)
         ]
     }
     return [];
