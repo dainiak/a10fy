@@ -1,21 +1,44 @@
-import resolve from '@rollup/plugin-node-resolve';
+import resolve, {nodeResolve} from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from "rollup-plugin-copy";
 import terser from '@rollup/plugin-terser';
 import scss from 'rollup-plugin-scss';
 import replace from '@rollup/plugin-replace';
+import typescript from '@rollup/plugin-typescript';
+
 
 const enableTerser = false;
 
 const jsPluginConfigs = [
     commonjs(),
-    resolve(
+    nodeResolve(
         {
-            main: true,
+            preferBuiltins: true,
             browser: true,
-            preferBuiltins: true
+            extensions: ['.js', '.ts']
         }
-    )
+    ),
+    typescript({
+        compilerOptions: {
+            target: "es2022",
+            module: "es2022",
+            lib: ["dom", "es2022"],
+            moduleResolution: "node",
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            forceConsistentCasingInFileNames: true,
+            rootDir: "src",
+            outDir: "dist/js"
+        }
+    }),
+    // resolve(
+    //     {
+    //         main: true,
+    //         browser: true,
+    //         preferBuiltins: true
+    //     }
+    // ),
 ];
 
 
@@ -25,7 +48,7 @@ if(enableTerser) {
             format: {
                 comments: false
             },
-            sourceMap: true // Generate source maps for the minified code}
+            sourceMap: false // Generate source maps for the minified code}
         })
     );
 }
@@ -33,7 +56,7 @@ if(enableTerser) {
 function constructJsConfig(input, pluginsList) {
     return {
         input: {
-            [input]: `tmp/${input}.js`,
+            [input]: `src/${input}.ts`,
         },
         output: {
             dir: 'dist/js',
@@ -79,7 +102,7 @@ export default [
     constructJsConfig('background', [...jsPluginConfigs, copyPluginConfig]),
     constructJsConfig('contentScript', jsPluginConfigs),
     constructJsConfig('customPlayerSandbox', jsPluginConfigs),
-    constructJsConfig('contentScriptTour', jsPluginConfigs),
+    // constructJsConfig('contentScriptTour', jsPluginConfigs),
     constructJsConfig('offscreen', jsPluginConfigs),
     constructJsConfig('popup', jsPluginConfigs),
     constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),

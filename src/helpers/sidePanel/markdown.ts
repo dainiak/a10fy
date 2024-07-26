@@ -1,9 +1,11 @@
 import markdownit, {StateInline} from "markdown-it";
+import type katex from "katex";
 import hljs from "highlight.js";
-import katex from "katex";
 import TurndownService from "turndown";
 import {hljsDarkStyleContent, hljsLightStyleContent} from "../styleStrings";
 import {hljsStyle, themeType} from "./htmlElements";
+
+const katexRenderToString: typeof katex.renderToString = window.katex.renderToString;
 
 export const turndownService = new TurndownService({
     headingStyle: 'atx',
@@ -11,7 +13,7 @@ export const turndownService = new TurndownService({
 
 hljsStyle.textContent = themeType === "dark" ? hljsDarkStyleContent : hljsLightStyleContent;
 
-export const markdownRenderer: any  = markdownit({
+export const markdownRenderer = markdownit({
     html:         false,
     xhtmlOut:     false,
     breaks:       false,
@@ -51,7 +53,7 @@ function markdownInlineMathRule(state: StateInline, silent: boolean) {
 
         if (!silent) {
             try {
-                state.push('html_inline', '', 0).content = katex.renderToString(
+                state.push('html_inline', '', 0).content = katexRenderToString(
                     state.src.slice(contentStartPos, rightDelimiterPos),
                     {
                         throwOnError: true,
@@ -68,6 +70,7 @@ function markdownInlineMathRule(state: StateInline, silent: boolean) {
         state.pos = rightDelimiterPos + rightDelimiter.length;
         return true;
     }
+    return false;
 }
 
 markdownRenderer.inline.ruler.after('text', 'escaped_bracket', markdownInlineMathRule);

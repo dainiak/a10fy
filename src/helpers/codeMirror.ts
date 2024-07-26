@@ -1,9 +1,24 @@
 import {markdown} from "@codemirror/lang-markdown";
-import {languages} from "@codemirror/language-data";
+import {pythonLanguage} from "@codemirror/lang-python";
+import {javascriptLanguage, jsxLanguage, typescriptLanguage} from "@codemirror/lang-javascript";
+import {jsonLanguage} from "@codemirror/lang-json";
+import {yamlLanguage} from "@codemirror/lang-yaml";
+import {mermaidLanguage} from "codemirror-lang-mermaid";
+import {StreamLanguage} from "@codemirror/language";
+import {sql} from "@codemirror/lang-sql"
+import {shell} from "@codemirror/legacy-modes/mode/shell";
+import {javaLanguage} from "@codemirror/lang-java";
+import {goLanguage} from "@codemirror/lang-go";
+import {c, cpp, csharp} from "@codemirror/legacy-modes/mode/clike";
+import {stex} from "@codemirror/legacy-modes/mode/stex";
+import {rustLanguage} from "@codemirror/lang-rust";
+import {phpLanguage} from "@codemirror/lang-php";
+import {htmlLanguage} from "@codemirror/lang-html";
+import {cssLanguage} from "@codemirror/lang-css";
 import {oneDark} from "@codemirror/theme-one-dark";
 import {themeType} from "./sidePanel/htmlElements";
 
-import {liquid} from "@codemirror/lang-liquid";
+import {liquid, liquidLanguage} from "@codemirror/lang-liquid";
 import {liquidFilters} from "./sidePanel/liquid";
 
 import {autocompletion, closeBrackets, closeBracketsKeymap} from '@codemirror/autocomplete';
@@ -33,7 +48,30 @@ import {
 
 export function createMarkdownCodeMirror(targetElement: HTMLElement, initialText: string, saveCommand: (_: EditorView) => void) {
     const extensions = [
-        markdown({codeLanguages: languages}),
+        markdown({codeLanguages: (info) => {
+            info = info.trim().toLowerCase();
+            if(info === "python") return pythonLanguage;
+            if(["javascript", "ecmascript", "js"].includes(info)) return javascriptLanguage;
+            if(info === "jsx") return jsxLanguage;
+            if(info === "typescript") return typescriptLanguage;
+            if(info === "html") return htmlLanguage;
+            if(info === "css") return cssLanguage;
+            if(info === "liquid") return liquidLanguage;
+            if(info === "mermaid") return mermaidLanguage;
+            if(info === "java") return javaLanguage;
+            if(info === "go") return goLanguage;
+            if(info === "c") return StreamLanguage.define(c);
+            if(info === "cpp") return StreamLanguage.define(cpp);
+            if(info === "csharp") return StreamLanguage.define(csharp);
+            if(info === "rust") return rustLanguage;
+            if(info === "php") return phpLanguage;
+            if(["tex", "latex"].includes(info)) return StreamLanguage.define(stex);
+            if(info.includes("json")) return jsonLanguage;
+            if(info.includes("yaml") || info.includes("yml")) return yamlLanguage;
+            if(["shell", "sh", "bash"].includes(info)) return StreamLanguage.define(shell);
+            if(info.includes("sql")) return sql().language;
+            return null;
+        }}),
         lineNumbers(),
         highlightActiveLineGutter(),
         highlightSpecialChars(),
