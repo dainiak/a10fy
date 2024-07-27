@@ -7,7 +7,7 @@ import {
 } from "../constants";
 
 export function customPlayerFactory(customCSS: string, customJS: string, customHTML: string, callback?: Function) {
-    return (language: string, code: string, outputElement: HTMLElement) => {
+    return (language: string, code: string, outputElement: HTMLElement, successCallback?: () => void, errorCallback?: (_: string) => void) => {
         outputElement.style.setProperty("display", "");
         const requestId = uniqueString();
         const sandbox = document.createElement("iframe") as HTMLIFrameElement;
@@ -44,9 +44,13 @@ export function customPlayerFactory(customCSS: string, customJS: string, customH
                 }
                 if(callback)
                     callback(result);
+                if(successCallback)
+                    successCallback();
             }
             catch(e) {
                 outputElement.innerHTML = `An error occurred while running the player: ${e}`;
+                if(errorCallback)
+                    errorCallback(e ? e.toString(): "");
             }
         };
         window.addEventListener("message", resultMessageHandler);

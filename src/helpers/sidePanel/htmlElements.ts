@@ -8,6 +8,7 @@ export const chatPaneInputArea = document.querySelector(".a10fy-input-area") as 
 export const chatInputFormElement = document.querySelector('.a10fy-input-area form') as HTMLFormElement;
 export const chatListTab = document.getElementById("chatListTab") as HTMLElement;
 export const actionResultsContainer = document.getElementById("actionResultsContainer") as HTMLDivElement;
+export const inputAreaAttachmentIconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
 
 export const hljsStyle = document.getElementById("hljsStyle") as HTMLStyleElement;
 

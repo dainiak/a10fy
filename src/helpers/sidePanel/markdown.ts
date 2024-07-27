@@ -10,7 +10,7 @@ import {escapeToHTML} from "../domTools";
 interface Window {
     katex: typeof katex;
     hljs: typeof HLJSApi;
-};
+}
 
 const katexRenderToString: typeof katex.renderToString = (window as any as Window).katex.renderToString;
 const highlighter: typeof HLJSApi = (window as any as Window).hljs;
@@ -91,15 +91,17 @@ function addMathRendering(pandocCompatible: boolean = false) {
             if(pandocCompatible && leftDelimiter === "$" && !checkDollarDelimiterValidity(state, state.pos + leftDelimiter.length).canOpen)
                 return false;
             const contentStartPos = state.pos + leftDelimiter.length;
-            const rightDelimiterPos = state.src.indexOf(rightDelimiter, contentStartPos);
+            let rightDelimiterPos = state.src.indexOf(rightDelimiter, contentStartPos);
+            if(pandocCompatible && rightDelimiter === "$" && !checkDollarDelimiterValidity(state, rightDelimiterPos).canClose)
+                return false;
             if (rightDelimiterPos < 0 || rightDelimiterPos >= state.posMax)
                 continue;
 
             if (!silent) {
-                const latex = state.src.slice(contentStartPos, rightDelimiterPos);
+                const latexCode = state.src.slice(contentStartPos, rightDelimiterPos);
                 try {
                     state.push('html_inline', '', 0).content = katexRenderToString(
-                        latex,
+                        latexCode,
                         {
                             throwOnError: true,
                             strict: false,
@@ -108,7 +110,7 @@ function addMathRendering(pandocCompatible: boolean = false) {
                         }
                     );
                 } catch (e) {
-                    state.push('html_inline', '', 0).content = `<span class="katex-error">${escapeToHTML(latex)}</span>`;
+                    state.push('html_inline', '', 0).content = `<span class="katex-error">${escapeToHTML(latexCode)}</span>`;
                 }
             }
 
@@ -118,3 +120,5 @@ function addMathRendering(pandocCompatible: boolean = false) {
         return false;
     });
 }
+
+addMathRendering();

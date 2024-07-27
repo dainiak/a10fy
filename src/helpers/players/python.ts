@@ -1,7 +1,7 @@
 import {extensionMessageGoals, RunInSandboxRequest, SandboxedTaskResult} from "../constants";
 import {uniqueString} from "../uniqueId";
 
-export function playPython(_: string, code: string, outputElement: HTMLElement) {
+export function playPython(_: string, code: string, outputElement: HTMLElement, successCallback?: () => void) {
     outputElement.style.setProperty("display", "");
     outputElement.innerHTML = '<div class="dot-pulse"></div><pre class="rounded-2 p-3 mb-0 hljs"><code class="hljs"></code></pre>';
     const codeResultElement = outputElement.querySelector("code") as HTMLElement;
@@ -17,6 +17,8 @@ export function playPython(_: string, code: string, outputElement: HTMLElement) 
         if (result.isFinal) {
             window.removeEventListener("message", resultMessageHandler);
             outputElement.querySelector(".dot-pulse")?.remove();
+            if(successCallback)
+                successCallback();
         }
     };
     window.addEventListener("message", resultMessageHandler);

@@ -1,7 +1,7 @@
 import {themeType} from "../sidePanel/htmlElements";
 import type vegaEmbed from "vega-embed";
 
-export function playVegaLite(_: string, code: string, outputElement: HTMLElement) {
+export function playVegaLite(_: string, code: string, outputElement: HTMLElement, successCallback?: () => void, errorCallback?: (error: string) => void) {
     outputElement.className = "player-output rounded-2 p-3 mt-2 mb-0 hljs";
     outputElement.style.setProperty("display", "");
     outputElement.style.setProperty("text-align", "center");
@@ -16,5 +16,5 @@ export function playVegaLite(_: string, code: string, outputElement: HTMLElement
             compiled: false,
             editor: false,
         }
-    });
+    }).then(() => successCallback ? successCallback() : true).catch((e) => errorCallback ? errorCallback(e.toString()) : true);
 }

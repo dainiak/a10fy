@@ -20,7 +20,7 @@ import {getFromStorage} from "../storageHandling";
 import {customPlayerFactory} from "../players/custom";
 import {uniqueString} from "../uniqueId";
 import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";
-import {inputAreaAttachmentIconsContainer} from "./attachments";
+import {inputAreaAttachmentIconsContainer} from "./htmlElements";
 
 
 let currentChat: SerializedChat | null = null;
@@ -65,9 +65,10 @@ async function addPlayers(messageCardTextElement: HTMLElement){
                 const {outputElement, code, playButton, toggleCode} = replacePreWithCodeCard(element as HTMLElement);
                 playButton.addEventListener("click", () => player(language, code, outputElement));
                 if (autoplay) {
-                    player(language, code, outputElement);
                     if(hideCode)
-                        toggleCode(false);
+                        player(language, code, outputElement, () => toggleCode(false));
+                    else
+                        player(language, code, outputElement);
                 }
             }
         );

@@ -1,6 +1,11 @@
 import Modal from "bootstrap/js/dist/modal";
 import {turndownService} from "./markdown";
-import {chatPaneInputArea, chatPaneInputTextArea, updateInputAreaHeight} from "./htmlElements";
+import {
+    chatPaneInputArea,
+    chatPaneInputTextArea,
+    inputAreaAttachmentIconsContainer,
+    updateInputAreaHeight
+} from "./htmlElements";
 import {MessageAttachmentTypes} from "./chatStorage";
 import {addAttachmentToCurrentDraft, removeAttachmentFromCurrentDraft} from "./messages";
 
@@ -8,7 +13,7 @@ const pasteFormatChoiceModalElement = document.getElementById("pasteFormatChoice
 const pasteFormatChoiceButtonGroup = pasteFormatChoiceModalElement.querySelector(".btn-group") as HTMLDivElement;
 const pasteFormatChoiceModal = Modal.getOrCreateInstance(pasteFormatChoiceModalElement);
 
-export const inputAreaAttachmentIconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
+
 
 function addAttachment(type: MessageAttachmentTypes, data: string) {
     const attachmentId = addAttachmentToCurrentDraft({type, data});

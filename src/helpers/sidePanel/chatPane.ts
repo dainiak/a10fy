@@ -1,7 +1,6 @@
 import {chatPaneChatArea, chatPaneInputTextArea} from './htmlElements';
 import {
     addMessageCardToChatPane,
-    createAttachmentsCard,
     fillModelMessageCard,
     setCurrentChat,
     updateCurrentChatSettings
@@ -10,7 +9,7 @@ import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatSt
 import {uniqueString} from "../uniqueId";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
-import {inputAreaAttachmentIconsContainer} from "./attachments";
+import {inputAreaAttachmentIconsContainer} from "./htmlElements";
 
 
 export async function setupChatSettingsCard(currentChat: SerializedChat) {
