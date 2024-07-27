@@ -135,8 +135,7 @@
                         <select class="form-select" id="personaModel"></select>
                         <label for="personaModel" class="form-label">Model</label>
                     </div>
-                    <div class="mb-3"> <!--  form-floating  -->
-<!--                        <textarea class="form-control" id="personaSystemInstruction" style="font-family: monospace"></text>-->
+                    <div class="mb-3">
                         <label for="personaSystemInstruction" class="form-label h6">System instruction</label>
                         <div id="personaSystemInstruction" class="rounded-1"></div>
                     </div>
@@ -194,17 +193,13 @@
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i> If no player is selected, then the result of the action is considered to be just the direct output of the model. It will be displayed as markdown in the chat or in the action pane.
                     </div>
-                    <div class="mb-3">  <!--  form-floating  -->
+                    <div class="mb-3">
                         <label for="customActionSystemInstruction" class="form-label h6">System instruction</label>
                         <div id="customActionSystemInstruction" class="rounded-1"></div>
-<!--                        <textarea class="form-control" id="customActionSystemInstruction" style="font-family: monospace"></textarea>-->
-<!--                        <label for="customActionSystemInstruction" class="form-label">System instruction</label>-->
                     </div>
-                    <div class="mb-3">  <!--  form-floating  -->
+                    <div class="mb-3">
                         <label for="customActionMessage" class="form-label h6">Message</label>
                         <div id="customActionMessage" class="rounded-1"></div>
-<!--                        <textarea class="form-control" id="customActionMessage" style="font-family: monospace"></textarea>-->
-<!--                        <label for="customActionMessage" class="form-label">Message</label>-->
                     </div>
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle mb-2"></i> If you leave system instruction empty, then LLM will not be called, and instead the DOM element's OuterHTML will be passed directly to the Player, the language tag passed to the player will then equal to <code>_json_call_</code>.

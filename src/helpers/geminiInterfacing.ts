@@ -12,7 +12,7 @@ import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 import {
     getAssistantSystemPrompt,
-    getChatSystemInstructionDummyScope
+    getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate
 } from "./prompts";
 import {getFromStorage} from "./storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
@@ -85,12 +85,9 @@ export async function asyncRequestAndParseJSON(requestData: GenerateContentReque
     const parser = new JSONParser({stringBufferSize: undefined, paths: jsonPaths});
 
     parser.onValue = onValueCallback;
-    parser.onError = (error) => console.log("Error while parsing JSON: ", error);
+    parser.onError = () => {}; // TODO: log parsing error
 
     const gemini = await getAssistantJSONModel();
-    console.log("Request complete data: ", requestData);
-    gemini.countTokens(requestData).then((count) => console.log(count));
-
     const result = await gemini.generateContentStream(requestData);
     let completeText = "";
 
@@ -99,13 +96,7 @@ export async function asyncRequestAndParseJSON(requestData: GenerateContentReque
         parser.write(text);
         completeText += text;
     }
-
-    try {
-        console.log("Complete response text: ", JSON.parse(completeText));
-    }
-    catch {
-        console.log("Complete response text: ", completeText);
-    }
+    // TODO: log parsing errors
 }
 
 export async function getTextEmbedding(data: string | string[]) {
@@ -127,7 +118,7 @@ export async function getTextEmbedding(data: string | string[]) {
     }
 }
 
-export async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona) {
+export async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona | null) {
     const apiKey = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const generationConfig: GenerationConfig = {
         temperature: model.temperature || 0,
@@ -159,9 +150,9 @@ export async function getGeminiTextModel(model: SerializedModel, persona: Serial
     const scope = getChatSystemInstructionDummyScope();
     scope.model.name = model.name;
     scope.model.description = model.description;
-    scope.persona.name = persona.name;
-    scope.persona.description = persona.description;
-    const systemInstruction = liquidEngine.parseAndRenderSync(persona.systemInstructionTemplate, scope);
+    scope.persona.name = persona ? persona.name : "";
+    scope.persona.description = persona ? persona.description : "";
+    const systemInstruction = liquidEngine.parseAndRenderSync(persona ? persona.systemInstructionTemplate : getDefaultChatSystemPromptTemplate(), scope);
 
     return (new GoogleGenerativeAI(apiKey)).getGenerativeModel({
         model: model.technicalName,

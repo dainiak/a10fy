@@ -4,6 +4,7 @@ body, html {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    --icon-size: 70px;
 }
 .sidebar {
     width: 100vw;
@@ -53,7 +54,6 @@ body, html {
 }
 
 .a10fy-input-area-icons {
-    --icon-size: 70px;
     top: calc(-7px - var(--icon-size));
     overflow: visible;
     position: relative;
@@ -61,9 +61,14 @@ body, html {
     height: 0;
 }
 
+
 .a10fy-input-area-icons .icon {
-    overflow: hidden;
     transition-duration: 0.3s;
+    animation: icon-appear 0.5s ease-out;
+}
+
+.a10fy-input-area-icons .icon, .attachments-card .icon {
+    overflow: hidden;
     background-color: rgba(222, 226, 200, 0.15);
     border: #2b2f32 1px solid;
     padding: 4px;
@@ -74,25 +79,24 @@ body, html {
     height: var(--icon-size);
     display: inline-block;
     margin-right: 5px;
-    animation: icon-appear 0.5s ease-out;
     text-align: center;
     vertical-align: middle;
 }
 
-.a10fy-input-area-icons .icon img {
+.a10fy-input-area-icons .icon img, .attachments-card .icon img {
     width: 100%;
     height: 100%;
 }
 
-.a10fy-input-area-icons .icon i:before {
+.a10fy-input-area-icons .icon i:before, .attachments-card .icon i:before {
     font-size: xx-large;
 }
 
-.a10fy-input-area-icons .icon i.bi-trash {
+.a10fy-input-area-icons .icon i.bi-trash, .attachments-card .icon i.bi-trash {
     display: none;
 }
 
-.a10fy-input-area-icons .icon:hover i.bi-trash {
+.a10fy-input-area-icons .icon:hover i.bi-trash, .attachments-card .icon:hover i.bi-trash {
     display: block;
     box-shadow: black 0 0 200px;
     color: #dc3545;

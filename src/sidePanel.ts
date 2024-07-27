@@ -1,5 +1,9 @@
 import {initializeChatListTable} from "./helpers/sidePanel/chatList";
-import {isCurrentChatUnset, sendUserMessageToChat, updateCurrentChatDraftContent} from "./helpers/sidePanel/messages";
+import {
+    getCurrentChatId,
+    sendUserMessageToChat, setCurrentChat,
+    updateCurrentChatDraftContent
+} from "./helpers/sidePanel/messages";
 import {
     actionResultsContainer,
     chatInputFormElement,
@@ -86,7 +90,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         settingsPane.appendChild(iframe);
     }
 
-    initializeChatListTable(loadChatToChatPane, (chatId) => deleteChat(chatId)).catch();
+    initializeChatListTable(loadChatToChatPane, (chatId) => {
+        deleteChat(chatId);
+        if(getCurrentChatId() === chatId) {
+            startNewChat();
+        }
+    }).catch();
     makeUserInputAreaAutoexpandable();
     setInputAreaAttachmentEventListeners();
 });
@@ -156,7 +165,6 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
         if(action.context.elementSnapshot && context.elementSnapshot) {
             parts.push(getInlineDataPart(context.elementSnapshot));
         }
-        console.log(action.context.elementSnapshot, context.elementSnapshot);
 
         actionResultsContainer.innerHTML = `
             <div class="d-flex justify-content-center">
@@ -164,6 +172,11 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
                 <span class="sr-only">Calling LLM...</span>
             </div>
             `;
+
+        if (action.resultsPresentation === CustomActionResultsPresentation.actionPane) {
+            showActionsPane();
+        }
+
         const modelRunResult = await geminiModel.generateContent({
             contents: [{
                 role: "user",
@@ -172,9 +185,9 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
         });
         const resultText = modelRunResult.response.text();
         actionResultsContainer.innerHTML = `
-            <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center py-3">
                 <div class="spinner-border" role="status"></div>
-                <span class="sr-only">Processing results...</span>
+                <span class="sr-only">Loading results...</span>
             </div>
             `;
         if(!player) {
@@ -220,6 +233,6 @@ if(chrome && chrome.runtime) {
     });
 }
 
-if(isCurrentChatUnset()) {
+if(!getCurrentChatId()) {
     startNewChat();
 }

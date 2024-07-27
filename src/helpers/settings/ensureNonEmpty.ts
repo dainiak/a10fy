@@ -1,8 +1,9 @@
 import {uniqueString} from "../uniqueId";
 import {HarmBlockThreshold} from "@google/generative-ai";
-import {SerializedModel} from "./dataModels";
+import {SerializedModel, SerializedPersona} from "./dataModels";
 import {getFromStorage, setToStorage} from "../storageHandling";
 import {storageKeys} from "../constants";
+import {getDefaultChatSystemPromptTemplate} from "../prompts";
 
 export async function ensureNonEmptyModels() {
     let models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
@@ -28,4 +29,21 @@ export async function ensureNonEmptyModels() {
         await setToStorage(storageKeys.models, models);
     }
     return models;
+}
+
+export async function ensureNonEmptyPersonas() {
+    let personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    if (!personas.length) {
+        personas = [{
+            sortingIndex: 0,
+            id: uniqueString(),
+            name: "Default",
+            description: "Default Persona",
+            defaultModel: "",
+            systemInstructionTemplate: getDefaultChatSystemPromptTemplate(),
+            isVisibleInChat: true
+        } as SerializedPersona];
+        await setToStorage(storageKeys.personas, personas);
+    }
+    return personas;
 }

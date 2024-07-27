@@ -1,11 +1,16 @@
 import {chatPaneChatArea, chatPaneInputTextArea} from './htmlElements';
-import {addMessageCardToChatPane, fillModelMessageCard, setCurrentChat, updateCurrentChatSettings} from "./messages";
+import {
+    addMessageCardToChatPane,
+    createAttachmentsCard,
+    fillModelMessageCard,
+    setCurrentChat,
+    updateCurrentChatSettings
+} from "./messages";
 import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
 import {uniqueString} from "../uniqueId";
-import {getFromStorage} from "../storageHandling";
-import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
-import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";
+import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
+import {inputAreaAttachmentIconsContainer} from "./attachments";
 
 
 export async function setupChatSettingsCard(currentChat: SerializedChat) {
@@ -24,8 +29,8 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
     const personaList = currentChatSettingsCard.querySelector('#llmPersonaSelect') as HTMLSelectElement;
     const modelList = currentChatSettingsCard.querySelector('#llmModelSelect') as HTMLSelectElement;
 
-    const models: SerializedModel[] = (await ensureNonEmptyModels()).filter((m: SerializedModel) => m.isVisibleInChat).sort((a: SerializedModel, b: SerializedModel) => a.sortingIndex - b.sortingIndex);
-    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas) || []).filter((p: SerializedPersona) => p.isVisibleInChat).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const models = (await ensureNonEmptyModels()).filter((m: SerializedModel) => m.isVisibleInChat);
+    const personas = (await ensureNonEmptyPersonas()).filter((p: SerializedPersona) => p.isVisibleInChat);
     let personaFound = false;
     let modelFound = false;
 
@@ -75,7 +80,7 @@ export async function loadChatAsCurrent(chatId: string) {
 
         let lastMessageCard = null;
         for (const message of chat.messages) {
-            lastMessageCard = await addMessageCardToChatPane(message.type, message.content, message.id);
+            lastMessageCard = await addMessageCardToChatPane(message);
         }
 
         if(chat.messages.length > 0 && chat.messages[chat.messages.length - 1].type === ChatMessageTypes.MODEL && lastMessageCard) {
@@ -101,4 +106,6 @@ export function startNewChat() {
     chatPaneChatArea.innerHTML = "";
     setupChatSettingsCard(newChat).catch();
     chatPaneInputTextArea.value = "";
+    inputAreaAttachmentIconsContainer.innerHTML = "";
+
 }

@@ -113,6 +113,7 @@ export function createMarkdownCodeMirror(targetElement: HTMLElement, initialText
     if (themeType === "dark") {
         extensions.push(oneDark);
     }
+
     return new EditorView({
         parent: targetElement,
         state: EditorState.create({

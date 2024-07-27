@@ -52,7 +52,6 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
     }
 
     await asyncRequestAndParseJSON(requestData, ["$.actionList.*"], ({value, key, parent, stack}) => {
-        console.log(key, parent, stack, value);
         let elementIndex, actionName, actionParams;
         if (value instanceof Array && value.length === 2)
             [actionName, elementIndex] = value;
@@ -72,7 +71,7 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
         else if (llmGlobalActions.hasOwnProperty(actionName as string)) {
             llmGlobalActions[actionName as string].execute(elementIndex as number|null, actionParams, tab)
         } else {
-            console.error(`Unknown actionName: ${actionName}`);
+            //TODO: log error
         }
     });
 }

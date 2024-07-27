@@ -39,9 +39,7 @@ function setupAllowToUseMicrophone() {
     allowToUseMicrophone.onclick = () => {
         navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
             stream.getTracks().forEach(track => track.readyState === 'live' && track.stop());
-        }).catch(err => {
-            console.error(err);
-        });
+        }).catch();// TODO: tell the user how to enable the microphone properly
     };
 }
 

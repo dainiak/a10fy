@@ -3,6 +3,8 @@ import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
 import {chatListTab} from './htmlElements';
 import {getChats} from "./chatStorage";
+import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
+import {SerializedPersona} from "../settings/dataModels";
 
 declare module 'datatables.net-bs5' {
     interface Config {
@@ -16,16 +18,22 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
     let scrollPos: number;
     let tableBody: HTMLDivElement;
 
-    const chats = await getChats();
-    const data = chats.map((chat) => {
-        return {
-            timestamp: chat.timestamp,
-            topic: chat.topic,
-            persona: chat.persona,
-            model: chat.model,
-            id: chat.id
-        }
-    });
+    const getData = async () => {
+        return (await getChats()).map((chat) => {
+            return {
+                timestamp: chat.timestamp,
+                topic: chat.topic,
+                persona: chat.persona,
+                model: chat.model,
+                id: chat.id
+            }
+        });
+    }
+
+    const models = await ensureNonEmptyModels();
+    const personas: SerializedPersona[] = await ensureNonEmptyPersonas();
+    const modelNames = new Map(models.map((model) => [model.id, model.name]));
+    const personaNames = new Map(personas.map((persona) => [persona.id, persona.name]));
 
     const chatListTable = new DataTable('#chatListTable', {
         layout: {
@@ -59,7 +67,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             tableBody ||= document.querySelector("#chatListPane .dt-scroll-body") as HTMLDivElement;
             scrollPos = tableBody.scrollTop;
         },
-        drawCallback: function () {
+        drawCallback: () => {
             (tableBody as HTMLDivElement).scrollTop = scrollPos;
         },
         columns: [
@@ -72,8 +80,14 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             },
             {title: 'Timestamp', data: 'timestamp', name: 'timestamp', searchable: true, className: 'dt-left text-left'},
             {title: 'Topic', data: 'topic', name: 'topic', searchable: true, className: 'dt-left text-left'},
-            {title: 'LLM persona', data: 'persona', name: 'persona', searchable: true, className: 'dt-left text-left'},
-            {title: 'LLM model', data: 'model', name: 'model', searchable: true, className: 'dt-left text-left'},
+            {
+                title: 'LLM persona', data: 'persona', name: 'persona', searchable: true, className: 'dt-left text-left',
+                render: (data) => personaNames.has(data) ? personaNames.get(data) : "???",
+            },
+            {
+                title: 'LLM model', data: 'model', name: 'model', searchable: true, className: 'dt-left text-left',
+                render: (data) => modelNames.has(data) ? modelNames.get(data) : "???",
+            },
             {
                 title: '',
                 data: 'id',
@@ -82,7 +96,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 render: (data) => `<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>`,
             }
         ],
-        data: data
+        data: await getData()
     });
 
     chatListTable.on('click', 'button', function(e) {
@@ -97,7 +111,13 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
         }
     });
 
-    chatListTab.addEventListener('shown.bs.tab', () => chatListTable.draw());
+    chatListTab.addEventListener('shown.bs.tab', () => {
+        getData().then(data => {
+            chatListTable.clear();
+            chatListTable.rows.add(data);
+            chatListTable.draw();
+        })
+    });
 
     const searchControl = document.querySelector("#chatListPane div.dt-search") as HTMLDivElement;
     const searchLabel = document.querySelector("#chatListPane div.dt-search label") as HTMLLabelElement;
@@ -105,6 +125,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
     searchControl.classList.add("input-group");
     searchLabel.classList.add("input-group-text");
     searchField.classList.remove("form-control-sm");
+    searchField.classList.add("form-control");
     searchField.ariaLabel = "Search chats";
 
     return chatListTable;

@@ -2,8 +2,7 @@ import {themeType} from "../sidePanel/htmlElements";
 import {uniqueString} from "../uniqueId";
 import {type Mermaid} from "mermaid";
 
-// @ts-ignore
-const mermaid: Mermaid = window.mermaid;
+const mermaid: Mermaid = (window as any).mermaid;
 
 export function playMermaid(_: string, code: string, outputElement: HTMLElement) {
     outputElement.className = "rounded-2 p-3 mb-0 hljs";

@@ -1,4 +1,5 @@
 import {themeType} from "../sidePanel/htmlElements";
+import type vegaEmbed from "vega-embed";
 
 export function playVegaLite(_: string, code: string, outputElement: HTMLElement) {
     outputElement.className = "player-output rounded-2 p-3 mt-2 mb-0 hljs";
@@ -6,8 +7,7 @@ export function playVegaLite(_: string, code: string, outputElement: HTMLElement
     outputElement.style.setProperty("text-align", "center");
     outputElement.innerHTML = "";
 
-    // @ts-ignore
-    window.vegaEmbed(outputElement, JSON.parse(code), {
+    ((window as any).vegaEmbed as typeof vegaEmbed)(outputElement, JSON.parse(code), {
         theme: themeType === "light" ? "ggplot2" : "dark",
         renderer: "svg",
         actions: {

@@ -245,7 +245,7 @@ export function enqueuePageAction(actionQueue: ActionQueue, action: ActionReques
     if (llmPageActions.hasOwnProperty(actionName)) {
         actionQueue.enqueue(llmPageActions[actionName].atomicActions(element, actionParams));
     } else {
-        console.log(`Action ${actionName} not found`)
+        // TODO: log an error
     }
 }
 

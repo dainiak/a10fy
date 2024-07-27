@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
                     }
                 );
             }
-            recordingNotificationSound.play();
+            recordingNotificationSound.play().catch();
             return true;
         }
         else if (request.messageGoal === extensionMessageGoals.stopAudioCapture) {

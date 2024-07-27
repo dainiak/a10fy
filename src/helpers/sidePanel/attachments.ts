@@ -8,7 +8,7 @@ const pasteFormatChoiceModalElement = document.getElementById("pasteFormatChoice
 const pasteFormatChoiceButtonGroup = pasteFormatChoiceModalElement.querySelector(".btn-group") as HTMLDivElement;
 const pasteFormatChoiceModal = Modal.getOrCreateInstance(pasteFormatChoiceModalElement);
 
-const iconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
+export const inputAreaAttachmentIconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
 
 function addAttachment(type: MessageAttachmentTypes, data: string) {
     const attachmentId = addAttachmentToCurrentDraft({type, data});
@@ -19,7 +19,7 @@ function addAttachment(type: MessageAttachmentTypes, data: string) {
     const icon = type === MessageAttachmentTypes.IMAGE ? document.createElement("img") : document.createElement("i");
     type === MessageAttachmentTypes.IMAGE ? (icon as HTMLImageElement).src = data : icon.className = "bi bi-file-earmark-music";
     iconContainer.appendChild(icon);
-    iconsContainer.appendChild(iconContainer);
+    inputAreaAttachmentIconsContainer.appendChild(iconContainer);
     const trashIcon = document.createElement("i");
     trashIcon.className = "bi bi-trash";
     iconContainer.appendChild(trashIcon);

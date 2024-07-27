@@ -2,31 +2,19 @@ import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
-import {getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate} from "../prompts";
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getChatSystemInstructionDummyScope} from "../prompts";
+import {setToStorage} from "../storageHandling";
 import {createLiquidCodeMirror} from "../codeMirror";
 import {EditorView} from "@codemirror/view";
-import {ensureNonEmptyModels} from "./ensureNonEmpty";
+import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "./ensureNonEmpty";
 
 export const personaModalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
 const personaModal = Modal.getOrCreateInstance(personaModalElement);
 let personaModalSystemInstructionCodeMirrorView: EditorView | null = null;
 
 export async function fillPersonasTable() {
-    let personas = (await getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
-    if (!personas.length) {
-        personas = [{
-            sortingIndex: 0,
-            id: uniqueString(),
-            name: "Default",
-            description: "Default Persona",
-            defaultModel: "",
-            systemInstructionTemplate: getDefaultChatSystemPromptTemplate()
-        } as SerializedPersona];
-        await setToStorage(storageKeys.personas, personas);
-    }
-
-    const models: SerializedModel[] = (await getFromStorage(storageKeys.models) || []);
+    const models: SerializedModel[] = await ensureNonEmptyModels();
+    let personas = await ensureNonEmptyPersonas();
 
     const personasTable = document.getElementById("personasTable") as HTMLTableElement;
     const tbody = personasTable.querySelector("tbody") as HTMLTableSectionElement;
@@ -64,7 +52,7 @@ export async function fillPersonasTable() {
 }
 
 async function editPersona(personaId: string) {
-    const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas)) || [];
+    const personas = await ensureNonEmptyPersonas();
     const persona = personas.find((persona: SerializedPersona) => persona.id === personaId);
     if (!persona)
         return;
@@ -79,7 +67,7 @@ async function editPersona(personaId: string) {
     nameInput.value = persona.name;
     descriptionInput.value = persona.description;
 
-    const models: SerializedModel[] = await ensureNonEmptyModels();
+    const models = await ensureNonEmptyModels();
     modelSelect.innerHTML = "";
     const emptyModelOption = document.createElement("option");
     emptyModelOption.value = "";
@@ -123,7 +111,7 @@ async function editPersona(personaId: string) {
 }
 
 async function deletePersona(personaId: string, tr: HTMLTableRowElement) {
-    const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).filter((persona: SerializedPersona) => persona.id !== personaId).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = ( await ensureNonEmptyPersonas()).filter((persona: SerializedPersona) => persona.id !== personaId);
     personas.forEach((persona: SerializedPersona, idx: number) => persona.sortingIndex = idx);
     await setToStorage(storageKeys.personas, personas);
 
@@ -134,7 +122,7 @@ async function deletePersona(personaId: string, tr: HTMLTableRowElement) {
 }
 
 async function movePersonaUp(personaId: string, tr: HTMLTableRowElement) {
-    const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const personas: SerializedPersona[] = await ensureNonEmptyPersonas();
     const personaIndex = personas.findIndex((persona: SerializedPersona) => persona.id === personaId);
     if (personaIndex === 0)
         return;
@@ -145,7 +133,7 @@ async function movePersonaUp(personaId: string, tr: HTMLTableRowElement) {
 }
 
 async function movePersonaDown(personaId: string, tr: HTMLTableRowElement) {
-    const personas: SerializedPersona[] = (await  getFromStorage(storageKeys.personas) || []).sort((a: SerializedPersona, b: SerializedPersona) => a.sortingIndex - b.sortingIndex);
+    const personas = await ensureNonEmptyPersonas();
     const personaIndex = personas.findIndex((persona: SerializedPersona) => persona.id === personaId);
     if (personaIndex === personas.length - 1)
         return;
@@ -157,7 +145,7 @@ async function movePersonaDown(personaId: string, tr: HTMLTableRowElement) {
 
 export function setupNewPersonaButton() {
     (document.getElementById("newPersonaButton") as HTMLButtonElement).onclick = async () => {
-        const personas: SerializedPersona[] = await  getFromStorage(storageKeys.personas) || [];
+        const personas = await ensureNonEmptyPersonas();
         const newPersona: SerializedPersona = {
             sortingIndex: personas.length,
             id: uniqueString(),

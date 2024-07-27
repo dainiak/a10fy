@@ -8,9 +8,9 @@ import {
     ChatMessageTypes,
     createSerializedChat, deleteChat,
     getEmptyAssistantMessage,
-    getEmptyDraft, MessageAttachmentTypes,
+    getEmptyDraft, MessageAttachment, MessageAttachmentTypes,
     saveUpdatedChat,
-    SerializedChat
+    SerializedChat, SerializedMessage
 } from "./chatStorage";
 import {getGeminiTextModel} from "../geminiInterfacing";
 import {getInlineDataPart} from "../promptParts";
@@ -19,12 +19,14 @@ import {SerializedCustomCodePlayer, SerializedModel, SerializedPersona} from "..
 import {getFromStorage} from "../storageHandling";
 import {customPlayerFactory} from "../players/custom";
 import {uniqueString} from "../uniqueId";
+import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";
+import {inputAreaAttachmentIconsContainer} from "./attachments";
 
 
 let currentChat: SerializedChat | null = null;
 
-export function isCurrentChatUnset() {
-    return !currentChat;
+export function getCurrentChatId() {
+    return currentChat ? currentChat.id : null;
 }
 
 async function addPlayers(messageCardTextElement: HTMLElement){
@@ -72,6 +74,36 @@ async function addPlayers(messageCardTextElement: HTMLElement){
     }
 }
 
+export function createAttachmentsCard(message: SerializedMessage) {
+    const attachments = message.attachments;
+    const card = document.createElement('div');
+    card.className = `card mb-3 attachments-card`;
+    card.innerHTML = `<div class="card-header"><h6 class="card-title mb-0">Attachments</h6></div><div class="card-body"></div>`;
+    const cardBody = card.querySelector('.card-body') as HTMLDivElement;
+    for(const attachment of attachments) {
+        const iconContainer = document.createElement("div");
+        iconContainer.className = "icon";
+        const icon = attachment.type === MessageAttachmentTypes.IMAGE ? document.createElement("img") : document.createElement("i");
+        if(attachment.type === MessageAttachmentTypes.IMAGE)
+            (icon as HTMLImageElement).src = attachment.data;
+        else
+            icon.className = "bi bi-file-earmark-music";
+        iconContainer.appendChild(icon);
+        cardBody.appendChild(iconContainer);
+        const trashIcon = document.createElement("i");
+        trashIcon.className = "bi bi-trash";
+        iconContainer.appendChild(trashIcon);
+        iconContainer.onclick = () => {
+            iconContainer.innerHTML = "";
+            iconContainer.remove();
+            message.attachments = message.attachments.filter((a: MessageAttachment) => a.id !== attachment.id);
+            if(currentChat)
+                saveUpdatedChat(currentChat);
+        };
+    }
+    return card;
+}
+
 function createMessageCard(messageType: ChatMessageTypes, messageId: string) {
     const card = document.createElement('div');
     card.className = `card mb-3 message-${messageType === ChatMessageTypes.USER ? "user" : "model"} chat-message-card`;
@@ -92,26 +124,31 @@ ${regenerateButtonHTML}<button class="btn btn-sm btn-outline-secondary edit-mess
     chatPaneChatArea.appendChild(card);
     card.style.setProperty("opacity", "1");
     card.scrollIntoView({ behavior: 'smooth' });
+
     return card as HTMLDivElement;
 }
 
-function activateEditMessageTextButton(messageCard: HTMLElement, messageText: string, messageId: string) {
+function activateEditMessageTextButton(messageCard: HTMLElement, message: SerializedMessage) {
     const cardBodyElement = messageCard.querySelector('.card-body') as HTMLElement;
     let cmView: EditorView | null = null;
     const editButton = messageCard.querySelector('button.edit-message-text') as HTMLButtonElement;
     const saveMessage = async (editorView: EditorView) => {
-        messageText = editorView.state.doc.toString();
+        message.content = editorView.state.doc.toString();
         editorView.destroy();
         cmView = null;
         if(currentChat) {
-            const messageToUpdate = currentChat.messages.find((message) => message.id === messageId);
+            const messageToUpdate = currentChat.messages.find((m) => m.id === message.id);
             if(messageToUpdate) {
-                messageToUpdate.content = messageText;
+                messageToUpdate.content = message.content;
                 saveUpdatedChat(currentChat);
             }
         }
-        cardBodyElement.innerHTML = markdownRenderer.render(messageText);
+        cardBodyElement.innerHTML = markdownRenderer.render(message.content);
         addBootstrapStyling(cardBodyElement);
+        if(message.attachments.length) {
+            cardBodyElement.insertBefore(createAttachmentsCard(message), cardBodyElement.firstChild);
+        }
+
         await addPlayers(cardBodyElement);
         editButton.innerHTML = '<i class="bi bi-pencil-square"></i>';
     }
@@ -122,7 +159,7 @@ function activateEditMessageTextButton(messageCard: HTMLElement, messageText: st
             return;
         }
         cardBodyElement.innerHTML = '';
-        cmView = createMarkdownCodeMirror(cardBodyElement, messageText, saveMessage);
+        cmView = createMarkdownCodeMirror(cardBodyElement, message.content, saveMessage);
         editButton.innerHTML = '<i class="bi bi-floppy"></i>';
     });
 }
@@ -200,18 +237,20 @@ function addBootstrapStyling(messageCardTextElement: HTMLElement) {
     );
 }
 
-export async function addMessageCardToChatPane(messageType: ChatMessageTypes, message: string, messageId: string) {
-    const messageCard = createMessageCard(messageType, messageId);
+export async function addMessageCardToChatPane(message: SerializedMessage) {
+    const messageCard = createMessageCard(message.type, message.id);
     const cardBody = messageCard.querySelector('.card-body') as HTMLElement;
-    cardBody.innerHTML = markdownRenderer.render(message);
-
+    cardBody.innerHTML = markdownRenderer.render(message.content);
     addBootstrapStyling(cardBody);
     await addPlayers(cardBody);
-    activateEditMessageTextButton(messageCard, message, messageId);
+    activateEditMessageTextButton(messageCard, message);
+    if(message.attachments.length) {
+        cardBody.insertBefore(createAttachmentsCard(message), cardBody.firstChild);
+    }
     return messageCard;
 }
 
-export async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardElement?:HTMLDivElement){
+export async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardElement?:HTMLDivElement) {
     const serializedAssistantMessage = currentChat.messages[currentChat.messages.length - 1];
     if (!currentChat.timestamp)
         currentChat.timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
@@ -221,12 +260,13 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
         Array.from(chatPaneChatArea.querySelectorAll("button.regenerate-message")).forEach((button) => button.remove());
         llmMessageCardElement = createMessageCard(ChatMessageTypes.MODEL, serializedAssistantMessage.id);
         llmMessageCardElement.querySelector(".regenerate-message")?.addEventListener("click", async () => {
+            currentChat.messages.pop();
             await fillModelMessageCard(currentChat, llmMessageCardElement);
         });
     }
 
-    const llmMessageCardTextElement = llmMessageCardElement.querySelector('.card-body') as HTMLDivElement;
-    llmMessageCardTextElement.innerHTML = '<div class="card-text"><div class="dot-pulse"></div></div>';
+    const llmMessageCardBodyElement = llmMessageCardElement.querySelector('.card-body') as HTMLDivElement;
+    llmMessageCardBodyElement.innerHTML = '<div class="card-text"><div class="dot-pulse"></div></div>';
 
     const geminiHistory = currentChat.messages.map(
         (message) => {
@@ -238,14 +278,14 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
     );
 
     const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas)) || [];
-    let persona = personas.find((persona: SerializedPersona) => persona.id === currentChat.persona);
-    if (!persona) {
+    let persona = personas.find((persona: SerializedPersona) => persona.id === currentChat.persona) || null;
+    if (!persona && personas.length) {
         persona = personas[0];
         currentChat.persona = persona.id;
     }
 
-    const models = (await getFromStorage(storageKeys.models) || []);
-    let model = models.find((model: SerializedModel) => model.id === (currentChat.model || persona.defaultModel));
+    const models = await ensureNonEmptyModels();
+    let model = models.find((model: SerializedModel) => model.id === (currentChat.model || persona?.defaultModel));
     if(!model) {
         model = models[0];
         currentChat.model = model.id;
@@ -259,7 +299,7 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
             for await (const chunk of result.stream) {
                 const text = chunk.text();
                 llmMessageText += text;
-                llmMessageCardTextElement.innerHTML = markdownRenderer.render(llmMessageText);
+                llmMessageCardBodyElement.innerHTML = markdownRenderer.render(llmMessageText);
             }
         }
         catch (error) {
@@ -270,9 +310,9 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
             await saveUpdatedChat(currentChat);
         }
 
-        addBootstrapStyling(llmMessageCardTextElement);
-        await addPlayers(llmMessageCardTextElement);
-        activateEditMessageTextButton(llmMessageCardElement, llmMessageText, serializedAssistantMessage.id);
+        addBootstrapStyling(llmMessageCardBodyElement);
+        await addPlayers(llmMessageCardBodyElement);
+        activateEditMessageTextButton(llmMessageCardElement, serializedAssistantMessage);
     });
 }
 
@@ -282,25 +322,30 @@ export async function sendUserMessageToChat(){
     }
     let userMessage = chatPaneInputTextArea.value.trim();
     const serializedUserMessage = currentChat.draft;
+    currentChat.draft = getEmptyDraft();
     serializedUserMessage.content = userMessage;
+    currentChat.messages.push(serializedUserMessage);
 
     const userMessageCard = createMessageCard(ChatMessageTypes.USER, serializedUserMessage.id);
     const cardBody = userMessageCard.querySelector('.card-body') as HTMLElement;
-    activateEditMessageTextButton(userMessageCard, userMessage, serializedUserMessage.id);
+    activateEditMessageTextButton(userMessageCard, serializedUserMessage);
 
     cardBody.innerHTML = markdownRenderer.render(userMessage);
     addBootstrapStyling(cardBody);
 
-    currentChat.messages.push(serializedUserMessage);
-    currentChat.draft = getEmptyDraft();
+    if(serializedUserMessage.attachments.length) {
+        cardBody.insertBefore(createAttachmentsCard(currentChat.messages[currentChat.messages.length - 1]), cardBody.firstChild);
+    }
+
     currentChat.messages.push(getEmptyAssistantMessage());
 
     chatPaneInputTextArea.value = '';
+    inputAreaAttachmentIconsContainer.innerHTML = '';
     chatPaneInputTextArea.dispatchEvent(new Event('input'));
     await fillModelMessageCard(currentChat);
 }
 
-export function setCurrentChat(chat: SerializedChat) {
+export function setCurrentChat(chat: SerializedChat | null) {
     currentChat = chat;
 }
 
