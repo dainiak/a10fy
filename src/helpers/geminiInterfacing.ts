@@ -12,7 +12,7 @@ import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 import {
     getAssistantSystemPrompt,
-    getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate
+    getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate, getSummarizationSystemPrompt
 } from "./prompts";
 import {getFromStorage} from "./storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
@@ -49,7 +49,7 @@ async function getAssistantJSONModel() {
         temperature: assistantModelSettings?.temperature || 0,
         maxOutputTokens: 8192,
         responseMimeType: 'application/json',
-        responseSchema: responseSchema
+        // responseSchema: responseSchema
     };
 
     const safetySettings = [
@@ -74,6 +74,48 @@ async function getAssistantJSONModel() {
     return (new GoogleGenerativeAI(apiKey)).getGenerativeModel(
         {
             model: assistantModelSettings?.technicalName || "gemini-1.5-flash-latest",
+            generationConfig: generationConfig,
+            safetySettings: safetySettings,
+            systemInstruction: systemInstruction
+        }
+    );
+}
+
+export async function getSummarizationJSONModel() {
+    const systemInstruction = getSummarizationSystemPrompt();
+    const modelSettings: SerializedModel | null = await getFromStorage(storageKeys.summarizationModel);
+    const apiKey = modelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+
+    const generationConfig: GenerationConfig = {
+        topK: modelSettings?.topK || 64,
+        topP: modelSettings?.topP || 0.95,
+        temperature: modelSettings?.temperature || 0,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json'
+    };
+
+    const safetySettings = [
+        {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: modelSettings?.safetySettings?.dangerousContent || HarmBlockThreshold.BLOCK_ONLY_HIGH
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: modelSettings?.safetySettings?.hateSpeech || HarmBlockThreshold.BLOCK_ONLY_HIGH
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: modelSettings?.safetySettings?.harassment || HarmBlockThreshold.BLOCK_ONLY_HIGH
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: modelSettings?.safetySettings?.sexuallyExplicit || HarmBlockThreshold.BLOCK_ONLY_HIGH
+        }
+    ];
+
+    return (new GoogleGenerativeAI(apiKey)).getGenerativeModel(
+        {
+            model: modelSettings?.technicalName || "gemini-1.5-flash-latest",
             generationConfig: generationConfig,
             safetySettings: safetySettings,
             systemInstruction: systemInstruction

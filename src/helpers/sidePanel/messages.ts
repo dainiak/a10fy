@@ -8,7 +8,7 @@ import {
     ChatMessageTypes,
     createSerializedChat, deleteChat,
     getEmptyAssistantMessage,
-    getEmptyDraft, MessageAttachment, MessageAttachmentTypes,
+    getEmptyDraft, getTimestampStringForChat, MessageAttachment, MessageAttachmentTypes,
     saveUpdatedChat,
     SerializedChat, SerializedMessage
 } from "./chatStorage";
@@ -254,7 +254,7 @@ export async function addMessageCardToChatPane(message: SerializedMessage) {
 export async function fillModelMessageCard(currentChat:SerializedChat, llmMessageCardElement?:HTMLDivElement) {
     const serializedAssistantMessage = currentChat.messages[currentChat.messages.length - 1];
     if (!currentChat.timestamp)
-        currentChat.timestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+        currentChat.timestamp = getTimestampStringForChat();
     await saveUpdatedChat(currentChat);
 
     if(!llmMessageCardElement) {

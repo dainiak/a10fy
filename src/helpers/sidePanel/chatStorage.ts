@@ -79,10 +79,14 @@ export function getEmptyAssistantMessage() : SerializedMessage {
     }
 }
 
+export function getTimestampStringForChat() {
+    return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
 export function createSerializedChat() {
     const chat: SerializedChat = {
         id: uniqueString(),
-        timestamp: new Date().toISOString(),
+        timestamp: getTimestampStringForChat(),
         topic: "",
         persona: "",
         model: "",

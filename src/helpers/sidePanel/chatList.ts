@@ -5,6 +5,7 @@ import {chatListTab} from './htmlElements';
 import {getChats} from "./chatStorage";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
 import {SerializedPersona} from "../settings/dataModels";
+import {summarizeChat} from "../summarization";
 
 declare module 'datatables.net-bs5' {
     interface Config {
@@ -78,14 +79,14 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 orderable: false,
                 render: (data) => `<button class="btn btn-outline-secondary btn-sm open-chat-btn" data-chat-id="${data}" aria-label="Open chat" title="Open chat"><i class="bi bi-chat-text"></i></button>`,
             },
-            {title: 'Timestamp', data: 'timestamp', name: 'timestamp', searchable: true, className: 'dt-left text-left'},
-            {title: 'Topic', data: 'topic', name: 'topic', searchable: true, className: 'dt-left text-left'},
+            {title: 'Timestamp', data: 'timestamp', name: 'timestamp', searchable: true, className: 'dt-left text-left chat-timestamp'},
+            {title: 'Topic', data: 'topic', name: 'topic', searchable: true, className: 'dt-left text-left chat-topic'},
             {
-                title: 'LLM persona', data: 'persona', name: 'persona', searchable: true, className: 'dt-left text-left',
+                title: 'LLM persona', data: 'persona', name: 'persona', searchable: true, className: 'dt-left text-left chat-persona',
                 render: (data) => personaNames.has(data) ? personaNames.get(data) : "???",
             },
             {
-                title: 'LLM model', data: 'model', name: 'model', searchable: true, className: 'dt-left text-left',
+                title: 'LLM model', data: 'model', name: 'model', searchable: true, className: 'dt-left text-left chat-model',
                 render: (data) => modelNames.has(data) ? modelNames.get(data) : "???",
             },
             {
@@ -93,7 +94,10 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 data: 'id',
                 searchable: false,
                 orderable: false,
-                render: (data) => `<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>`,
+                render: (data) => `
+<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>
+<button class="btn btn-outline-danger btn-sm summarize-chat-btn" data-chat-id="${data}" aria-label="Summarize chat" title="Summarize chat"><i class="bi bi-journal-text"></i></button>
+`.trim(),
             }
         ],
         data: await getData()
@@ -108,6 +112,13 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             const tr = button.closest('tr') as HTMLTableRowElement;
             chatListTable.row(tr).remove().draw();
             deleteChatCallback(button.dataset.chatId as string);
+        }
+        else if(button.classList.contains('summarize-chat-btn')) {
+            const tr = button.closest('tr') as HTMLTableRowElement;
+            summarizeChat(button.dataset.chatId as string).then((title: string) => {
+                const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
+                td.textContent = title;
+            })
         }
     });
 

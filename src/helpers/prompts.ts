@@ -1,6 +1,6 @@
 import {cssPrefix} from "./constants";
-import {getOutputFormatDescription} from "./promptParts";
-
+import {llmPageActions} from "./llmPageActions";
+import {llmGlobalActions} from "./llmGlobalActions";
 
 export function getDefaultChatSystemPromptTemplate() {
     return `
@@ -32,9 +32,30 @@ You are capable of generating python code that can be executed right in the brow
 `.trim();
 }
 
+export function getSummarizationSystemPrompt() {
+    return `
+You are a large language model. The current date is ${new Date().toISOString().slice(0, 10)}. You will be given a dialog between a user and an AI assistant, the messages in the dialog being inside <user-message>...</user-message> and <assistant-message>...</assistant-message> tags. You need to output a JSON object with key "summaries" and "title". The value of "summaries" key is an array of strings (from one to three), each string is a long sentence that summarizes the dialog or part of a dialog if the dialog consists of relatively independent parts. You should provide a summary that captures the main points of the dialog, mentioning topic-specific keywords. You should not include any information that is not present in the dialog. You should also not output the "summaries" array of length more than one if the dialog was on one topic and did not diverge much from it. The value of "title" key should be be a single string: a short title for the whole dialog. 
+`.trim();
+}
 
 export function getAssistantSystemPrompt() {
-    return `You are an AI assistant in the form of a Google Chrome extension. You fulfill user requests provided in form of text or voice audio recording. With the user's request you are usually given some details about the webpage the user is currently on (both screenshot of the webpage, as well as a simplified HTML representation of the webpage with ${cssPrefix}-prefixed CSS classes for HTML elements identification). You can use this context to provide the user with the information they need. You can also ask the user for more information if you need it. Your response should always be a ${ getOutputFormatDescription() }`;
+    const allActions = {...llmPageActions, ...llmGlobalActions};
+    const allActionNames = [...Object.keys(llmPageActions), ...Object.keys(llmGlobalActions)];
+    const possibleActions = allActionNames.map(name => `actionName: "${name}"\n${allActions[name].description}`).join("\n\n");
+
+    return `
+You are an AI assistant in the form of a Google Chrome extension. The current date is ${new Date().toISOString().slice(0, 10)}. You fulfill user requests provided in form of text or voice audio recording. With the user's request you are usually given some details about the webpage the user is currently on (both screenshot of the webpage, as well as a simplified HTML representation of the webpage with ${cssPrefix}-prefixed CSS classes for HTML elements identification). You can use this context to provide the user with the information they need. You can also ask the user for more information if you need it. Your response should always be a JSON object with three keys: "understoodAs", "clarificationNeeded" and "actionList". The value of "understoodAs" is a string describing the user request according to how you understood it. The "clarificationNeeded" is a boolean value set to false if the user's request could be technically fulfilled as is, or true if the user should try to reformulate the request or answer some additional questions for the request to be more concrete. The value of "actionList" is an array of elementary steps of DOM tweaking or user interaction necessary to fulfill the user's request (if clarificationNeeded is true, then employ the "steps" interact with the user to ask for reformulation/clarification of the request). Each item of the "actionList" array is a triple [actionName, elementIndex, actionParams]. The actionName is a string that represents the action to be performed. Some actions are DOM-actions (requiring interaction with DOM of the webpage the user is currently on), while others are global actions. For a DOM-action that the elementIndex is an integer number that stands after ${cssPrefix}-prefix in the element's CSS class. For a global action the elementIndex should be set to null. The actionParams is any additional information required for an action; if an action does not require any additional data, actionParams can be null or can be omitted. The following are the possible values of actionName with their descriptions:
+${possibleActions}
+
+
+All in all, your response should look like this: 
+\'\'\'
+{
+    "understoodAs": "...",
+    "clarificationNeeded": "...",
+    "actionList": [[...], ...]
+}
+\`\`\``.trim();
 }
 
 export interface ChatSystemInstructionLiquidScope {

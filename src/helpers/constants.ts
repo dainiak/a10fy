@@ -22,6 +22,7 @@ export enum storageKeys {
     models = "models",
     personas = "personas",
     assistantModel = "assistantModel",
+    summarizationModel = "summarizationModel",
     embeddingModel = "embeddingModel",
     codePlayers = "codePlayers",
     customActions = "customActions",
