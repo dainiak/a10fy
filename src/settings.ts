@@ -21,6 +21,7 @@ import {
     setupNewCustomActionButton
 } from "./helpers/settings/actionsSettings";
 import {setupClearButtons} from "./helpers/sidePanel/clearData";
+import {fillTTSVoicePreferencesTable, setupNewVoicePreferenceButton} from "./helpers/settings/ttsSettings";
 
 
 function setupGeneral() {
@@ -72,6 +73,9 @@ fillPlayersTable().catch();
 
 setupNewCustomActionButton();
 fillCustomActionsTable().catch();
+
+setupNewVoicePreferenceButton().catch();
+fillTTSVoicePreferencesTable().catch();
 
 personaModalElement.addEventListener("hidden.bs.modal", () => {
     destroyPersonaCodeMirrors();

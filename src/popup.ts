@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     const voiceCommandButton = document.getElementById("voiceCommandButton") as HTMLButtonElement;
+    const voiceText = voiceCommandButton.querySelector("span") as HTMLSpanElement;
     const voiceIcon = voiceCommandButton.querySelector("i") as HTMLElement;
     chrome.storage.session.get([voiceRecordingInProgress]).then((result) => {
         if(result[voiceRecordingInProgress] === undefined) {
@@ -14,8 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (result[voiceRecordingInProgress]) {
             voiceIcon.className = "bi bi-mic-fill blinking";
+            voiceText.textContent = "Stop recording";
         } else {
             voiceIcon.className = "bi bi-mic";
+            voiceText.textContent = "Voice command";
         }
     });
 
@@ -32,6 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
     chrome.storage.session.onChanged.addListener((changes) => {
         if (changes[voiceRecordingInProgress]) {
             voiceIcon.className = changes[voiceRecordingInProgress].newValue ? "bi bi-mic-fill blinking" : "bi bi-mic";
+            voiceText.textContent = changes[voiceRecordingInProgress].newValue ? "Stop recording" : "Voice command";
         }
     });
 

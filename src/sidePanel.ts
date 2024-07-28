@@ -231,6 +231,13 @@ if(chrome && chrome.runtime) {
         }
         return undefined;
     });
+
+    chrome.storage.session.onChanged.addListener((changes) => {
+        if(changes["llmMessage"]) {
+            showActionsPane();
+            actionResultsContainer.innerHTML = markdownRenderer.render(changes["llmMessage"].newValue);
+        }
+    });
 }
 
 if(!getCurrentChatId()) {

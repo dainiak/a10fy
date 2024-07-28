@@ -7,6 +7,7 @@ import {
 import { recordAudio, stopRecording } from "./helpers/audioRecording";
 
 const recordingNotificationSound = document.getElementById("startRecordingNotification") as HTMLAudioElement;
+const recordingEndNotificationSound = document.getElementById("endRecordingNotification") as HTMLAudioElement;
 
 chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, sendResponse: (_: any) => void) => {
     if (sender.tab)
@@ -28,7 +29,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
             return true;
         }
         else if (request.messageGoal === extensionMessageGoals.stopAudioCapture) {
-            stopRecording() && recordingNotificationSound.play();
+            stopRecording() && recordingEndNotificationSound.play();
         }
     // }
     // else if (request.action === extensionActions.copyTextToClipboard) {

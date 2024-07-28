@@ -109,6 +109,6 @@ export default [
     constructJsConfig('customPlayerSandbox', jsPluginConfigs),
     constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),
 
-    // constructJsConfig('settings', jsPluginConfigs),
-    // constructJsConfig('sidePanel', jsPluginConfigs),
+    constructJsConfig('settings', jsPluginConfigs),
+    constructJsConfig('sidePanel', jsPluginConfigs),
 ];

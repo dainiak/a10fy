@@ -87,3 +87,12 @@ export interface SerializedCustomAction {
     resultsPresentation: CustomActionResultsPresentation,
     storageVersion?: number
 }
+
+export interface SerializedVoiceSetting {
+    rate: number,
+    voiceName: string
+}
+
+export interface SerializedVoiceSettings {
+    [key: string]: SerializedVoiceSetting
+}

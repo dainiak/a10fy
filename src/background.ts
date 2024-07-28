@@ -87,9 +87,13 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
         }
     );
 
-    const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.getDocumentInfo} as ExtensionMessageRequest);
-    tabDocumentInfo.screenshot = tabScreenshot;
-    return tabDocumentInfo;
+    try {
+        const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.getDocumentInfo} as ExtensionMessageRequest);
+        tabDocumentInfo.screenshot = tabScreenshot;
+        return tabDocumentInfo;
+    } catch {
+        return {};
+    }
 }
 
 async function textCommandGetThenExecute() {

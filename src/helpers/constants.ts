@@ -30,7 +30,6 @@ export enum storageKeys {
     embeddingModel = "embeddingModel",
     codePlayers = "codePlayers",
     customActions = "customActions",
-    menuItems = "menuItems",
     ttsVoicePreferences = "ttsVoicePreferences",
 }
 

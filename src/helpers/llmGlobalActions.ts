@@ -1,15 +1,17 @@
-import {ExecutePageActionRequest, extensionMessageGoals, ExtensionMessageRequest} from "./constants";
+import {ExecutePageActionRequest, extensionMessageGoals, ExtensionMessageRequest, storageKeys} from "./constants";
 import {llmPageActionNames} from "./llmPageActions";
 import 'chrome-types';
+import {getFromStorage} from "./storageHandling";
+import {SerializedVoiceSettings} from "./settings/dataModels";
 
-export const llmGlobalActionNames = {
-    speak: "speak",
-    speakElementText: "speakElementText",
-    showMessage: "showMessage",
-    copyTextToClipboard: "copyTextToClipboard",
-    copyElementPropertyToClipboard: "copyElementPropertyToClipboard",
-    setElementPropertyFromClipboard: "setElementPropertyFromClipboard",
-    pageTour: "pageTour",
+export enum llmGlobalActionNames {
+    speak = "speak",
+    speakElementText = "speakElementText",
+    showMessage = "showMessage",
+    copyTextToClipboard = "copyTextToClipboard",
+    copyElementPropertyToClipboard = "copyElementPropertyToClipboard",
+    setElementPropertyFromClipboard = "setElementPropertyFromClipboard",
+    pageTour = "pageTour"
 }
 
 interface LLMGlobalAction {
@@ -22,12 +24,9 @@ interface LlmGlobalActions {
 }
 
 async function speak(content: string, lang: string = "en-US") {
-    const ttsSettings = await chrome.storage.sync.get(["ttsRate", "ttsVoices"]);
-    const options: {rate?: number; voiceName?: string; enqueue?: boolean; lang?: string;} = {enqueue: true};
-    if(ttsSettings.ttsRate)
-        options.rate = ttsSettings.ttsRate;
+    const voicesSettings = (await getFromStorage(storageKeys.ttsVoicePreferences) || {}) as SerializedVoiceSettings;
+    const options: chrome.tts.TtsOptions = {enqueue: true};
 
-    const voicesSettings: {[key: string]: string} = ttsSettings.ttsVoices || {};
     const stockVoices = await chrome.tts.getVoices();
     let stockVoiceForLang = stockVoices.find((v) => v.lang === lang);
     if (!stockVoiceForLang) {
@@ -39,13 +38,17 @@ async function speak(content: string, lang: string = "en-US") {
     if(lang)
         options.lang = lang;
 
-    let preferredVoiceName = voicesSettings.hasOwnProperty(lang) ? voicesSettings[lang] : "";
+    let preferredVoiceName = voicesSettings.hasOwnProperty(lang) ? voicesSettings[lang].voiceName : "";
+    let preferredRate = voicesSettings.hasOwnProperty(lang) ? voicesSettings[lang].rate : 1;
     if(preferredVoiceName) {
         const preferredVoiceForLang = stockVoices.find((v) => v.voiceName === preferredVoiceName);
-        if (preferredVoiceForLang)
+        if (preferredVoiceForLang) {
             options.voiceName = preferredVoiceName;
+            options.rate = preferredRate;
+        }
         else if(stockVoiceForLang && stockVoiceForLang.voiceName){
-            voicesSettings[lang] = stockVoiceForLang.voiceName;
+            voicesSettings[lang].voiceName = stockVoiceForLang.voiceName;
+            voicesSettings[lang].rate = preferredRate;
             await chrome.storage.sync.set({ttsVoices: voicesSettings});
         }
     }
@@ -79,7 +82,7 @@ export const llmGlobalActions: LlmGlobalActions = {
         }
     },
     [llmGlobalActionNames.showMessage]: {
-        description: "Use to display a given message for the user to see. Technically this is shown in browser Side Panel alongside the current tab. The elementIndex is null and the actionParams is a string hosting the HTML content of the message to show. You can only use the following tags: h3, h4, h5, a, pre, code, ul, ol, li, p, em, strong, table, tbody, thead, tfoot, tr, td. No other tags are allowed. Use this action whenever you need to answer some generic user question or provide some additional information to the user in a non-spoken form. If the user request was in textual form, prefer using this action instead of \"speak\".",
+        description: "Use to display a given message for the user to see. Technically this is shown in browser Side Panel alongside the current tab. The elementIndex is null and the actionParams is a string hosting the markdown content of the message to show. Use this action whenever you need to answer some generic user question or provide some additional information to the user in a non-spoken form. If the user request was in textual form, prefer using this action instead of \"speak\".",
         execute: (_1, actionParams, _2) => chrome.storage.session.set({llmMessage: actionParams})
     },
     [llmGlobalActionNames.copyTextToClipboard]: {
