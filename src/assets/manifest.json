@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Accessibilify",
+  "name": "A10fy",
   "version": "1.0",
-  "description": "Turn any website into an accessible one.",
+  "description": "Access the web. Better.",
   "icons": {
     "128": "icon.png"
   },
@@ -46,7 +46,7 @@
     "default_path": "sidePanel.html"
   },
   "commands": {
-    "analysePage": {
+    "textCommandGetThenExecute": {
       "suggested_key": {
         "default": "Ctrl+Shift+Y",
         "windows": "Ctrl+Shift+Y",
@@ -70,7 +70,7 @@
       },
       "description": "Execute the voice command."
     },
-    "showWelcomeScreen": {
+    "showSettingsPage": {
       "suggested_key": {
         "default": "Ctrl+Shift+W",
         "windows": "Ctrl+Shift+W",

@@ -92,19 +92,22 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
     return tabDocumentInfo;
 }
 
-async function textBasedCommandOnPage() {
-    const [tab] = await chrome.tabs.query({
-        active: true,
-        lastFocusedWindow: true
-    });
+async function textCommandGetThenExecute() {
+    try {
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true
+        });
 
-    if (!tab.id)
-        return;
-    const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.promptUser} as PromptUserRequest);
-    if (response.userResponse !== null && response.userResponse !== "") {
-        const tabDocumentInfo = await getTabDocumentInfo(tab);
-        await submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab);
+        if (!tab.id)
+            return;
+        const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.promptUser} as PromptUserRequest);
+        if (response.userResponse !== null && response.userResponse !== "") {
+            const tabDocumentInfo = await getTabDocumentInfo(tab);
+            await submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab);
+        }
     }
+    catch {}
 }
 
 async function rebuildContextMenus() {
@@ -147,32 +150,40 @@ async function rebuildContextMenus() {
     }
 }
 
-chrome.commands.onCommand.addListener(async (command) => {
-    if (command === "analysePage")
-        return textBasedCommandOnPage();
-    if (command === "voiceCommandRecordThenExecute") {
-        await setupOffscreenDocument();
-        chrome.tts.stop();
-        chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.startAudioCapture} as ExtensionMessageRequest).then(
-            async (response: AudioRecordingResult) => {
-                if (response.audio) {
-                    const [tab] = await chrome.tabs.query({
-                        active: true,
-                        lastFocusedWindow: true
-                    });
-                    const tabDocumentInfo = await getTabDocumentInfo(tab);
-                    await submitUserRequest(tabDocumentInfo, {audio: response.audio}, tab);
-                }
+async function voiceCommandRecordThenExecute(){
+    await setupOffscreenDocument();
+    chrome.tts.stop();
+    await chrome.storage.session.set({voiceRecordingInProgress: true});
+    chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.startAudioCapture} as ExtensionMessageRequest).then(
+        async (response: AudioRecordingResult) => {
+            if (response.audio) {
+                const [tab] = await chrome.tabs.query({
+                    active: true,
+                    lastFocusedWindow: true
+                });
+                const tabDocumentInfo = await getTabDocumentInfo(tab);
+                await submitUserRequest(tabDocumentInfo, {audio: response.audio}, tab);
             }
+        }
+    );
+}
 
-        );
-        return;
+async function voiceCommandStopRecording() {
+    await setupOffscreenDocument();
+    await chrome.storage.session.set({voiceRecordingInProgress: false});
+    await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.stopAudioCapture} as ExtensionMessageRequest);
+}
+
+chrome.commands.onCommand.addListener(async (command) => {
+    if (command === "textCommandGetThenExecute")
+        return textCommandGetThenExecute();
+    else if (command === "voiceCommandRecordThenExecute") {
+        await voiceCommandRecordThenExecute();
     }
-    if (command === "voiceCommandStopRecording") {
-        await setupOffscreenDocument();
-        await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.stopAudioCapture} as ExtensionMessageRequest);
+    else if (command === "voiceCommandStopRecording") {
+        await voiceCommandStopRecording();
     }
-    if (command === "showWelcomeScreen") {
+    else if (command === "showSettingsPage") {
         await chrome.tabs.create({
             url: chrome.runtime.getURL("settings.html"),
             active: true
@@ -305,6 +316,13 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {
         registerContextMenuEvent(request as RegisterContextMenuEventRequest).catch();
     } else if (request.messageGoal === extensionMessageGoals.rebuildContextMenus) {
         rebuildContextMenus().catch();
+    } else if (request.messageGoal === extensionMessageGoals.voiceCommandRecordThenExecute) {
+        voiceCommandRecordThenExecute().catch();
+    } else if (request.messageGoal === extensionMessageGoals.voiceCommandStopRecording) {
+        voiceCommandStopRecording().catch();
+    } else if (request.messageGoal === extensionMessageGoals.textCommandGetThenExecute) {
+        textCommandGetThenExecute().catch();
     }
+
     return undefined;
 });

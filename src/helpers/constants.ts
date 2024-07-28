@@ -15,6 +15,10 @@ export enum extensionMessageGoals {
     modifyImage = "modifyImage",
     runInSandbox = "runInSandbox",
     sandboxedTaskResultsUpdate = "sandboxedTaskResultsUpdate",
+
+    textCommandGetThenExecute = "textCommandGetThenExecute",
+    voiceCommandRecordThenExecute = "voiceCommandRecordThenExecute",
+    voiceCommandStopRecording = "voiceCommandStopRecording",
 }
 
 export enum storageKeys {
@@ -201,3 +205,4 @@ export interface RegisterContextMenuEventRequest extends ExtensionMessageRequest
     selectedText: string
 }
 
+export const voiceRecordingInProgress = "voiceRecordingInProgress";

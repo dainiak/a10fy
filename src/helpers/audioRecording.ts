@@ -49,7 +49,7 @@ export function stopRecording() {
     if (!audioRecorder)
         return false;
 
-    audioRecorder.addEventListener("dataavailable", (blobEvent) => {
+    audioRecorder.ondataavailable = (blobEvent) => {
         const reader = new FileReader();
         reader.readAsDataURL(blobEvent.data);
         reader.onloadend = () => {
@@ -62,8 +62,9 @@ export function stopRecording() {
             audioResultSuccessHandler = null;
             audioResultErrorHandler = null;
         };
-    });
+    };
     audioRecorder.stop();
+
     mediaStream?.getTracks().forEach(track => track.readyState === 'live' && track.stop());
     mediaStream = null;
     return true;
