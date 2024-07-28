@@ -82,7 +82,8 @@ export interface SerializedCustomAction {
     selectedTextRegExp: string,
     context: {
         elementSnapshot: boolean,
-        pageSnapshot: boolean
+        pageSnapshot: boolean,
+        selectionSnapshot: boolean
     },
     resultsPresentation: CustomActionResultsPresentation,
     storageVersion?: number

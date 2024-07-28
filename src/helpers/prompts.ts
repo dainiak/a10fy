@@ -104,7 +104,9 @@ export interface CustomActionSystemInstructionLiquidScope {
         innerText: string | undefined | null
     },
     document: {
+        completeHTML: string | undefined | null,
         simplifiedHTML: string | undefined | null,
+        url: string | undefined | null,
         title: string | undefined | null,
     },
     selection: {
@@ -140,8 +142,10 @@ export function getCustomActionSystemInstructionDummyScope() {
             innerText: ""
         },
         document: {
+            completeHTML: "",
             simplifiedHTML: "",
-            title: ""
+            title: "",
+            url: ""
         },
         selection: {
             text: "",

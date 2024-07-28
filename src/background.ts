@@ -260,7 +260,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
             if(action.context.elementSnapshot && data.elementBoundingRect) {
                 await setupOffscreenDocument();
-                const imageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
+                const elementImageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
                     messageGoal: extensionMessageGoals.modifyImage,
                     modification: "crop",
                     image: tabScreenshot,
@@ -278,8 +278,31 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     }
                 } as ExtensionMessageImageModificationRequest);
 
-                if(imageModificationResult.image)
-                    context.elementSnapshot = imageModificationResult.image;
+                if(elementImageModificationResult.image)
+                    context.elementSnapshot = elementImageModificationResult.image;
+            }
+            if(action.context.selectionSnapshot && data.selectionContainerBoundingRect) {
+                await setupOffscreenDocument();
+                const selectionImageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
+                    messageGoal: extensionMessageGoals.modifyImage,
+                    modification: "crop",
+                    image: tabScreenshot,
+                    parameters: {
+                        x: data.selectionContainerBoundingRect?.x,
+                        y: data.selectionContainerBoundingRect?.y,
+                        width: data.selectionContainerBoundingRect?.width,
+                        height: data.selectionContainerBoundingRect?.height,
+                        viewportWidth: data.viewportRect?.width,
+                        viewportHeight: data.viewportRect?.height
+                    },
+                    output: {
+                        format: "jpeg",
+                        quality: 50
+                    }
+                } as ExtensionMessageImageModificationRequest);
+
+                if(selectionImageModificationResult.image)
+                    context.selectionSnapshot = selectionImageModificationResult.image;
             }
         }
 

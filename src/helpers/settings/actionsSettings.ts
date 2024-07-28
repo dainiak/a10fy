@@ -149,6 +149,8 @@ async function editAction(actionId: string) {
     resultsPresentationSelect.value = action.resultsPresentation;
     const elementSnapshotCheckbox = document.getElementById("customActionSendElementSnapshotToLLM") as HTMLInputElement;
     elementSnapshotCheckbox.checked = action.context.elementSnapshot;
+    const selectionSnapshotCheckbox = document.getElementById("customActionSendSelectionSnapshotToLLM") as HTMLInputElement;
+    selectionSnapshotCheckbox.checked = action.context.selectionSnapshot;
     const pageSnapshotCheckbox = document.getElementById("customActionSendPageSnapshotToLLM") as HTMLInputElement;
     pageSnapshotCheckbox.checked = action.context.pageSnapshot;
 
@@ -173,6 +175,7 @@ async function editAction(actionId: string) {
         action.targetsFilter.allowSearchInPageSelection = allowSearchInSelectionCheckbox.checked;
         action.resultsPresentation = resultsPresentationSelect.value as CustomActionResultsPresentation;
         action.context.elementSnapshot = elementSnapshotCheckbox.checked;
+        action.context.selectionSnapshot = selectionSnapshotCheckbox.checked;
         action.context.pageSnapshot = pageSnapshotCheckbox.checked;
         await setToStorage(storageKeys.customActions, actions);
         actionModal.hide();
@@ -218,6 +221,7 @@ export function setupNewCustomActionButton(){
             selectedTextRegExp: ".*",
             context: {
                 elementSnapshot: false,
+                selectionSnapshot: false,
                 pageSnapshot: false
             },
             resultsPresentation: CustomActionResultsPresentation.chatPane

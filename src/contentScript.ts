@@ -105,21 +105,29 @@ chrome.runtime.onMessage.addListener(
                     const result: DataForCustomActionResult = {
                         elementOuterHTML: element ? element.outerHTML : "",
                         elementInnerHTML: element ? element.innerHTML : "",
-                        documentSimplifiedHTML: document.body.outerHTML,
+                        documentCompleteHTML: document.body.outerHTML,
+                        documentSimplifiedHTML: getDocumentSkeleton(),
                         documentTitle: document.title,
+                        documentURL: document.location.href,
                         elementInnerText: element instanceof HTMLElement ? element.innerText || "" : "",
                         selectionText: selection ? selection.toString() : "",
                         selectionContainerOuterHTML: selectionContainer instanceof HTMLElement ? selectionContainer.outerHTML : "",
                         selectionContainerInnerText: selectionContainer instanceof HTMLElement ? selectionContainer.innerText : "",
                     };
 
-                    if(action.context.elementSnapshot && element) {
-                        const properties = getDomElementProperties(element, ["boundingRect"]);
-                        result.elementBoundingRect = properties.boundingRect;
+                    if(action.context.selectionSnapshot && selectionContainer || action.context.elementSnapshot && element) {
                         result.viewportRect = {
                             width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
                             height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
                         };
+                    }
+                    if(action.context.selectionSnapshot && selectionContainer) {
+                        const properties = getDomElementProperties(selectionContainer, ["boundingRect"]);
+                        result.selectionContainerBoundingRect = properties.boundingRect;
+                    }
+                    if(action.context.elementSnapshot && element) {
+                        const properties = getDomElementProperties(element, ["boundingRect"]);
+                        result.elementBoundingRect = properties.boundingRect;
                     }
                     sendResponse(result);
                 } else {

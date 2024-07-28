@@ -82,13 +82,16 @@ export interface DataForCustomActionRequest extends ExtensionMessageRequest {
 export interface DataForCustomActionResult {
     elementInnerHTML?: string,
     elementOuterHTML?: string,
+    documentCompleteHTML?: string,
     documentSimplifiedHTML?: string,
     documentTitle?: string,
+    documentURL?: string,
     elementInnerText?: string,
     selectionText?: string,
     selectionContainerOuterHTML?: string,
     selectionContainerInnerText?: string,
     elementBoundingRect?: DOMRect,
+    selectionContainerBoundingRect?: DOMRect,
     viewportRect?: {width: number, height: number},
     error?: string
 }
@@ -96,14 +99,17 @@ export interface DataForCustomActionResult {
 export interface CustomActionContext {
     elementInnerHTML?: string,
     elementOuterHTML?: string,
+    documentCompleteHTML?: string,
     documentSimplifiedHTML?: string,
     documentTitle?: string,
+    documentURL?: string,
     elementInnerText?: string,
     selectionText?: string,
     selectionContainerOuterHTML?: string,
     selectionContainerInnerText?: string,
     elementSnapshot?: string,
     pageSnapshot?: string,
+    selectionSnapshot?: string,
 }
 
 export interface ExecuteCustomActionInSidePanelRequest extends ExtensionMessageRequest {

@@ -1,7 +1,7 @@
 import {initializeChatListTable} from "./helpers/sidePanel/chatList";
 import {
     getCurrentChatId,
-    sendUserMessageToChat, setCurrentChat,
+    sendUserMessageToChat,
     updateCurrentChatDraftContent
 } from "./helpers/sidePanel/messages";
 import {
@@ -129,8 +129,10 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
                 innerText: context?.elementInnerText
             },
             document: {
+                completeHTML: context?.documentCompleteHTML,
                 simplifiedHTML: context?.documentSimplifiedHTML,
-                title: context?.documentTitle
+                title: context?.documentTitle,
+                url: context?.documentURL
             },
             selection: {
                 text: context?.selectionText,
@@ -164,6 +166,9 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
         }
         if(action.context.elementSnapshot && context.elementSnapshot) {
             parts.push(getInlineDataPart(context.elementSnapshot));
+        }
+        if(action.context.selectionSnapshot && context.selectionSnapshot) {
+            parts.push(getInlineDataPart(context.selectionSnapshot));
         }
 
         actionResultsContainer.innerHTML = `

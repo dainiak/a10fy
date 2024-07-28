@@ -97,7 +97,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 orderable: false,
                 render: (data) => `
 <button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>
-<button class="btn btn-outline-danger btn-sm summarize-chat-btn" data-chat-id="${data}" aria-label="Summarize chat" title="Summarize chat"><i class="bi bi-journal-text"></i></button>
+<button class="btn btn-outline-info btn-sm summarize-chat-btn" data-chat-id="${data}" aria-label="Summarize chat" title="Summarize chat"><i class="bi bi-journal-text"></i></button>
 `.trim(),
             }
         ],
