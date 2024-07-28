@@ -56,6 +56,7 @@
     "@streamparser/json": "^0.0.21",
     "@types/bootstrap": "^5.2.10",
     "@types/katex": "^0.16.7",
+    "@types/pako": "^2.0.3",
     "@types/turndown": "^5.0.4",
     "bootstrap": "^5.3.3",
     "chrome-types": "^0.1.294",

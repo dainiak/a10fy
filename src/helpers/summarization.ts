@@ -8,8 +8,8 @@ function truncateMessageContent(messageContent: string, maxLength: number = 1000
     return messageContent.slice(0, Math.floor(maxLength / 2)) + "\n...\n" + messageContent.slice(Math.ceil(messageContent.length - maxLength / 2));
 }
 
-export async function summarizeChat(chatId: string) {
-    const chat = await getChat(chatId) as SerializedChat;
+export async function summarizeChat(chat: SerializedChat) {
+
     const summarizationModel = await getSummarizationJSONModel();
     const chatContent = chat.messages.map(message => {
         const tag = message.type === ChatMessageTypes.USER ? "user-message" : "assistant-message";

@@ -20,6 +20,7 @@ import {
     fillCustomActionsTable,
     setupNewCustomActionButton
 } from "./helpers/settings/actionsSettings";
+import {setupClearButtons} from "./helpers/sidePanel/clearData";
 
 
 function setupGeneral() {
@@ -79,3 +80,5 @@ personaModalElement.addEventListener("hidden.bs.modal", () => {
 actionModalElement.addEventListener("hidden.bs.modal", () => {
     destroyCustomActionCodeMirrors();
 });
+
+setupClearButtons();

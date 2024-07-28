@@ -56,6 +56,10 @@ export function deleteChat(id: string) {
     return a10fyDatabase.chats.delete(id);
 }
 
+export function clearAllChats() {
+    return a10fyDatabase.chats.clear();
+}
+
 export function saveUpdatedChat(chat: SerializedChat) {
     if(chat.messages.length)
         return a10fyDatabase.chats.put(chat);

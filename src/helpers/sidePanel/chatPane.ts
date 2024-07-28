@@ -28,7 +28,8 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
     const personaList = currentChatSettingsCard.querySelector('#llmPersonaSelect') as HTMLSelectElement;
     const modelList = currentChatSettingsCard.querySelector('#llmModelSelect') as HTMLSelectElement;
 
-    const models = (await ensureNonEmptyModels()).filter((m: SerializedModel) => m.isVisibleInChat);
+    const models = await ensureNonEmptyModels();
+    const modelsFiltered = models.filter((model: SerializedModel) => model.isVisibleInChat);
     const personas = (await ensureNonEmptyPersonas()).filter((p: SerializedPersona) => p.isVisibleInChat);
     let personaFound = false;
     let modelFound = false;
@@ -51,7 +52,7 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
         updateCurrentChatSettings({persona: personaList.value});
     });
 
-    models.forEach((model) => {
+    modelsFiltered.forEach((model) => {
         const option = document.createElement("option");
         option.value = model.id;
         option.text = model.name;
@@ -62,7 +63,7 @@ export async function setupChatSettingsCard(currentChat: SerializedChat) {
         }
     });
     if (!modelFound) {
-        updateCurrentChatSettings({model: models[0].id});
+        updateCurrentChatSettings({model: modelsFiltered.length ? modelsFiltered[0].id : models[0].id});
     }
     modelList.addEventListener("change", () => {
         updateCurrentChatSettings({model: modelList.value});

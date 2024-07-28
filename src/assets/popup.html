@@ -3,11 +3,14 @@
 <head>
     <meta charset="utf-8">
     <title>Voice Input</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap-icons.css" rel="stylesheet">
     <script src="js/popup.js"></script>
 </head>
-<body>
-    <h1>Voice Input</h1>
-    <button id="start-record-btn">Start Recording</button>
+<body class="d-flex flex-column mx-2 my-3 container" style="width: 180px">
+    <h2 class="h2">Voice Input</h2>
+    <button id="voiceCommandButton" class="btn btn-outline-secondary"><i class="bi bi-mic"></i> Voice command</button>
     <p id="status">Press the button to start recording</p>
+    <button id="openSidePanelButton" class="btn btn-outline-secondary"><i class="bi bi-layout-sidebar-reverse"></i> Open side panel</button>
 </body>
 </html>

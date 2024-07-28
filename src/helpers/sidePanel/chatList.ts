@@ -2,10 +2,11 @@ import DataTable from 'datatables.net-bs5';
 import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
 import {chatListTab} from './htmlElements';
-import {getChats} from "./chatStorage";
+import {getChat, getChats, saveUpdatedChat, SerializedChat} from "./chatStorage";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
 import {SerializedPersona} from "../settings/dataModels";
 import {summarizeChat} from "../summarization";
+import {getCurrentChatId, updateCurrentChatSettings} from "./messages";
 
 declare module 'datatables.net-bs5' {
     interface Config {
@@ -115,10 +116,21 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
         }
         else if(button.classList.contains('summarize-chat-btn')) {
             const tr = button.closest('tr') as HTMLTableRowElement;
-            summarizeChat(button.dataset.chatId as string).then((title: string) => {
-                const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
-                td.textContent = title;
-            })
+            const chatId = button.dataset.chatId || "";
+            getChat(chatId).then((chat) => {
+                if(!chat)
+                    return;
+                summarizeChat(chat).then((title: string) => {
+                    const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
+                    if(getCurrentChatId() === chatId) {
+                        updateCurrentChatSettings({topic: title});
+                    } else {
+                        chat.topic = title;
+                        saveUpdatedChat(chat)?.catch();
+                    }
+                    td.textContent = title;
+                })
+            });
         }
     });
 

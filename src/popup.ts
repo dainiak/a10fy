@@ -1,17 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
-  let startRecordBtn = document.getElementById("start-record-btn");
+  document.body.setAttribute(
+      "data-bs-theme",
+      window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light"
+  );
+
+
   let statusText = document.getElementById("status");
-  startRecordBtn?.addEventListener("click", function () {
-    startRecording();
+  let startRecordBtn = document.getElementById("voiceCommandButton") as HTMLButtonElement;
+  startRecordBtn.onclick = () => {
     if(statusText)
       statusText.textContent = "Recording.";
-  });
+  };
 
-  function startRecording() {
-    if (!("webkitSpeechRecognition" in window) && statusText) {
-      statusText.textContent = "Web Speech API is not supported by this browser.";
-      return;
-    }
-
+  let openSidePanelBtn = document.getElementById("openSidePanelButton") as HTMLButtonElement;
+  openSidePanelBtn.onclick = async function () {
+    const currentWindow = await chrome.windows.getCurrent();
+    await chrome.sidePanel.open({windowId: currentWindow.id});
   }
 });
