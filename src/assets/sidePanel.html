@@ -33,16 +33,19 @@
     <div class="fixed-top bg-body">
         <ul class="nav nav-tabs" id="mainTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="chatTab" data-bs-toggle="tab" data-bs-target="#chatPane" type="button" role="tab" aria-controls="chatPane" aria-selected="true"><i class="bi bi-chat-text"></i></button>
+                <button class="nav-link active" id="chatTab" aria-label="Current chat" data-bs-toggle="tab" data-bs-target="#chatPane" type="button" role="tab" aria-controls="chatPane" aria-selected="true"><i class="bi bi-chat-text"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="chatListTab" data-bs-toggle="tab" data-bs-target="#chatListPane" type="button" role="tab" aria-controls="chatListPane" aria-selected="false"><i class="bi bi-stack"></i></button>
+                <button class="nav-link" id="chatListTab" aria-label="List of chats" data-bs-toggle="tab" data-bs-target="#chatListPane" type="button" role="tab" aria-controls="chatListPane" aria-selected="false"><i class="bi bi-stack"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="browserActionsTab" data-bs-toggle="tab" data-bs-target="#browserActionsPane" type="button" role="tab" aria-controls="browserActionsPane" aria-selected="false"><i class="bi bi-magic"></i></button>
+                <button class="nav-link" id="actionResultsTab" aria-label="Actions pane" data-bs-toggle="tab" data-bs-target="#actionResultsPane" type="button" role="tab" aria-controls="actionResultsPane" aria-selected="false"><i class="bi bi-magic"></i></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settingsTab" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="settingsPane" aria-selected="false"><i class="bi bi-sliders"></i></button>
+                <button class="nav-link" id="pageListTab" aria-label="Browser tabs/history" data-bs-toggle="tab" data-bs-target="#pageListPane" type="button" role="tab" aria-controls="pageListPane" aria-selected="false"><i class="bi bi-window-stack"></i></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settingsTab" aria-label="Settings" data-bs-toggle="tab" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="settingsPane" aria-selected="false"><i class="bi bi-sliders"></i></button>
             </li>
         </ul>
     </div>
@@ -55,7 +58,7 @@
                     <div class="a10fy-input-area-icons"></div>
                     <form>
                         <div class="input-group">
-                            <textarea rows="1" class="form-control auto-expand" placeholder="Type a message..."></textarea>
+                            <textarea rows="1" aria-label="Message input" class="form-control auto-expand" placeholder="Type a message..."></textarea>
                             <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>
                         </div>
                     </form>
@@ -75,7 +78,21 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="tab-pane fade container-fluid" id="browserActionsPane" role="tabpanel" aria-labelledby="browserActionsTab">
+            <div class="tab-pane fade container-lg" id="pageListPane" role="tabpanel" aria-labelledby="pageListTab">
+                <table id="pageListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
+                    <thead>
+                    <tr>
+                        <th>Snapshot<br>timestamp</th>
+                        <th>URL</th>
+                        <th>Title</th>
+                        <th>Summary</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade container-fluid" id="actionResultsPane" role="tabpanel" aria-labelledby="actionResultsTab">
                 <div id="actionResultsContainer" class="container container-fluid mx-sm-1 my-sm-1 mx-md-3 my-md-3"></div>
             </div>
             <div class="tab-pane fade container-fluid px-0 text-center" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">

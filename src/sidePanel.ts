@@ -35,6 +35,7 @@ import {Part} from "@google/generative-ai";
 import {customPlayerFactory} from "./helpers/players/custom";
 import {markdownRenderer} from "./helpers/sidePanel/markdown";
 import {CustomActionSystemInstructionLiquidScope} from "./helpers/prompts";
+import {initializePageListTable} from "./helpers/sidePanel/pageList";
 
 
 
@@ -96,6 +97,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             startNewChat();
         }
     }).catch();
+
+    initializePageListTable().catch();
+
     makeUserInputAreaAutoexpandable();
     setInputAreaAttachmentEventListeners();
 });

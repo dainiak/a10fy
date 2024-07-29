@@ -15,10 +15,8 @@ window.addEventListener('message', function (event) {
         return;
 
     const params = request.taskParams as CustomPlayerRequestParams;
-    // @ts-ignore
-    window.customCodePlayerParams = {language: params.language, code: params.code};
-    // @ts-ignore
-    window.sendCustomCodePlayerResult = (result: CustomPlayerResult) => {
+    (window as any).customCodePlayerParams = {language: params.language, code: params.code};
+    (window as any).sendCustomCodePlayerResult = (result: CustomPlayerResult) => {
         event.source?.postMessage(
             {
                 messageGoal: extensionMessageGoals.sandboxedTaskResultsUpdate,

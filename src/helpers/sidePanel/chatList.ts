@@ -120,15 +120,15 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             getChat(chatId).then((chat) => {
                 if(!chat)
                     return;
-                summarizeChat(chat).then((title: string) => {
+                summarizeChat(chat).then((result) => {
                     const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
                     if(getCurrentChatId() === chatId) {
-                        updateCurrentChatSettings({topic: title});
+                        updateCurrentChatSettings({topic: result.title});
                     } else {
-                        chat.topic = title;
+                        chat.topic = result.title;
                         saveUpdatedChat(chat)?.catch();
                     }
-                    td.textContent = title;
+                    td.textContent = result.title;
                 })
             });
         }

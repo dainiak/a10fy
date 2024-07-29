@@ -34,7 +34,6 @@ export enum storageKeys {
 }
 
 export const cssPrefix = "a10fy_";
-export const cssPrefixFallbackSymbol = Symbol(cssPrefix);
 
 export interface ActionRequest {
     actionName: string;

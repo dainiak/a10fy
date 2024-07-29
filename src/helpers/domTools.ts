@@ -1,4 +1,4 @@
-import {cssPrefix, cssPrefixFallbackSymbol} from "./constants";
+import {cssPrefix} from "./constants";
 import {standardHTMLAttributes} from "./standardHtmlAttributes";
 import {CustomActionTargetSelectorBehavior, SerializedCustomAction} from "./settings/dataModels";
 
@@ -28,15 +28,8 @@ export function findElementByIndex(index: number | string | null): null | Node {
     index = Number.parseInt(index as string);
 
     if (elementMap.has(index)) {
-        const element = elementMap.get(index);
-        if (element[cssPrefixFallbackSymbol] === index)
-            return element;
+        return elementMap.get(index);
     }
-
-    // @ts-ignore
-    for (const element of document.getElementsByTagName("*"))
-        if (element[cssPrefixFallbackSymbol] === index)
-            return element;
 
     return null;
 }
@@ -70,7 +63,6 @@ export function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}
                 wrapper.textContent = text;
                 wrapper.setAttribute("class", `${cssPrefix}${nodeIndex}`);
                 ++nodeIndex;
-                Object.assign(node, {[cssPrefixFallbackSymbol]: nodeIndex})
                 elementMap.set(nodeIndex, node);
                 return [wrapper];
             }
@@ -103,7 +95,6 @@ export function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}
             if (attributesToKeep.includes("class"))
                 resultNode.classList.add(a10fyClass);
 
-            Object.assign(node, {[cssPrefixFallbackSymbol]: nodeIndex});
             elementMap.set(nodeIndex, node);
 
             const srcAttribute = node.getAttribute("src");

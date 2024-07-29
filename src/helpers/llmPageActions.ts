@@ -206,13 +206,12 @@ export const llmPageActions: LLMPageActions = {
                 return [];
 
             return [() => {
-                // @ts-ignore
-                window.tourGuideClient = new TourGuideClient({steps: [{
+                const tourGuideClient = new TourGuideClient({steps: [{
                     title: actionParams.stepTitle,
                     content: actionParams.stepText,
                     target: element ? element as HTMLElement : undefined
                 }]});
-                // @ts-ignore
+                Object.assign(window, {tourGuideClient});
                 tourGuideClient.start();
             }]
         }
@@ -224,14 +223,21 @@ export const llmPageActions: LLMPageActions = {
                 return [];
 
             return [() => {
-                // @ts-ignore
-                window.tourGuideClient.addSteps([{
+                let tourGuideClient = (window as any).tourGuideClient;
+                const steps = [{
                     title: actionParams.stepTitle,
                     content: actionParams.stepText,
                     target: element ? element as HTMLElement : undefined
-                }]);
-                // @ts-ignore
-                tourGuideClient.refreshDialog();
+                }];
+                if(tourGuideClient) {
+                    tourGuideClient.addSteps(steps);
+                    tourGuideClient.refreshDialog();
+                }
+                else {
+                    tourGuideClient = new TourGuideClient({steps});
+                    Object.assign(window, {tourGuideClient});
+                    tourGuideClient.start();
+                }
             }]
         }
     }

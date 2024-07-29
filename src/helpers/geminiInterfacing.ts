@@ -1,18 +1,20 @@
 import {
+    FunctionDeclarationSchema,
+    FunctionDeclarationSchemaProperty,
     FunctionDeclarationSchemaType,
     GenerateContentRequest,
     GenerationConfig,
     GoogleGenerativeAI,
     HarmBlockThreshold,
     HarmCategory,
-    ResponseSchema
+    ResponseSchema, Schema
 } from "@google/generative-ai";
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
 import {storageKeys} from "./constants";
 import {
     getAssistantSystemPrompt,
-    getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate, getSummarizationSystemPrompt
+    getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate
 } from "./prompts";
 import {getFromStorage} from "./storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
@@ -25,22 +27,19 @@ async function getAssistantJSONModel() {
     const responseSchema: ResponseSchema = {
         type: FunctionDeclarationSchemaType.OBJECT,
         properties: {
-            //@ts-ignore
             understoodAs: {
-                "type": FunctionDeclarationSchemaType.STRING,
-            },
-            //@ts-ignore
+                type: FunctionDeclarationSchemaType.STRING,
+            } as FunctionDeclarationSchema,
             clarificationNeeded: {
                 type: FunctionDeclarationSchemaType.BOOLEAN,
-            },
-            //@ts-ignore
+            } as FunctionDeclarationSchema,
+            // @ts-ignore
             actionList: {
                 type: FunctionDeclarationSchemaType.ARRAY,
-                //@ts-ignore
                 items: {
                     type: FunctionDeclarationSchemaType.ARRAY
-                }
-            }
+                },
+            } as FunctionDeclarationSchema
         }
     }
     const generationConfig: GenerationConfig = {
@@ -81,8 +80,7 @@ async function getAssistantJSONModel() {
     );
 }
 
-export async function getSummarizationJSONModel() {
-    const systemInstruction = getSummarizationSystemPrompt();
+export async function getSummarizationJSONModel(systemInstruction: string) {
     const modelSettings: SerializedModel | null = await getFromStorage(storageKeys.summarizationModel);
     const apiKey = modelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
 

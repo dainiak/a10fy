@@ -7,6 +7,7 @@ export const chatPaneChatArea = document.querySelector('.a10fy-chat-area') as HT
 export const chatPaneInputArea = document.querySelector(".a10fy-input-area") as HTMLDivElement;
 export const chatInputFormElement = document.querySelector('.a10fy-input-area form') as HTMLFormElement;
 export const chatListTab = document.getElementById("chatListTab") as HTMLElement;
+export const pageListTab = document.getElementById("pagesListTab") as HTMLElement;
 export const actionResultsContainer = document.getElementById("actionResultsContainer") as HTMLDivElement;
 export const inputAreaAttachmentIconsContainer = document.querySelector(".a10fy-input-area-icons") as HTMLDivElement;
 
@@ -35,7 +36,7 @@ export function showChatListPane() {
 }
 
 export function showActionsPane() {
-    Tab.getOrCreateInstance(document.getElementById("browserActionsTab") as HTMLElement).show()
+    Tab.getOrCreateInstance(document.getElementById("actionResultsTab") as HTMLElement).show()
 }
 
 export function showSettingsPane() {

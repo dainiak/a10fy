@@ -32,12 +32,6 @@ You are capable of generating python code that can be executed right in the brow
 `.trim();
 }
 
-export function getSummarizationSystemPrompt() {
-    return `
-You are a large language model. The current date is ${new Date().toISOString().slice(0, 10)}. You will be given a dialog between a user and an AI assistant, the messages in the dialog being inside <user-message>...</user-message> and <assistant-message>...</assistant-message> tags. You need to output a JSON object with key "summaries" and "title". The value of "summaries" key is an array of strings (from one to three), each string is a long sentence that summarizes the dialog or part of a dialog if the dialog consists of relatively independent parts. You should provide a summary that captures the main points of the dialog, mentioning topic-specific keywords. You should not include any information that is not present in the dialog. You should also not output the "summaries" array of length more than one if the dialog was on one topic and did not diverge much from it. The value of "title" key should be be a single string: a short title for the whole dialog. 
-`.trim();
-}
-
 export function getAssistantSystemPrompt() {
     const allActions = {...llmPageActions, ...llmGlobalActions};
     const allActionNames = [...Object.keys(llmPageActions), ...Object.keys(llmGlobalActions)];
