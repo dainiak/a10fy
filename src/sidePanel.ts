@@ -14,14 +14,14 @@ import {
 } from "./helpers/sidePanel/htmlElements";
 import {setInputAreaAttachmentEventListeners} from "./helpers/sidePanel/attachments";
 import {loadChatAsCurrent, startNewChat,} from "./helpers/sidePanel/chatPane";
-import {deleteChat} from "./helpers/sidePanel/chatStorage";
+import {deleteChat} from "./helpers/storage/chatStorage";
 import {
     ExecuteCustomActionInSidePanelRequest,
     extensionMessageGoals,
     ExtensionMessageRequest,
     storageKeys
 } from "./helpers/constants";
-import {getFromStorage, setToStorage} from "./helpers/storageHandling";
+import {getFromStorage, setToStorage} from "./helpers/storage/storageHandling";
 import {
     CustomActionResultsPresentation,
     SerializedCustomAction,

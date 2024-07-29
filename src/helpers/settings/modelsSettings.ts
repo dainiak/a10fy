@@ -3,7 +3,7 @@ import {SerializedModel} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
 import {HarmBlockThreshold} from "@google/generative-ai";
 import {uniqueString} from "../uniqueId";
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {ensureNonEmptyModels} from "./ensureNonEmpty";
 
 const modelModalElement = document.getElementById("editModelModal") as HTMLDivElement;

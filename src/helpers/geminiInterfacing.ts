@@ -16,7 +16,7 @@ import {
     getAssistantSystemPrompt,
     getChatSystemInstructionDummyScope, getDefaultChatSystemPromptTemplate
 } from "./prompts";
-import {getFromStorage} from "./storageHandling";
+import {getFromStorage} from "./storage/storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
 import {liquidEngine} from "./sidePanel/liquid";
 
@@ -144,17 +144,18 @@ export async function getTextEmbedding(data: string | string[]) {
     const apiKey = embeddingModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const modelName = embeddingModelSettings?.technicalName || "text-embedding-004";
     const geminiEmbed = (new GoogleGenerativeAI(apiKey)).getGenerativeModel({model: modelName});
-    if (data instanceof String) {
-        const embedding = await geminiEmbed.embedContent(data);
-        return embedding.embedding.values;
-    }
-    else if(Array.isArray(data)) {
+
+    if(Array.isArray(data)) {
         const embeddings = await geminiEmbed.batchEmbedContents(
             {
                 requests: data.map((text) => ({content: {role: "user", parts: [{text:text}]}}))
             }
         );
         return embeddings.embeddings.map((embedding) => embedding.values);
+    }
+    else {
+        const embedding = await geminiEmbed.embedContent(data);
+        return embedding.embedding.values;
     }
 }
 

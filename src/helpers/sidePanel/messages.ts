@@ -11,12 +11,12 @@ import {
     getEmptyDraft, getTimestampStringForChat, MessageAttachment, MessageAttachmentTypes,
     saveUpdatedChat,
     SerializedChat, SerializedMessage
-} from "./chatStorage";
+} from "../storage/chatStorage";
 import {getGeminiTextModel} from "../geminiInterfacing";
 import {getInlineDataPart} from "../promptParts";
 import {storageKeys} from "../constants";
 import {SerializedCustomCodePlayer, SerializedModel, SerializedPersona} from "../settings/dataModels";
-import {getFromStorage} from "../storageHandling";
+import {getFromStorage} from "../storage/storageHandling";
 import {customPlayerFactory} from "../players/custom";
 import {uniqueString} from "../uniqueId";
 import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";

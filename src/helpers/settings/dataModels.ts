@@ -91,7 +91,8 @@ export interface SerializedCustomAction {
 
 export interface SerializedVoiceSetting {
     rate: number,
-    voiceName: string
+    voiceName: string,
+    storageVersion?: number
 }
 
 export interface SerializedVoiceSettings {

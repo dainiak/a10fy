@@ -35,34 +35,34 @@ export interface SerializedChat {
     storageVersion?: number
 }
 
-export const a10fyDatabase = new Dexie('Chats') as Dexie & {
+export const a10fyChatDatabase = new Dexie('Chats') as Dexie & {
     chats: EntityTable<SerializedChat, 'id'>;
 };
 
-a10fyDatabase.version(1).stores({
+a10fyChatDatabase.version(1).stores({
     chats: 'id',
 });
 
 
 export function getChats() {
-    return a10fyDatabase.chats.toArray();
+    return a10fyChatDatabase.chats.toArray();
 }
 
 export async function getChat(id: string) {
-    return a10fyDatabase.chats.get(id);
+    return a10fyChatDatabase.chats.get(id);
 }
 
 export function deleteChat(id: string) {
-    return a10fyDatabase.chats.delete(id);
+    return a10fyChatDatabase.chats.delete(id);
 }
 
 export function clearAllChats() {
-    return a10fyDatabase.chats.clear();
+    return a10fyChatDatabase.chats.clear();
 }
 
 export function saveUpdatedChat(chat: SerializedChat) {
     if(chat.messages.length)
-        return a10fyDatabase.chats.put(chat);
+        return a10fyChatDatabase.chats.put(chat);
 }
 
 export function getEmptyDraft() : SerializedMessage {
@@ -97,6 +97,6 @@ export function createSerializedChat() {
         messages: [],
         draft: getEmptyDraft()
     };
-    a10fyDatabase.chats.add(chat);
+    a10fyChatDatabase.chats.add(chat);
     return chat;
 }

@@ -1,7 +1,7 @@
-import {removeFromStorage, setToStorage} from "../storageHandling";
+import {removeFromStorage, setToStorage} from "../storage/storageHandling";
 import {storageKeys} from "../constants";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
-import {clearAllChats} from "./chatStorage";
+import {clearAllChats} from "../storage/chatStorage";
 import {fillModelsTable} from "../settings/modelsSettings";
 import {fillPersonasTable} from "../settings/personasSettings";
 import {fillPlayersTable} from "../settings/playersSettings";

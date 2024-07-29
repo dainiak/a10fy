@@ -2,7 +2,7 @@ import DataTable from 'datatables.net-bs5';
 import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
 import {chatListTab} from './htmlElements';
-import {getChat, getChats, saveUpdatedChat, SerializedChat} from "./chatStorage";
+import {getChat, getChats, saveUpdatedChat, SerializedChat} from "../storage/chatStorage";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
 import {SerializedPersona} from "../settings/dataModels";
 import {summarizeChat} from "../summarization";
@@ -121,14 +121,16 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 if(!chat)
                     return;
                 summarizeChat(chat).then((result) => {
-                    const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
-                    if(getCurrentChatId() === chatId) {
-                        updateCurrentChatSettings({topic: result.title});
-                    } else {
-                        chat.topic = result.title;
-                        saveUpdatedChat(chat)?.catch();
+                    if (result) {
+                        const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
+                        if(getCurrentChatId() === chatId) {
+                            updateCurrentChatSettings({topic: result.title});
+                        } else {
+                            chat.topic = result.title;
+                            saveUpdatedChat(chat)?.catch();
+                        }
+                        td.textContent = result.title;
                     }
-                    td.textContent = result.title;
                 })
             });
         }

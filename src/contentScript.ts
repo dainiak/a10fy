@@ -14,7 +14,7 @@ import {enqueuePageAction} from "./helpers/llmPageActions";
 
 import ActionQueue from "./helpers/actionQueue";
 import {SerializedCustomAction} from "./helpers/settings/dataModels";
-import {getFromStorage} from "./helpers/storageHandling";
+import {getFromStorage} from "./helpers/storage/storageHandling";
 
 const pageActionQueue = new ActionQueue();
 setInterval(

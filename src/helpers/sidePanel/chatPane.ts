@@ -5,7 +5,7 @@ import {
     setCurrentChat,
     updateCurrentChatSettings
 } from "./messages";
-import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "./chatStorage";
+import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "../storage/chatStorage";
 import {uniqueString} from "../uniqueId";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";

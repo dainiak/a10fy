@@ -2,6 +2,8 @@ import DataTable from 'datatables.net-bs5';
 import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
 import {pageListTab} from "./htmlElements";
+import {deletePage, getPages} from "../storage/pageStorage";
+import {getTextEmbedding} from "../geminiInterfacing";
 
 declare module 'datatables.net-bs5' {
     interface Config {
@@ -17,7 +19,16 @@ export async function initializePageListTable() {
     let tableBody: HTMLDivElement;
 
     const getData = async () => {
-        return [];
+        return (await getPages() || []).map((page) => {
+            return {
+                id: page.id,
+                timestamp: page.timestamp,
+                url: page.url,
+                title: page.title,
+                vectors: page.vectors,
+                score: 0
+            }
+        });
     }
 
     const pageListTable = new DataTable('#pageListTable', {
@@ -57,16 +68,16 @@ export async function initializePageListTable() {
         },
         columns: [
             {
-                title: '',
-                data: 'id',
+                title: 'Relevance',
+                data: 'score',
                 searchable: false,
-                orderable: false,
-                render: (data: string) => `<button class="btn btn-outline-secondary btn-sm open-page-btn" data-page-id="${data}" aria-label="Open page" title="Open page"><i class="bi bi-file-earmark-richtext"></i></button>`,
+                orderable: true,
+                render: (data: any) => data ? `${data.toFixed(2)}` : "—",
             },
             {title: 'Timestamp', data: 'timestamp', name: 'timestamp', searchable: true, className: 'dt-left text-left page-timestamp'},
             {
                 title: 'URL', data: 'url', name: 'url', searchable: true, className: 'dt-left text-left page-url',
-                render: (data: any) => "???",
+                render: (url: string) => url ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>` : "(no url saved)",
             },
             {title: 'Title', data: 'title', name: 'title', searchable: true, className: 'dt-left text-left page-title'},
             {
@@ -94,7 +105,7 @@ export async function initializePageListTable() {
         else if(button.classList.contains('delete-page-btn')) {
             const tr = button.closest('tr') as HTMLTableRowElement;
             pageListTable.row(tr).remove().draw();
-            // TODO: delete page info
+            deletePage(button.dataset.pageId as string);
         }
     });
 
@@ -109,6 +120,31 @@ export async function initializePageListTable() {
     const searchControl = document.querySelector("#pageListPane div.dt-search") as HTMLDivElement;
     const searchLabel = document.querySelector("#pageListPane div.dt-search label") as HTMLLabelElement;
     const searchField = document.querySelector("#pageListPane div.dt-search input") as HTMLInputElement;
+    const fuzzySearchField = document.getElementById("fuzzySearchInput") as HTMLInputElement;
+
+    fuzzySearchField.onchange = async () => {
+        const cosine = (v1: number[], v2: number[]) => {
+            const dot = v1.reduce((acc, cur, i) => acc + cur * v2[i], 0);
+            const mag1 = Math.sqrt(v1.reduce((acc, cur) => acc + cur * cur, 0));
+            const mag2 = Math.sqrt(v2.reduce((acc, cur) => acc + cur * cur, 0));
+            return dot / (mag1 * mag2);
+        }
+        const embedding = await getTextEmbedding(fuzzySearchField.value) as number[];
+        if(Array.isArray(embedding) && embedding.length) {
+            const data = await getData();
+
+            for (const page of data) {
+                console.log(page.vectors);
+                page.score = page.vectors.reduce((acc, cur, i) => Math.min(acc, cosine(embedding, cur)), 1000000);
+                console.log(page.score);
+            }
+            data.sort((a, b) => a.score - b.score);
+            pageListTable.clear();
+            pageListTable.rows.add(data);
+            pageListTable.draw();
+        }
+    };
+
     searchControl.classList.add("input-group");
     searchLabel.classList.add("input-group-text");
     searchField.classList.remove("form-control-sm");

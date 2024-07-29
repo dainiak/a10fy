@@ -3,7 +3,7 @@ import {SerializedModel, SerializedPersona} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";
 import {getChatSystemInstructionDummyScope} from "../prompts";
-import {setToStorage} from "../storageHandling";
+import {setToStorage} from "../storage/storageHandling";
 import {createLiquidCodeMirror} from "../codeMirror";
 import {EditorView} from "@codemirror/view";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "./ensureNonEmpty";

@@ -5,7 +5,7 @@ import {
     SerializedCustomCodePlayer,
     SerializedModel
 } from "./dataModels";
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {extensionMessageGoals, ExtensionMessageRequest, storageKeys} from "../constants";
 import Modal from "bootstrap/js/dist/modal";
 import {uniqueString} from "../uniqueId";

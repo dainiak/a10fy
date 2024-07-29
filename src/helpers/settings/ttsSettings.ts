@@ -1,4 +1,4 @@
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {storageKeys} from "../constants";
 import {SerializedVoiceSettings} from "./dataModels";
 

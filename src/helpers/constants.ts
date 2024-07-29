@@ -15,6 +15,8 @@ export enum extensionMessageGoals {
     modifyImage = "modifyImage",
     runInSandbox = "runInSandbox",
     sandboxedTaskResultsUpdate = "sandboxedTaskResultsUpdate",
+    takeCurrentPageSnapshot = "takeCurrentPageSnapshot",
+    pageSnapshotTaken = "pageSnapshotTaken",
 
     textCommandGetThenExecute = "textCommandGetThenExecute",
     voiceCommandRecordThenExecute = "voiceCommandRecordThenExecute",
@@ -31,6 +33,9 @@ export enum storageKeys {
     codePlayers = "codePlayers",
     customActions = "customActions",
     ttsVoicePreferences = "ttsVoicePreferences",
+
+    voiceRecordingInProgress = "voiceRecordingInProgress",
+    pageListSearchType = "pageListSearchType",
 }
 
 export const cssPrefix = "a10fy_";
@@ -208,5 +213,3 @@ export interface RegisterContextMenuEventRequest extends ExtensionMessageRequest
     availableCustomActions: string[],
     selectedText: string
 }
-
-export const voiceRecordingInProgress = "voiceRecordingInProgress";

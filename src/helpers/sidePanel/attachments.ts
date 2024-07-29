@@ -6,7 +6,7 @@ import {
     inputAreaAttachmentIconsContainer,
     updateInputAreaHeight
 } from "./htmlElements";
-import {MessageAttachmentTypes} from "./chatStorage";
+import {MessageAttachmentTypes} from "../storage/chatStorage";
 import {addAttachmentToCurrentDraft, removeAttachmentFromCurrentDraft} from "./messages";
 
 const pasteFormatChoiceModalElement = document.getElementById("pasteFormatChoiceModal") as HTMLDivElement;

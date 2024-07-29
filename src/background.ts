@@ -22,8 +22,12 @@ import {asyncRequestAndParseJSON} from "./helpers/geminiInterfacing";
 import {llmGlobalActions} from "./helpers/llmGlobalActions";
 import {llmPageActions} from "./helpers/llmPageActions";
 import {GenerateContentRequest, Part} from "@google/generative-ai";
-import {getFromStorage} from "./helpers/storageHandling";
+import {getFromStorage} from "./helpers/storage/storageHandling";
 import {SerializedCustomAction} from "./helpers/settings/dataModels";
+import {SerializedPageSnapshot} from "./helpers/storage/pageStorage";
+import {uniqueString} from "./helpers/uniqueId";
+import {summarizePage} from "./helpers/summarization";
+import {addSerializedPage, getTimestampStringForPage} from "./helpers/storage/pageStorage";
 
 setupOffscreenDocument().catch();
 rebuildContextMenus().catch();
@@ -80,12 +84,16 @@ async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
     if (!tab.id)
         return {};
 
-    const tabScreenshot = await chrome.tabs.captureVisibleTab(undefined,
-        {
-            "format": "jpeg",
-            "quality": 40
-        }
-    );
+    let tabScreenshot = "";
+    try {
+        tabScreenshot = await chrome.tabs.captureVisibleTab(undefined,
+            {
+                "format": "jpeg",
+                "quality": 40
+            }
+        );
+    }
+    catch {}
 
     try {
         const tabDocumentInfo: TabDocumentInfo = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.getDocumentInfo} as ExtensionMessageRequest);
@@ -157,7 +165,7 @@ async function rebuildContextMenus() {
 async function voiceCommandRecordThenExecute(){
     await setupOffscreenDocument();
     chrome.tts.stop();
-    await chrome.storage.session.set({voiceRecordingInProgress: true});
+    await chrome.storage.session.set({[storageKeys.voiceRecordingInProgress]: true});
     chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.startAudioCapture} as ExtensionMessageRequest).then(
         async (response: AudioRecordingResult) => {
             if (response.audio) {
@@ -174,7 +182,7 @@ async function voiceCommandRecordThenExecute(){
 
 async function voiceCommandStopRecording() {
     await setupOffscreenDocument();
-    await chrome.storage.session.set({voiceRecordingInProgress: false});
+    await chrome.storage.session.set({[storageKeys.voiceRecordingInProgress]: false});
     await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.stopAudioCapture} as ExtensionMessageRequest);
 }
 
@@ -338,6 +346,37 @@ async function registerContextMenuEvent(request: RegisterContextMenuEventRequest
     }
 }
 
+async function takeCurrentPageSnapshot() {
+    const [tab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true
+    });
+
+    const tabDocumentInfo = await getTabDocumentInfo(tab);
+    const serializedPage: SerializedPageSnapshot = {
+        id: uniqueString(),
+        timestamp: getTimestampStringForPage(),
+        text: tabDocumentInfo.text || "",
+        title: tabDocumentInfo.title || "",
+        url: tabDocumentInfo.url || "",
+        keywords: [],
+        summaries: [],
+        vectors: [],
+        screenshot: tabDocumentInfo.screenshot || ""
+    };
+    const result = await summarizePage(serializedPage);
+    serializedPage.text = "";
+    if(result) {
+        serializedPage.title = result?.title || serializedPage.title;
+        serializedPage.summaries = result?.summaries || [];
+        serializedPage.keywords = result?.keywords || [];
+        serializedPage.vectors = result?.vectors || [];
+    }
+    serializedPage.screenshot = ""
+    addSerializedPage(serializedPage);
+    chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.pageSnapshotTaken} as ExtensionMessageRequest).catch();
+}
+
 chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {
     if (request.messageGoal === extensionMessageGoals.registerContextMenuEvent) {
         registerContextMenuEvent(request as RegisterContextMenuEventRequest).catch();
@@ -349,6 +388,8 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {
         voiceCommandStopRecording().catch();
     } else if (request.messageGoal === extensionMessageGoals.textCommandGetThenExecute) {
         textCommandGetThenExecute().catch();
+    } else if (request.messageGoal === extensionMessageGoals.takeCurrentPageSnapshot) {
+        takeCurrentPageSnapshot().catch();
     }
 
     return undefined;

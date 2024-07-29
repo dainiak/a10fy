@@ -1,7 +1,7 @@
 import {uniqueString} from "../uniqueId";
 import {HarmBlockThreshold} from "@google/generative-ai";
 import {SerializedModel, SerializedPersona} from "./dataModels";
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {storageKeys} from "../constants";
 import {getDefaultChatSystemPromptTemplate} from "../prompts";
 

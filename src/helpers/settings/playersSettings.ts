@@ -1,5 +1,5 @@
 import {SerializedCustomCodePlayer} from "./dataModels";
-import {getFromStorage, setToStorage} from "../storageHandling";
+import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {storageKeys} from "../constants";
 import {uniqueString} from "../uniqueId";
 import Modal from "bootstrap/js/dist/modal";

@@ -11,7 +11,7 @@ import {
     personaModalElement,
     setupNewPersonaButton
 } from "./helpers/settings/personasSettings";
-import {getFromStorage, setToStorage} from "./helpers/storageHandling";
+import {getFromStorage, setToStorage} from "./helpers/storage/storageHandling";
 import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
 import Tab from "bootstrap/js/dist/tab";
 import {

@@ -1,7 +1,7 @@
 import {ExecutePageActionRequest, extensionMessageGoals, ExtensionMessageRequest, storageKeys} from "./constants";
 import {llmPageActionNames} from "./llmPageActions";
 import 'chrome-types';
-import {getFromStorage} from "./storageHandling";
+import {getFromStorage} from "./storage/storageHandling";
 import {SerializedVoiceSettings} from "./settings/dataModels";
 
 export enum llmGlobalActionNames {
