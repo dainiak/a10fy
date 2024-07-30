@@ -293,13 +293,22 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
     }
 
     const reportError = (errorString: string) => {
+        const badge = `<span class="badge rounded-pill text-bg-danger">Error</span>`;
         if(errorString.includes("Please use API Key or other form of API consumer identity")) {
-            llmMessageCardBodyElement.innerHTML = `API Key not set. Please set in <a href="#">settings.</a>`;
-            (llmMessageCardBodyElement.querySelector("a") as HTMLAnchorElement).onclick = (evt) => {evt.preventDefault(); showSettingsPane()};
+            llmMessageCardBodyElement.innerHTML = `${badge} API Key not set. Please set in <a href="#">settings.</a>`;
+        }
+        else if (errorString.includes("Call ListModels to see the list of available models and their supported methods")) {
+            llmMessageCardBodyElement.innerHTML = `${badge} Model not found. Please use one of correct model technical names in <a href="#">settings.</a>`;
+        }
+        else if(errorString.includes("temperature must be") || errorString.includes("top_k must be ") || errorString.includes("top_p must be")) {
+            llmMessageCardBodyElement.innerHTML = `${badge} Some of the model generation parameters (Temperature/Top-K/Top-P) are incorrect. Correct them in <a href="#">settings.</a>`;
         }
         else {
-            llmMessageCardBodyElement.textContent = `(Error generating message: ${errorString})`;
+            llmMessageCardBodyElement.textContent = `${badge} Error generating message: ${errorString}`;
         }
+        const link = llmMessageCardBodyElement.querySelector("a");
+        if(link)
+            link.onclick = (evt) => {evt.preventDefault(); showSettingsPane()};
     }
 
     const chatModel = await getGeminiTextModel(model, persona);
