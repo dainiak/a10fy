@@ -117,7 +117,46 @@ export async function setupAssistantModelSettings() {
         await setToStorage(storageKeys.assistantModel, assistantModel);
     });
 
-    (document.getElementById("editAssistantModelButton") as HTMLButtonElement).onclick = () => editModel(assistantModel.id, true);
+    (document.getElementById("editAssistantModelButton") as HTMLButtonElement).onclick = () => editModel(assistantModel.id, "assistant");
+}
+
+export async function setupSummarizationModelSettings() {
+    let summarizationModel: SerializedModel | null = await getFromStorage(storageKeys.summarizationModel);
+    if(!summarizationModel) {
+        summarizationModel = {
+            sortingIndex: 0,
+            id: uniqueString(),
+            name: "Assistant model",
+            description: "Assistant model",
+            technicalName: "gemini-1.5-flash-latest",
+            topK: null,
+            topP: null,
+            temperature: null,
+            apiKey: "",
+            isVisibleInChat: true,
+            safetySettings: {
+                dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                harassment: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                sexuallyExplicit: HarmBlockThreshold.BLOCK_ONLY_HIGH
+            }
+        }
+        await setToStorage(storageKeys.summarizationModel, summarizationModel);
+    }
+    const summarizationModelApiKeyInput = document.getElementById("summarizationModelApiKey") as HTMLInputElement;
+    summarizationModelApiKeyInput.value = summarizationModel?.apiKey || "";
+    summarizationModelApiKeyInput.addEventListener("change", async () => {
+        summarizationModel.apiKey = summarizationModelApiKeyInput.value;
+        await setToStorage(storageKeys.summarizationModel, summarizationModel);
+    });
+    const summarizationModelNameInput = document.getElementById("assistantModelTechnicalName") as HTMLInputElement;
+    summarizationModelNameInput.value = summarizationModel?.technicalName || "gemini-1.5-flash-latest";
+    summarizationModelNameInput.addEventListener("change", async () => {
+        summarizationModel.technicalName = summarizationModelNameInput.value;
+        await setToStorage(storageKeys.summarizationModel, summarizationModel);
+    });
+
+    (document.getElementById("editSummarizationModelButton") as HTMLButtonElement).onclick = () => editModel(summarizationModel.id, "summarization");
 }
 
 export async function setupEmbeddingModelSettings() {
@@ -155,14 +194,12 @@ export async function setupEmbeddingModelSettings() {
         embeddingModel.technicalName = embeddingModelNameInput.value.trim();
         await setToStorage(storageKeys.assistantModel, embeddingModel);
     });
-
-    (document.getElementById("editAssistantModelButton") as HTMLButtonElement).onclick = () => editModel(embeddingModel.id, true);
 }
 
-async function editModel(modelId: string, isAssistantModel: boolean = false) {
+async function editModel(modelId: string, modelType: "normal" | "assistant" | "summarization" = "normal") {
     let models: SerializedModel[] = [];
     let model: SerializedModel;
-    if(isAssistantModel) {
+    if(modelType === "assistant") {
         model = await getFromStorage(storageKeys.assistantModel);
         if(!model) {
             model = {
@@ -177,13 +214,37 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
                 apiKey: "",
                 isVisibleInChat: false,
                 safetySettings: {
-                    dangerousContent: HarmBlockThreshold.BLOCK_NONE,
-                    hateSpeech: HarmBlockThreshold.BLOCK_NONE,
-                    harassment: HarmBlockThreshold.BLOCK_NONE,
-                    sexuallyExplicit: HarmBlockThreshold.BLOCK_NONE
+                    dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                    hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                    harassment: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                    sexuallyExplicit: HarmBlockThreshold.BLOCK_ONLY_HIGH
                 }
             }
             await setToStorage(storageKeys.assistantModel, model);
+        }
+    }
+    else if (modelType === "summarization") {
+        model = await getFromStorage(storageKeys.summarizationModel);
+        if(!model) {
+            model = {
+                sortingIndex: 0,
+                id: uniqueString(),
+                name: "Summarization model",
+                description: "Summarization model",
+                technicalName: "gemini-1.5-flash-latest",
+                topK: null,
+                topP: null,
+                temperature: null,
+                apiKey: "",
+                isVisibleInChat: false,
+                safetySettings: {
+                    dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                    hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                    harassment: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                    sexuallyExplicit: HarmBlockThreshold.BLOCK_ONLY_HIGH
+                }
+            }
+            await setToStorage(storageKeys.summarizationModel, model);
         }
     }
     else {
@@ -233,9 +294,13 @@ async function editModel(modelId: string, isAssistantModel: boolean = false) {
             harassment: modelSafetyHarassmentInput.value as HarmBlockThreshold,
             sexuallyExplicit: modelSafetySexuallyExplicitInput.value as HarmBlockThreshold
         }
-        if(isAssistantModel) {
+        if(modelType === "assistant") {
             await setToStorage(storageKeys.assistantModel, model);
             await setupAssistantModelSettings();
+        }
+        else if(modelType === "summarization") {
+            await setToStorage(storageKeys.summarizationModel, model);
+            await setupSummarizationModelSettings();
         }
         else {
             await setToStorage(storageKeys.models, models);

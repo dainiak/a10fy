@@ -421,7 +421,7 @@
                 <div class="card-body">
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle"></i>
-                        <p>Assistant model is the model that is used to process voice requests and perform actions on the page that are integrated into the extension. This model will also be used to summarize the content of the webpages for the Enhanced History Search feature. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
+                        <p>Assistant model is the model that is used to process voice requests and perform actions on the page that are integrated into the extension. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="assistantModelApiKey" placeholder="API key">
@@ -435,11 +435,29 @@
                 </div>
             </div>
             <div class="card my-4">
+                <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-camera"></i> Summarization model settings</h5></div>
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <p>Summarization model is used to automatically get page title and summary when making snapshot of a webpage. Summarizaton model is also used to automatically assign topics to chats. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input type="password" class="form-control" id="summarizationModelApiKey" placeholder="API key">
+                        <label for="summarizationModelApiKey" class="form-label">Summarization model API key</label>
+                    </div>
+                    <div class="mb-3 form-floating">
+                        <input list="modelTechnicalNamesList" type="text" style="font-family: monospace" class="form-control" id="summarizationModelTechnicalName" placeholder="Technical name">
+                        <label for="summarizationModelTechnicalName" class="form-label">Summarization model technical name</label>
+                    </div>
+                    <button aria-label="Edit summarization model" class="btn btn-outline-primary my-3 px-2" id="editSummarizationModelButton"><i class="bi bi-pencil-square"></i> Edit advanced summarization model settings</button>
+                </div>
+            </div>
+            <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-search"></i> Embedding model settings</h5></div>
                 <div class="card-body">
                     <div class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle"></i>
-                        <p>Embedding model is a special model that produces abstract representations of textual data. This model is used for the Enhanced History Search feature. If unsure, leave the following settings intact. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
+                        <p>Embedding model is a special model that produces abstract representations of textual data. This model is used for the fuzzy searching history and chats. If unsure, leave the following settings intact. If API key is left blank, the <a href="#mainGoogleApiKey" class="alert-link open-quick-setup">default API key</a> will be used.</p>
                     </div>
                     <div class="mb-3 form-floating">
                         <input type="password" class="form-control" id="embeddingModelApiKey" placeholder="API key">

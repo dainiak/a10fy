@@ -28,6 +28,7 @@ export interface SerializedChat {
     id: string,
     timestamp: string,
     topic: string,
+    vectors?: number[][],
     persona: string,
     model: string,
     messages: SerializedMessage[],

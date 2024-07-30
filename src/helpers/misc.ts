@@ -35,3 +35,9 @@ export function debounce(callback: Function, delayInMilliseconds: number) {
     };
 }
 
+export function cosine(v1: number[], v2: number[]) {
+    const dot = v1.reduce((acc, cur, i) => acc + cur * v2[i], 0);
+    const mag1 = Math.sqrt(v1.reduce((acc, cur) => acc + cur * cur, 0));
+    const mag2 = Math.sqrt(v2.reduce((acc, cur) => acc + cur * cur, 0));
+    return dot / (mag1 * mag2);
+}

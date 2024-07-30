@@ -66,6 +66,10 @@
             </div>
             <div class="tab-pane fade container-lg" id="chatListPane" role="tabpanel" aria-labelledby="chatListTab">
                 <button aria-label="Create a new chat" class="btn btn-primary my-3 px-2" id="newChatButton"><i class="bi bi-plus-square-fill"></i> New chat</button>
+                <div class="input-group mb-1">
+                    <label for="fuzzySearchChatsInput" class="input-group-text"><i class="bi bi-binoculars"></i></label>
+                    <input type="search" class="form-control" id="fuzzySearchChatsInput" placeholder="start typing here…" aria-controls="chatListTable" aria-label="Fuzzy search chats">
+                </div>
                 <table id="chatListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0">
                     <thead>
                         <tr>
@@ -80,8 +84,8 @@
             </div>
             <div class="tab-pane fade container-lg py-3" id="pageListPane" role="tabpanel" aria-labelledby="pageListTab">
                 <div class="input-group mb-1">
-                    <label for="fuzzySearchInput" class="input-group-text"><i class="bi bi-binoculars"></i></label>
-                    <input type="search" class="form-control" id="fuzzySearchInput" placeholder="start typing here…" aria-controls="pageListTable" aria-label="Fuzzy search history">
+                    <label for="fuzzySearchPagesInput" class="input-group-text"><i class="bi bi-binoculars"></i></label>
+                    <input type="search" class="form-control" id="fuzzySearchPagesInput" placeholder="start typing here…" aria-controls="pageListTable" aria-label="Fuzzy search history">
                 </div>
                 <table id="pageListTable" class="table table-striped table-hover row-border order-column" style="width: 100%; bottom:0;">
                     <thead>

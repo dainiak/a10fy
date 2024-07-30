@@ -381,11 +381,12 @@ export function removeAttachmentFromCurrentDraft(attachmentId: string) {
     }
 }
 
-export function updateCurrentChatSettings(fields: {topic?: string; persona?: string; model?: string}) {
+export function updateCurrentChatSettings(fields: {topic?: string; persona?: string; model?: string, vectors?: number[][]}) {
     if(currentChat) {
         currentChat.topic = fields.topic || currentChat.topic;
         currentChat.persona = fields.persona || currentChat.persona;
         currentChat.model = fields.model || currentChat.model;
+        currentChat.vectors = fields.vectors || currentChat.vectors;
         if(currentChat.timestamp)
             saveUpdatedChat(currentChat);
     }

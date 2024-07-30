@@ -4,7 +4,7 @@ import 'datatables.net-fixedheader-bs5';
 import {pageListTab} from "./htmlElements";
 import {deletePage, getPages} from "../storage/pageStorage";
 import {getTextEmbedding} from "../geminiInterfacing";
-import {debounce} from "../misc";
+import {cosine, debounce} from "../misc";
 
 declare module 'datatables.net-bs5' {
     interface Config {
@@ -12,7 +12,6 @@ declare module 'datatables.net-bs5' {
         colReorder?: boolean;
     }
 }
-
 
 export async function initializePageListTable() {
     DataTable.ext.errMode = 'none';
@@ -121,7 +120,7 @@ export async function initializePageListTable() {
     const searchControl = document.querySelector("#pageListPane div.dt-search") as HTMLDivElement;
     const searchLabel = document.querySelector("#pageListPane div.dt-search label") as HTMLLabelElement;
     const searchField = document.querySelector("#pageListPane div.dt-search input") as HTMLInputElement;
-    const fuzzySearchField = document.getElementById("fuzzySearchInput") as HTMLInputElement;
+    const fuzzySearchField = document.getElementById("fuzzySearchPagesInput") as HTMLInputElement;
 
     const debouncedDataUpdate = debounce(
         async () => {
@@ -132,18 +131,12 @@ export async function initializePageListTable() {
                 pageListTable.draw();
             }
 
-            const cosine = (v1: number[], v2: number[]) => {
-                const dot = v1.reduce((acc, cur, i) => acc + cur * v2[i], 0);
-                const mag1 = Math.sqrt(v1.reduce((acc, cur) => acc + cur * cur, 0));
-                const mag2 = Math.sqrt(v2.reduce((acc, cur) => acc + cur * cur, 0));
-                return dot / (mag1 * mag2);
-            }
             const embedding = await getTextEmbedding(searchValue) as number[];
             if(Array.isArray(embedding) && embedding.length) {
                 const data = await getData();
 
                 for (const page of data) {
-                    page.score = page.vectors.reduce((acc, cur) => Math.min(acc, cosine(embedding, cur)), 1000000);
+                    page.score = page.vectors ? page.vectors.reduce((acc, cur) => Math.min(acc, cosine(embedding, cur)), 1000000) : 0;
                 }
                 data.sort((a, b) => a.score - b.score);
                 pageListTable.clear();

@@ -2,11 +2,13 @@ import DataTable from 'datatables.net-bs5';
 import 'datatables.net-colreorder-bs5';
 import 'datatables.net-fixedheader-bs5';
 import {chatListTab} from './htmlElements';
-import {getChat, getChats, saveUpdatedChat, SerializedChat} from "../storage/chatStorage";
+import {getChat, getChats, saveUpdatedChat} from "../storage/chatStorage";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
 import {SerializedPersona} from "../settings/dataModels";
 import {summarizeChat} from "../summarization";
 import {getCurrentChatId, updateCurrentChatSettings} from "./messages";
+import {cosine, debounce} from "../misc";
+import {getTextEmbedding} from "../geminiInterfacing";
 
 declare module 'datatables.net-bs5' {
     interface Config {
@@ -25,6 +27,8 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             return {
                 timestamp: chat.timestamp,
                 topic: chat.topic,
+                vectors: chat.vectors,
+                score: 0,
                 persona: chat.persona,
                 model: chat.model,
                 id: chat.id
@@ -73,6 +77,13 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             (tableBody as HTMLDivElement).scrollTop = scrollPos;
         },
         columns: [
+            {
+                title: '',
+                data: 'score',
+                searchable: false,
+                orderable: false,
+                render: (data) => ``,
+            },
             {
                 title: '',
                 data: 'id',
@@ -124,9 +135,13 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                     if (result) {
                         const td = tr.querySelector(".chat-topic") as HTMLTableCellElement;
                         if(getCurrentChatId() === chatId) {
-                            updateCurrentChatSettings({topic: result.title});
+                            updateCurrentChatSettings({
+                                topic: result.title,
+                                vectors: result.vectors,
+                            });
                         } else {
                             chat.topic = result.title;
+                            chat.vectors = result.vectors,
                             saveUpdatedChat(chat)?.catch();
                         }
                         td.textContent = result.title;
@@ -147,6 +162,36 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
     const searchControl = document.querySelector("#chatListPane div.dt-search") as HTMLDivElement;
     const searchLabel = document.querySelector("#chatListPane div.dt-search label") as HTMLLabelElement;
     const searchField = document.querySelector("#chatListPane div.dt-search input") as HTMLInputElement;
+    const fuzzySearchField = document.getElementById("fuzzySearchChatsInput") as HTMLInputElement;
+
+    const debouncedDataUpdate = debounce(
+        async () => {
+            const searchValue = fuzzySearchField.value.trim();
+            if(!searchValue) {
+                chatListTable.clear();
+                chatListTable.rows.add(await getData());
+                chatListTable.draw();
+            }
+
+            const embedding = await getTextEmbedding(searchValue) as number[];
+            if(Array.isArray(embedding) && embedding.length) {
+                const data = await getData();
+
+                for (const chat of data) {
+                    chat.score = chat.vectors ? chat.vectors.reduce((acc, cur) => Math.min(acc, cosine(embedding, cur)), 1000000) : 0;
+                }
+                data.sort((a, b) => a.score - b.score);
+                chatListTable.clear();
+                chatListTable.rows.add(data);
+                chatListTable.order([0, "desc"]).draw();
+            }
+        }, 800
+    )
+
+    fuzzySearchField.onchange = debouncedDataUpdate;
+    fuzzySearchField.oninput = debouncedDataUpdate;
+
+
     searchControl.classList.add("input-group");
     searchLabel.classList.add("input-group-text");
     searchField.classList.remove("form-control-sm");
