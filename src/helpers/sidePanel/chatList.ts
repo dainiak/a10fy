@@ -10,12 +10,6 @@ import {getCurrentChatId, updateCurrentChatSettings} from "./messages";
 import {cosine, debounce} from "../misc";
 import {getTextEmbedding} from "../geminiInterfacing";
 
-declare module 'datatables.net-bs5' {
-    interface Config {
-        fixedHeader?: any;
-        colReorder?: boolean;
-    }
-}
 
 export async function initializeChatListTable(openChatCallback: (chatId: string) => void, deleteChatCallback: (chatId: string) => void) {
     DataTable.ext.errMode = 'none';
@@ -95,11 +89,11 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             {title: 'Topic', data: 'topic', name: 'topic', searchable: true, className: 'dt-left text-left chat-topic'},
             {
                 title: 'LLM persona', data: 'persona', name: 'persona', searchable: true, className: 'dt-left text-left chat-persona',
-                render: (data) => personaNames.has(data) ? personaNames.get(data) : "???",
+                render: (data) => personaNames.has(data) ? personaNames.get(data) : "—",
             },
             {
                 title: 'LLM model', data: 'model', name: 'model', searchable: true, className: 'dt-left text-left chat-model',
-                render: (data) => modelNames.has(data) ? modelNames.get(data) : "???",
+                render: (data) => modelNames.has(data) ? modelNames.get(data) : "—",
             },
             {
                 title: '',
@@ -164,7 +158,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
     const searchField = document.querySelector("#chatListPane div.dt-search input") as HTMLInputElement;
     const fuzzySearchField = document.getElementById("fuzzySearchChatsInput") as HTMLInputElement;
 
-    const debouncedDataUpdate = debounce(
+    fuzzySearchField.oninput = debounce(
         async () => {
             const searchValue = fuzzySearchField.value.trim();
             if(!searchValue) {
@@ -187,10 +181,6 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             }
         }, 800
     )
-
-    fuzzySearchField.onchange = debouncedDataUpdate;
-    fuzzySearchField.oninput = debouncedDataUpdate;
-
 
     searchControl.classList.add("input-group");
     searchLabel.classList.add("input-group-text");

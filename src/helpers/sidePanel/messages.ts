@@ -1,7 +1,7 @@
 import {playPython} from "../players/python";
 import {playMermaid} from "../players/mermaid";
 import {playVegaLite} from "../players/vegaLite";
-import {chatPaneChatArea, chatPaneInputTextArea} from "./htmlElements";
+import {chatPaneChatArea, chatPaneInputTextArea, showSettingsPane} from "./htmlElements";
 import {createMarkdownCodeMirror, EditorView} from "../codeMirror";
 import {markdownRenderer} from "./markdown";
 import {
@@ -292,29 +292,45 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
         currentChat.model = model.id;
     }
 
+    const reportError = (errorString: string) => {
+        if(errorString.includes("Please use API Key or other form of API consumer identity")) {
+            llmMessageCardBodyElement.innerHTML = `API Key not set. Please set in <a href="#">settings.</a>`;
+            (llmMessageCardBodyElement.querySelector("a") as HTMLAnchorElement).onclick = (evt) => {evt.preventDefault(); showSettingsPane()};
+        }
+        else {
+            llmMessageCardBodyElement.textContent = `(Error generating message: ${errorString})`;
+        }
+    }
+
     const chatModel = await getGeminiTextModel(model, persona);
-    chatModel.generateContentStream({contents: geminiHistory}).then(async (result) => {
-        let llmMessageText = "";
+    try {
+        chatModel.generateContentStream({contents: geminiHistory}).then(async (result) => {
+            let llmMessageText = "";
 
-        try {
-            for await (const chunk of result.stream) {
-                const text = chunk.text();
-                llmMessageText += text;
-                llmMessageCardBodyElement.innerHTML = markdownRenderer.render(llmMessageText);
+            try {
+                for await (const chunk of result.stream) {
+                    const text = chunk.text();
+                    llmMessageText += text;
+                    llmMessageCardBodyElement.innerHTML = markdownRenderer.render(llmMessageText);
+                }
+            } catch (error) {
             }
-        }
-        catch (error) {
-        }
 
-        serializedAssistantMessage.content = llmMessageText;
-        if(currentChat) {
-            await saveUpdatedChat(currentChat);
-        }
+            serializedAssistantMessage.content = llmMessageText;
+            if (currentChat) {
+                await saveUpdatedChat(currentChat);
+            }
 
-        addBootstrapStyling(llmMessageCardBodyElement);
-        await addPlayers(llmMessageCardBodyElement);
-        activateEditMessageTextButton(llmMessageCardElement, serializedAssistantMessage);
-    });
+            addBootstrapStyling(llmMessageCardBodyElement);
+            await addPlayers(llmMessageCardBodyElement);
+            activateEditMessageTextButton(llmMessageCardElement, serializedAssistantMessage);
+        }).catch((error) => {
+            reportError(error.toString());
+        });
+    }
+    catch (error) {
+        reportError(`${error}`);
+    }
 }
 
 export async function sendUserMessageToChat(){

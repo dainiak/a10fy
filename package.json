@@ -3,27 +3,16 @@
   "version": "1.0.0",
   "description": "Chrome/Edge extension to make websites more accessible for any user.",
   "main": "rollup.config.mjs",
+  "license": "MIT",
   "scripts": {
     "build": "rollup -c"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dainiak/accessibilify.git"
+    "url": "https://github.com/dainiak/a10fy.git"
   },
   "private": true,
   "devDependencies": {
-    "@rollup/plugin-replace": "^5.0.7",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@types/markdown-it": "^14.1.1",
-    "katex": "^0.16.11",
-    "rollup-plugin-copy": "^3.5.0",
-    "rollup-plugin-scss": "^4.0.0",
-    "tslib": "^2.6.3",
-    "vite": "^5.2.12"
-  },
-  "dependencies": {
-    "@babel/preset-react": "^7.24.7",
-    "@babel/preset-typescript": "^7.24.7",
     "@codemirror/autocomplete": "^6.17.0",
     "@codemirror/commands": "^6.6.0",
     "@codemirror/lang-cpp": "^6.0.2",
@@ -46,24 +35,27 @@
     "@codemirror/search": "^6.5.6",
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
-    "@codemirror/view": "^6.29.0",
+    "@codemirror/view": "^6.29.1",
     "@google/generative-ai": "^0.12.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@sjmc11/tourguidejs": "^0.0.16",
     "@streamparser/json": "^0.0.21",
     "@types/bootstrap": "^5.2.10",
     "@types/katex": "^0.16.7",
+    "@types/markdown-it": "^14.1.2",
     "@types/pako": "^2.0.3",
-    "@types/turndown": "^5.0.4",
+    "@types/turndown": "^5.0.5",
     "bootstrap": "^5.3.3",
-    "chrome-types": "^0.1.294",
+    "chrome-types": "^0.1.296",
     "codemirror": "^6.0.1",
     "codemirror-lang-mermaid": "^0.5.0",
     "datatables.net-bs5": "^2.1.2",
-    "datatables.net-buttons-bs5": "^3.0.2",
+    "datatables.net-buttons-bs5": "^3.1.0",
     "datatables.net-colreorder-bs5": "^2.0.3",
     "datatables.net-fixedheader-bs5": "^4.0.1",
     "datatables.net-rowreorder-bs5": "^1.5.0",
@@ -72,13 +64,20 @@
     "datatables.net-select-bs5": "^2.0.3",
     "dexie": "^4.0.8",
     "highlight.js": "^11.10.0",
-    "hnsw": "^1.0.2",
-    "liquidjs": "^10.16.0",
+    "katex": "^0.16.11",
+    "liquidjs": "^10.16.1",
     "markdown-it": "^14.1.0",
     "mermaid": "^10.9.1",
     "pako": "^2.1.0",
-    "pyodide": "^0.26.1",
+    "pyodide": "^0.26.2",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-scss": "^4.0.0",
+    "tslib": "^2.6.3",
     "turndown": "^7.2.0",
-    "vega-embed": "^6.26.0"
+    "vega-embed": "^6.26.0",
+    "vite": "^5.3.5"
+  },
+  "dependencies": {
+    "typescript": "^5.5.4"
   }
 }

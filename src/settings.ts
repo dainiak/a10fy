@@ -3,7 +3,7 @@ import {
     fillModelsTable,
     setupAssistantModelSettings,
     setupEmbeddingModelSettings,
-    setupNewModelButton
+    setupNewModelButton, setupSummarizationModelSettings
 } from "./helpers/settings/modelsSettings";
 import {
     destroyPersonaCodeMirrors,
@@ -60,6 +60,7 @@ setupAllowToUseMicrophone();
 setupDefaultApiKeyInput().catch();
 
 setupAssistantModelSettings().catch();
+setupSummarizationModelSettings().catch();
 setupEmbeddingModelSettings().catch();
 
 setupNewModelButton();

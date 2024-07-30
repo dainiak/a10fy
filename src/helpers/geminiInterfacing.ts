@@ -20,10 +20,23 @@ import {getFromStorage} from "./storage/storageHandling";
 import {SerializedModel, SerializedPersona} from "./settings/dataModels";
 import {liquidEngine} from "./sidePanel/liquid";
 
+function alertOfAbsentApiKey() {
+    if(chrome && chrome.runtime && chrome.runtime.openOptionsPage) {
+        chrome.runtime.openOptionsPage().catch();
+    } else if(window) {
+        window.alert("API key is not set. Please set the API key in the settings page.");
+    }
+}
+
 async function getAssistantJSONModel() {
     const systemInstruction = getAssistantSystemPrompt();
     const assistantModelSettings: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
     const apiKey = assistantModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    if(!apiKey) {
+        alertOfAbsentApiKey();
+        return null;
+    }
+
     const responseSchema: ResponseSchema = {
         type: FunctionDeclarationSchemaType.OBJECT,
         properties: {
@@ -84,6 +97,11 @@ export async function getSummarizationJSONModel(systemInstruction: string) {
     const modelSettings: SerializedModel | null = await getFromStorage(storageKeys.summarizationModel);
     const apiKey = modelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
 
+    if(!apiKey) {
+        alertOfAbsentApiKey();
+        return null;
+    }
+
     const generationConfig: GenerationConfig = {
         topK: modelSettings?.topK || 64,
         topP: modelSettings?.topP || 0.95,
@@ -128,6 +146,8 @@ export async function asyncRequestAndParseJSON(requestData: GenerateContentReque
     parser.onError = () => {}; // TODO: log parsing error
 
     const gemini = await getAssistantJSONModel();
+    if(!gemini)
+        return null;
     const result = await gemini.generateContentStream(requestData);
     let completeText = "";
 
@@ -142,6 +162,11 @@ export async function asyncRequestAndParseJSON(requestData: GenerateContentReque
 export async function getTextEmbedding(data: string | string[]) {
     const embeddingModelSettings: SerializedModel | null = await getFromStorage(storageKeys.embeddingModel);
     const apiKey = embeddingModelSettings?.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
+    if(!apiKey) {
+        alertOfAbsentApiKey();
+        return null;
+    }
+
     const modelName = embeddingModelSettings?.technicalName || "text-embedding-004";
     const geminiEmbed = (new GoogleGenerativeAI(apiKey)).getGenerativeModel({model: modelName});
 

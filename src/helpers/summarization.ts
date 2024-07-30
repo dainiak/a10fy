@@ -24,6 +24,8 @@ You are a large language model. The current date is ${new Date().toISOString().s
 
     try {
         const summarizationModel = await getSummarizationJSONModel(systemInstruction);
+        if(!summarizationModel)
+            return null;
         const modelResult = await summarizationModel.generateContent(chatContent);
         const summarizationResults = JSON.parse(modelResult.response.text());
         if(summarizationResults.summaries instanceof String) {
@@ -70,6 +72,8 @@ You are a large language model. The current date is ${new Date().toISOString().s
 
     try {
         const summarizationModel = await getSummarizationJSONModel(systemInstruction);
+        if(!summarizationModel)
+            return null;
         const modelResult = await summarizationModel.generateContent({
             contents: [
                 {

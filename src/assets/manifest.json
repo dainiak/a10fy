@@ -33,7 +33,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Accessibilify",
+    "default_title": "A10fy menu",
     "default_icon": "icon.png"
   },
   "content_scripts": [

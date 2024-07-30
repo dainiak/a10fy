@@ -32,6 +32,69 @@ import {addSerializedPage, getTimestampStringForPage} from "./helpers/storage/pa
 setupOffscreenDocument().catch();
 rebuildContextMenus().catch();
 
+let workingStatus: "idleAfterFailure" | "idleAfterSuccess" | "idle" | "busy" = "idle";
+let busyBadgeState: number = 0;
+let timeoutId: NodeJS.Timeout | number | null = null;
+chrome.storage.session.get(storageKeys.workingStatus).then((result) => {
+    workingStatus = result[storageKeys.workingStatus] || "idle";
+});
+
+setInterval(() => {
+    if(workingStatus === "busy") {
+        busyBadgeState = 1 - busyBadgeState;
+        chrome.action.setBadgeText({text: busyBadgeState ? "⏳" : "⌛"}).catch();
+    }
+}, 300);
+
+function setWorkingStatus(status: "idleAfterFailure" | "idleAfterSuccess" | "idle" | "busy") {
+    chrome.storage.session.set({[storageKeys.workingStatus]: status}).catch();
+}
+
+chrome.storage.session.onChanged.addListener((changes) => {
+    if (changes[storageKeys.workingStatus]) {
+        workingStatus = changes[storageKeys.workingStatus].newValue;
+        if(workingStatus === "idleAfterSuccess") {
+            setDoneBadge().catch();
+        }
+        else if(workingStatus === "idleAfterFailure") {
+            setErrorBadge().catch();
+        }
+        else if(workingStatus === "busy") {
+            setBusyBadge().catch();
+        }
+    }
+});
+
+async function setDoneBadge() {
+    await chrome.action.setBadgeText({text: "✔"});
+    await chrome.action.setBadgeBackgroundColor({color: "#198754"});
+    timeoutId && clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        if(workingStatus === "idleAfterSuccess") {
+            chrome.action.setBadgeText({text: ""});
+            workingStatus = "idle";
+        }
+    }, 2000);
+}
+
+async function setErrorBadge() {
+    await chrome.action.setBadgeText({text: "❌"});
+    await chrome.action.setBadgeBackgroundColor({color: "#dc3545"});
+    timeoutId && clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        if(workingStatus === "idleAfterFailure") {
+            chrome.action.setBadgeText({text: ""});
+            workingStatus = "idle";
+        }
+    }, 2000);
+}
+
+async function setBusyBadge() {
+    await chrome.action.setBadgeText({text: "⌛"});
+    await chrome.action.setBadgeBackgroundColor({color: "#0d6efd"});
+}
+
+
 async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: UserRequest, tab: chrome.tabs.Tab) {
     let requestParts: Part[] = [
         {
@@ -77,7 +140,7 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
         } else {
             //TODO: log error
         }
-    });
+    })
 }
 
 async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
@@ -187,10 +250,21 @@ async function voiceCommandStopRecording() {
 }
 
 chrome.commands.onCommand.addListener(async (command) => {
-    if (command === "textCommandGetThenExecute")
-        return textCommandGetThenExecute();
+    if (command === "textCommandGetThenExecute") {
+        setWorkingStatus("busy");
+        textCommandGetThenExecute().then(() => {
+            setWorkingStatus("idleAfterSuccess");
+        }).catch(() => {
+            setWorkingStatus("idleAfterFailure");
+        });
+    }
     else if (command === "voiceCommandRecordThenExecute") {
-        await voiceCommandRecordThenExecute();
+        setWorkingStatus("busy");
+        voiceCommandRecordThenExecute().then(() => {
+            setWorkingStatus("idleAfterSuccess");
+        }).catch(() => {
+            setWorkingStatus("idleAfterFailure");
+        });
     }
     else if (command === "voiceCommandStopRecording") {
         await voiceCommandStopRecording();
@@ -203,122 +277,101 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
 });
 
-
-// chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).finally();
-
+//
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).finally();
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-    const install: chrome.runtime.OnInstalledReason = "install";
-    if (details.reason === install) {
-        await chrome.tabs.create({
-            url: chrome.runtime.getURL("settings.html"),
-            active: true
-        })
+    if (details.reason === "install") {
+        await chrome.runtime.openOptionsPage();
     }
 });
 
-// chrome.contextMenus.removeAll();
-//     chrome.contextMenus.update(
-//     "dsf",
-//     {
-//         visible:
-//     }
-// )
-//
-// chrome.contextMenus.create({
-//     title: "A test menu parent item 1",
-//     id: "testParentItem",
-//     contexts:["selection", "image", "page"]
-// });
-//
-// chrome.contextMenus.create({
-//     title: "A test menu parent item 2",
-//     id: "testParentItem2",
-//     contexts:["selection", "image", "page"]
-// });
-//
-// chrome.contextMenus.create({
-//     title: "A test menu item",
-//     id: "testMenuItem",
-//     contexts:["selection", "image", "page"],
-//     parentId: "testParentItem"
-// });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if(!tab)
         return;
 
     chrome.sidePanel.open({windowId: tab.windowId}, async () => {
-        const action = (await getFromStorage(storageKeys.customActions) || []).find((a: SerializedCustomAction) => a.id === info.menuItemId) as SerializedCustomAction;
-        if(!action) {
-            return;
+        setWorkingStatus("busy");
+        try {
+            const action = (await getFromStorage(storageKeys.customActions) || []).find((a: SerializedCustomAction) => a.id === info.menuItemId) as SerializedCustomAction;
+            if (!action) {
+                return;
+            }
+            if (!tab.id)
+                return;
+            const data = await chrome.tabs.sendMessage(tab.id, {
+                messageGoal: extensionMessageGoals.requestDataForCustomAction,
+                actionId: info.menuItemId
+            } as DataForCustomActionRequest) as DataForCustomActionResult;
+            const context: CustomActionContext = {
+                ...data
+            };
+
+            if (action.context.pageSnapshot || action.context.elementSnapshot && data) {
+                const tabScreenshot = await chrome.tabs.captureVisibleTab(undefined, {"format": "png"});
+                if (action.context.pageSnapshot) {
+                    context.pageSnapshot = tabScreenshot;
+                }
+
+                if (action.context.elementSnapshot && data.elementBoundingRect) {
+                    await setupOffscreenDocument();
+                    const elementImageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
+                        messageGoal: extensionMessageGoals.modifyImage,
+                        modification: "crop",
+                        image: tabScreenshot,
+                        parameters: {
+                            x: data.elementBoundingRect?.x,
+                            y: data.elementBoundingRect?.y,
+                            width: data.elementBoundingRect?.width,
+                            height: data.elementBoundingRect?.height,
+                            viewportWidth: data.viewportRect?.width,
+                            viewportHeight: data.viewportRect?.height
+                        },
+                        output: {
+                            format: "jpeg",
+                            quality: 50
+                        }
+                    } as ExtensionMessageImageModificationRequest);
+
+                    if (elementImageModificationResult.image)
+                        context.elementSnapshot = elementImageModificationResult.image;
+                }
+                if (action.context.selectionSnapshot && data.selectionContainerBoundingRect) {
+                    await setupOffscreenDocument();
+                    const selectionImageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
+                        messageGoal: extensionMessageGoals.modifyImage,
+                        modification: "crop",
+                        image: tabScreenshot,
+                        parameters: {
+                            x: data.selectionContainerBoundingRect?.x,
+                            y: data.selectionContainerBoundingRect?.y,
+                            width: data.selectionContainerBoundingRect?.width,
+                            height: data.selectionContainerBoundingRect?.height,
+                            viewportWidth: data.viewportRect?.width,
+                            viewportHeight: data.viewportRect?.height
+                        },
+                        output: {
+                            format: "jpeg",
+                            quality: 50
+                        }
+                    } as ExtensionMessageImageModificationRequest);
+
+                    if (selectionImageModificationResult.image)
+                        context.selectionSnapshot = selectionImageModificationResult.image;
+                }
+            }
+
+            const customActionSuccess = await chrome.runtime.sendMessage({
+                messageGoal: extensionMessageGoals.executeCustomActionInSidePanel,
+                actionId: action.id,
+                context: context,
+            } as ExecuteCustomActionInSidePanelRequest);
+            setWorkingStatus(customActionSuccess ? "idleAfterSuccess" : "idleAfterFailure");
         }
-        if(!tab.id)
-            return;
-        const data = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.requestDataForCustomAction, actionId: info.menuItemId} as DataForCustomActionRequest) as DataForCustomActionResult;
-        const context: CustomActionContext = {
-            ...data
-        };
-
-        if(action.context.pageSnapshot || action.context.elementSnapshot && data) {
-            const tabScreenshot = await chrome.tabs.captureVisibleTab(undefined, {"format": "png"});
-            if(action.context.pageSnapshot) {
-                context.pageSnapshot = tabScreenshot;
-            }
-
-            if(action.context.elementSnapshot && data.elementBoundingRect) {
-                await setupOffscreenDocument();
-                const elementImageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
-                    messageGoal: extensionMessageGoals.modifyImage,
-                    modification: "crop",
-                    image: tabScreenshot,
-                    parameters: {
-                        x: data.elementBoundingRect?.x,
-                        y: data.elementBoundingRect?.y,
-                        width: data.elementBoundingRect?.width,
-                        height: data.elementBoundingRect?.height,
-                        viewportWidth: data.viewportRect?.width,
-                        viewportHeight: data.viewportRect?.height
-                    },
-                    output: {
-                        format: "jpeg",
-                        quality: 50
-                    }
-                } as ExtensionMessageImageModificationRequest);
-
-                if(elementImageModificationResult.image)
-                    context.elementSnapshot = elementImageModificationResult.image;
-            }
-            if(action.context.selectionSnapshot && data.selectionContainerBoundingRect) {
-                await setupOffscreenDocument();
-                const selectionImageModificationResult: ImageModificationResult = await chrome.runtime.sendMessage({
-                    messageGoal: extensionMessageGoals.modifyImage,
-                    modification: "crop",
-                    image: tabScreenshot,
-                    parameters: {
-                        x: data.selectionContainerBoundingRect?.x,
-                        y: data.selectionContainerBoundingRect?.y,
-                        width: data.selectionContainerBoundingRect?.width,
-                        height: data.selectionContainerBoundingRect?.height,
-                        viewportWidth: data.viewportRect?.width,
-                        viewportHeight: data.viewportRect?.height
-                    },
-                    output: {
-                        format: "jpeg",
-                        quality: 50
-                    }
-                } as ExtensionMessageImageModificationRequest);
-
-                if(selectionImageModificationResult.image)
-                    context.selectionSnapshot = selectionImageModificationResult.image;
-            }
+        catch {
+            setWorkingStatus("idleAfterFailure");
         }
-
-        await chrome.runtime.sendMessage({
-            messageGoal: extensionMessageGoals.executeCustomActionInSidePanel,
-            actionId: action.id,
-            context: context,
-        } as ExecuteCustomActionInSidePanelRequest);
     });
 });
 
@@ -347,34 +400,41 @@ async function registerContextMenuEvent(request: RegisterContextMenuEventRequest
 }
 
 async function takeCurrentPageSnapshot() {
-    const [tab] = await chrome.tabs.query({
-        active: true,
-        lastFocusedWindow: true
-    });
+    setWorkingStatus("busy");
+    try {
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true
+        });
 
-    const tabDocumentInfo = await getTabDocumentInfo(tab);
-    const serializedPage: SerializedPageSnapshot = {
-        id: uniqueString(),
-        timestamp: getTimestampStringForPage(),
-        text: tabDocumentInfo.text || "",
-        title: tabDocumentInfo.title || "",
-        url: tabDocumentInfo.url || "",
-        keywords: [],
-        summaries: [],
-        vectors: [],
-        screenshot: tabDocumentInfo.screenshot || ""
-    };
-    const result = await summarizePage(serializedPage);
-    serializedPage.text = "";
-    if(result) {
-        serializedPage.title = result?.title || serializedPage.title;
-        serializedPage.summaries = result?.summaries || [];
-        serializedPage.keywords = result?.keywords || [];
-        serializedPage.vectors = result?.vectors || [];
+        const tabDocumentInfo = await getTabDocumentInfo(tab);
+        const serializedPage: SerializedPageSnapshot = {
+            id: uniqueString(),
+            timestamp: getTimestampStringForPage(),
+            text: tabDocumentInfo.text || "",
+            title: tabDocumentInfo.title || "",
+            url: tabDocumentInfo.url || "",
+            keywords: [],
+            summaries: [],
+            vectors: [],
+            screenshot: tabDocumentInfo.screenshot || ""
+        };
+        const result = await summarizePage(serializedPage);
+        serializedPage.text = "";
+        if (result) {
+            serializedPage.title = result?.title || serializedPage.title;
+            serializedPage.summaries = result?.summaries || [];
+            serializedPage.keywords = result?.keywords || [];
+            serializedPage.vectors = result?.vectors || [];
+        }
+        serializedPage.screenshot = ""
+        addSerializedPage(serializedPage);
+        chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.pageSnapshotTaken} as ExtensionMessageRequest).catch();
+        setWorkingStatus("idleAfterSuccess");
     }
-    serializedPage.screenshot = ""
-    addSerializedPage(serializedPage);
-    chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.pageSnapshotTaken} as ExtensionMessageRequest).catch();
+    catch {
+        setWorkingStatus("idleAfterFailure");
+    }
 }
 
 chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {

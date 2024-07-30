@@ -5,13 +5,8 @@ import {pageListTab} from "./htmlElements";
 import {deletePage, getPages} from "../storage/pageStorage";
 import {getTextEmbedding} from "../geminiInterfacing";
 import {cosine, debounce} from "../misc";
+import {escapeToHTML} from "../domTools";
 
-declare module 'datatables.net-bs5' {
-    interface Config {
-        fixedHeader?: any;
-        colReorder?: boolean;
-    }
-}
 
 export async function initializePageListTable() {
     DataTable.ext.errMode = 'none';
@@ -26,6 +21,7 @@ export async function initializePageListTable() {
                 url: page.url,
                 title: page.title,
                 vectors: page.vectors,
+                summaries: page.summaries,
                 score: 0
             }
         });
@@ -77,12 +73,25 @@ export async function initializePageListTable() {
             {title: 'Timestamp', data: 'timestamp', name: 'timestamp', searchable: true, className: 'dt-left text-left page-timestamp'},
             {
                 title: 'URL', data: 'url', name: 'url', searchable: true, className: 'dt-left text-left page-url',
-                render: (url: string) => url ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>` : "(no url saved)",
+                render: (url: string) => {
+                    if(!url)
+                        return "(no url saved)";
+                    let shortenedURL = url.replace(/^https?:\/\//, '');
+                    if(shortenedURL.length > 30)
+                        shortenedURL = shortenedURL.slice(0, 30) + '…';
+                    return `<a href="${url}" title="${url}" target="_blank" rel="noopener noreferrer">${escapeToHTML(shortenedURL)}</a>`
+                },
             },
             {title: 'Title', data: 'title', name: 'title', searchable: true, className: 'dt-left text-left page-title'},
             {
-                title: 'Summary', data: 'summary', name: 'summary', searchable: true, className: 'dt-left text-left page-summary',
-                render: (data: any) => "???",
+                title: 'Summary', data: 'summaries', name: 'summary', searchable: true, className: 'dt-left text-left page-summary',
+                render: (summaries: any) => {
+                    if (!summaries || !summaries.length)
+                        return "—";
+                    const summary = summaries[0];
+                    const shortenedSummary = summary.length > 51 ? summary.slice(0, 50) + '…' : summary;
+                    return `<span title="${escapeToHTML(summary)}">${escapeToHTML(shortenedSummary)}</span>`;
+                },
             },
             {
                 title: '',
@@ -122,7 +131,7 @@ export async function initializePageListTable() {
     const searchField = document.querySelector("#pageListPane div.dt-search input") as HTMLInputElement;
     const fuzzySearchField = document.getElementById("fuzzySearchPagesInput") as HTMLInputElement;
 
-    const debouncedDataUpdate = debounce(
+    fuzzySearchField.oninput = debounce(
         async () => {
             const searchValue = fuzzySearchField.value.trim();
             if(!searchValue) {
@@ -145,9 +154,6 @@ export async function initializePageListTable() {
             }
         }, 800
     )
-
-    fuzzySearchField.onchange = debouncedDataUpdate;
-    fuzzySearchField.oninput = debouncedDataUpdate;
 
     searchControl.classList.add("input-group");
     searchLabel.classList.add("input-group-text");

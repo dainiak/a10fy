@@ -35,7 +35,7 @@ export enum storageKeys {
     ttsVoicePreferences = "ttsVoicePreferences",
 
     voiceRecordingInProgress = "voiceRecordingInProgress",
-    pageListSearchType = "pageListSearchType",
+    workingStatus = "workingStatus",
 }
 
 export const cssPrefix = "a10fy_";

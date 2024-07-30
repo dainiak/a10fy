@@ -234,9 +234,9 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
 }
 
 if(chrome && chrome.runtime) {
-    chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender) => {
+    chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, sendResponse: Function) => {
         if (!sender.tab && request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
-            executeCustomAction(request as ExecuteCustomActionInSidePanelRequest).catch();
+            executeCustomAction(request as ExecuteCustomActionInSidePanelRequest).then(() => sendResponse(true)).catch(() => sendResponse(false));
         }
         return undefined;
     });
