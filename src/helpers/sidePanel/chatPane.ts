@@ -5,7 +5,7 @@ import {
     setCurrentChat,
     updateCurrentChatSettings
 } from "./messages";
-import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "../storage/chatStorage";
+import {ChatMessageTypes, getChat, getEmptyDraft, saveUpdatedChat, SerializedChat} from "../storage/chatStorage";
 import {uniqueString} from "../misc";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
@@ -83,12 +83,24 @@ export async function loadChatAsCurrent(chatId: string) {
             lastMessageCard = await addMessageCardToChatPane(message);
         }
 
-        if(chat.messages.length > 0 && chat.messages[chat.messages.length - 1].type === ChatMessageTypes.MODEL && lastMessageCard) {
-            lastMessageCard.querySelector(".regenerate-message")?.addEventListener("click", async () => {
-                await fillModelMessageCard(chat, lastMessageCard);
-            });
+        if (chat.messages.length > 0 && chat.messages[chat.messages.length - 1].type === ChatMessageTypes.USER && lastMessageCard) {
+            lastMessageCard.remove();
+            chatPaneInputTextArea.value = chat.messages[chat.messages.length - 1].content + "\n" + chat.draft.content;
+            chat.messages.pop();
+            saveUpdatedChat(chat);
         }
-        chatPaneInputTextArea.value = chat.draft.content;
+        else {
+            chatPaneInputTextArea.value = chat.draft.content;
+        }
+
+        if(chat.messages.length > 0 && chat.messages[chat.messages.length - 1].type === ChatMessageTypes.MODEL && lastMessageCard) {
+            const regenerateButton = lastMessageCard.querySelector(".regenerate-message");
+            if(regenerateButton)
+                (regenerateButton as HTMLButtonElement).onclick = async () => {
+                    await fillModelMessageCard(chat, lastMessageCard);
+                };
+        }
+
     }
 }
 

@@ -100,9 +100,10 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 data: 'id',
                 searchable: false,
                 orderable: false,
-                render: (data) => `
-<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>
+                render: (data) => `<div class="d-flex flex-row">
 <button class="btn btn-outline-info btn-sm summarize-chat-btn" data-chat-id="${data}" aria-label="Summarize chat" title="Summarize chat"><i class="bi bi-journal-text"></i></button>
+<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>
+</div>
 `.trim(),
             }
         ],
@@ -163,8 +164,8 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
             const searchValue = fuzzySearchField.value.trim();
             if(!searchValue) {
                 chatListTable.clear();
-                chatListTable.rows.add(await getData());
-                chatListTable.draw();
+                chatListTable.rows.add(await getData()).draw();
+                return;
             }
 
             const embedding = await getTextEmbedding(searchValue) as number[];

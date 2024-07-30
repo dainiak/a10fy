@@ -27,12 +27,12 @@ export async function fillPersonasTable() {
             <td class="persona-description"></td>
             <td class="persona-model"></td>
             <td class="persona-system-instruction"></td>
-            <td>
-                <button class="btn btn-outline-secondary btn-sm edit-btn" data-persona-id="${persona.id}" aria-label="Edit persona" title="Edit persona"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-outline-danger btn-sm delete-btn" data-persona-id="${persona.id}" aria-label="Delete persona" title="Delete persona"><i class="bi bi-trash"></i></button>
-                <button class="btn btn-outline-secondary btn-sm move-up-btn" data-persona-id="${persona.id}" aria-label="Move persona up the list" title="Move persona up the list"><i class="bi bi-arrow-up"></i></button>
-                <button class="btn btn-outline-secondary btn-sm move-down-btn" data-persona-id="${persona.id}" aria-label="Move persona down the list" title="Move persona down the list"><i class="bi bi-arrow-down"></i></button>
-            </td>
+            <td><div class="d-flex flex-row">
+                <button class="btn btn-outline-secondary btn-sm edit-btn mx-1" data-persona-id="${persona.id}" aria-label="Edit persona" title="Edit persona"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-outline-danger btn-sm delete-btn mx-1" data-persona-id="${persona.id}" aria-label="Delete persona" title="Delete persona"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-outline-secondary btn-sm move-up-btn mx-1" data-persona-id="${persona.id}" aria-label="Move persona up the list" title="Move persona up the list"><i class="bi bi-arrow-up"></i></button>
+                <button class="btn btn-outline-secondary btn-sm move-down-btn mx-1" data-persona-id="${persona.id}" aria-label="Move persona down the list" title="Move persona down the list"><i class="bi bi-arrow-down"></i></button>
+            </div></td>
         `;
         (tr.querySelector("td.persona-name") as HTMLTableCellElement).textContent = persona.name;
         (tr.querySelector("td.persona-description") as HTMLTableCellElement).textContent = persona.description;

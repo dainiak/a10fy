@@ -24,12 +24,12 @@ export async function fillModelsTable() {
             <td><code class="model-technical-name"></code></td>
             <td class="model-generation-settings"></td>
             <td><code class="model-api-key"></code></td>
-            <td>
-                <button class="btn btn-outline-secondary btn-sm edit-btn" data-model-id="${model.id}" aria-label="Edit model" title="Edit model"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-outline-danger btn-sm delete-btn" data-model-id="${model.id}" aria-label="Delete model" title="Delete model"><i class="bi bi-trash"></i></button>
-                <button class="btn btn-outline-secondary btn-sm move-up-btn" data-model-id="${model.id}" aria-label="Move model up the list" title="Move model up the list"><i class="bi bi-arrow-up"></i></button>
-                <button class="btn btn-outline-secondary btn-sm move-down-btn" data-model-id="${model.id}" aria-label="Move model down the list" title="Move model down the list"><i class="bi bi-arrow-down"></i></button>
-            </td>
+            <td><div class="d-flex flex-row">
+                <button class="btn btn-outline-secondary btn-sm edit-btn mx-1" data-model-id="${model.id}" aria-label="Edit model" title="Edit model"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-outline-danger btn-sm delete-btn mx-1" data-model-id="${model.id}" aria-label="Delete model" title="Delete model"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-outline-secondary btn-sm move-up-btn mx-1" data-model-id="${model.id}" aria-label="Move model up the list" title="Move model up the list"><i class="bi bi-arrow-up"></i></button>
+                <button class="btn btn-outline-secondary btn-sm move-down-btn mx-1" data-model-id="${model.id}" aria-label="Move model down the list" title="Move model down the list"><i class="bi bi-arrow-down"></i></button>
+            </div></td>
         `;
         (tr.querySelector("td.model-name") as HTMLTableCellElement).textContent = model.name;
         (tr.querySelector("td.model-description") as HTMLTableCellElement).textContent = model.description;

@@ -136,8 +136,8 @@ export async function initializePageListTable() {
             const searchValue = fuzzySearchField.value.trim();
             if(!searchValue) {
                 pageListTable.clear();
-                pageListTable.rows.add(await getData());
-                pageListTable.draw();
+                pageListTable.rows.add(await getData()).draw();
+                return;
             }
 
             const embedding = await getTextEmbedding(searchValue) as number[];
