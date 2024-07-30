@@ -18,7 +18,7 @@ import {storageKeys} from "../constants";
 import {SerializedCustomCodePlayer, SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {getFromStorage} from "../storage/storageHandling";
 import {customPlayerFactory} from "../players/custom";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";
 import {inputAreaAttachmentIconsContainer} from "./htmlElements";
 

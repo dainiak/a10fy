@@ -1,7 +1,7 @@
 import {storageKeys} from "../constants";
 import {SerializedModel, SerializedPersona} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import {getChatSystemInstructionDummyScope} from "../prompts";
 import {setToStorage} from "../storage/storageHandling";
 import {createLiquidCodeMirror} from "../codeMirror";

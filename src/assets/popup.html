@@ -7,6 +7,17 @@
     <link href="css/bootstrap-icons.css" rel="stylesheet">
     <script src="js/popup.js"></script>
     <style>
+        :root {
+            --menu-width: 190px;
+        }
+
+        body {
+            width: var(--menu-width);
+        }
+        body > button {
+            width: var(--menu-width);
+        }
+
         .blinking {
             animation: blinker 0.3s linear infinite;
         }
@@ -18,10 +29,10 @@
         }
     </style>
 </head>
-<body class="mx-0 my-0 px-0 py-0 btn-group-vertical" style="width: 200px">
-    <button id="voiceCommandButton" class="btn btn-outline-secondary"><i class="bi bi-mic"></i> <span>Voice command</span></button>
-    <button id="textCommandButton" class="btn btn-outline-secondary"><i class="bi bi-input-cursor-text"></i> Text command</button>
-    <button id="openSidePanelButton" class="btn btn-outline-secondary"><i class="bi bi-layout-sidebar-reverse"></i> Open side panel</button>
-    <button id="takePageSnapshotButton" class="btn btn-outline-secondary"><i class="bi bi-camera"></i> <span>Page snapshot</span></button>
+<body class="mx-0 my-0 px-0 py-0 btn-group-vertical">
+    <button id="voiceCommandButton" class="btn btn-outline-secondary rounded-0 text-start px-3"><i class="bi bi-mic"></i> <span class="px-1">Voice command</span></button>
+    <button id="textCommandButton" class="btn btn-outline-secondary rounded-0 text-start px-3"><i class="bi bi-input-cursor-text"></i> <span class="px-1">Text command</span></button>
+    <button id="openSidePanelButton" class="btn btn-outline-secondary rounded-0 text-start px-3"><i class="bi bi-layout-sidebar-reverse"></i> <span class="px-1">Open side panel</span></button>
+    <button id="takePageSnapshotButton" class="btn btn-outline-secondary rounded-0 text-start px-3"><i class="bi bi-camera"></i> <span class="px-1">Page snapshot</span></button>
 </body>
 </html>

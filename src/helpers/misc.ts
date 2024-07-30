@@ -21,4 +21,17 @@ export function stringHash(str: string, seed = 0) {
     h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
 
     return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-};
+}
+
+export function debounce(callback: Function, delayInMilliseconds: number) {
+    let timerId: number | undefined;
+
+    return () => {
+        timerId !== undefined && window.clearTimeout(timerId);
+        timerId = window.setTimeout(() => {
+            timerId = undefined;
+            callback();
+        }, delayInMilliseconds);
+    };
+}
+

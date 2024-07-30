@@ -1,4 +1,4 @@
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import {HarmBlockThreshold} from "@google/generative-ai";
 import {SerializedModel, SerializedPersona} from "./dataModels";
 import {getFromStorage, setToStorage} from "../storage/storageHandling";

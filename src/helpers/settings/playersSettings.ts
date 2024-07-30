@@ -1,7 +1,7 @@
 import {SerializedCustomCodePlayer} from "./dataModels";
 import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {storageKeys} from "../constants";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import Modal from "bootstrap/js/dist/modal";
 import {customPlayerFactory} from "../players/custom";
 import {escapeToHTML} from "../domTools";

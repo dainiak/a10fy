@@ -2,7 +2,7 @@ import {storageKeys} from "../constants";
 import {SerializedModel} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
 import {HarmBlockThreshold} from "@google/generative-ai";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {ensureNonEmptyModels} from "./ensureNonEmpty";
 

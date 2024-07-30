@@ -6,7 +6,7 @@ import {
     updateCurrentChatSettings
 } from "./messages";
 import {ChatMessageTypes, getChat, getEmptyDraft, SerializedChat} from "../storage/chatStorage";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import {SerializedModel, SerializedPersona} from "../settings/dataModels";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "../settings/ensureNonEmpty";
 import {inputAreaAttachmentIconsContainer} from "./htmlElements";

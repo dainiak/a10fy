@@ -1,5 +1,5 @@
 import {extensionMessageGoals, RunInSandboxRequest, SandboxedTaskResult} from "../constants";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 
 export function playPython(_: string, code: string, outputElement: HTMLElement, successCallback?: () => void) {
     outputElement.style.setProperty("display", "");

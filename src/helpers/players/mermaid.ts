@@ -1,5 +1,5 @@
 import {themeType} from "../sidePanel/htmlElements";
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 import {type Mermaid} from "mermaid";
 
 const mermaid: Mermaid = (window as any).mermaid;

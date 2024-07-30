@@ -1,5 +1,5 @@
 import {Dexie, type EntityTable} from 'dexie';
-import {uniqueString} from "../uniqueId";
+import {uniqueString} from "../misc";
 
 export enum ChatMessageTypes {
     USER = "user",

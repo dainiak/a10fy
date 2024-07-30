@@ -56,21 +56,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let snapshotJustTaken = false;
     const pageSnapshotButton = document.getElementById("takePageSnapshotButton") as HTMLButtonElement;
-    pageSnapshotButton.onclick = async function () {
-        if(snapshotJustTaken)
-            return;
-        await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.takeCurrentPageSnapshot} as ExtensionMessageRequest)
-    }
-
     const snapshotIcon = pageSnapshotButton.querySelector("i") as HTMLElement;
     const snapshotText = pageSnapshotButton.querySelector("span") as HTMLSpanElement;
+    pageSnapshotButton.onclick = async function () {
+        if (snapshotJustTaken)
+            return;
+        pageSnapshotButton.disabled = true;
+        snapshotIcon.className = "bi bi-camera-fill blinking";
+        snapshotText.textContent = "Taking snapshot…";
+        try {
+            await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.takeCurrentPageSnapshot} as ExtensionMessageRequest);
+        } catch {
+            snapshotIcon.className = "bi bi-camera";
+            snapshotText.textContent = "Page snapshot";
+        }
+    }
+
     chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {
         if (request.messageGoal === extensionMessageGoals.pageSnapshotTaken) {
             snapshotJustTaken = true;
+            pageSnapshotButton.disabled = true;
             snapshotIcon.className = "bi bi-check";
             snapshotText.textContent = "Snapshot taken";
             setTimeout(() => {
                 snapshotJustTaken = false;
+                pageSnapshotButton.disabled = false;
                 snapshotIcon.className = "bi bi-camera";
                 snapshotText.textContent = "Page snapshot";
             }, 2000);

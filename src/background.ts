@@ -25,7 +25,7 @@ import {GenerateContentRequest, Part} from "@google/generative-ai";
 import {getFromStorage} from "./helpers/storage/storageHandling";
 import {SerializedCustomAction} from "./helpers/settings/dataModels";
 import {SerializedPageSnapshot} from "./helpers/storage/pageStorage";
-import {uniqueString} from "./helpers/uniqueId";
+import {uniqueString} from "./helpers/misc";
 import {summarizePage} from "./helpers/summarization";
 import {addSerializedPage, getTimestampStringForPage} from "./helpers/storage/pageStorage";
 
