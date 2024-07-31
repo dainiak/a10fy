@@ -15,7 +15,7 @@ const pasteFormatChoiceModal = Modal.getOrCreateInstance(pasteFormatChoiceModalE
 
 
 
-function addAttachment(type: MessageAttachmentTypes, data: string) {
+export function addAttachmentToChatInput(type: MessageAttachmentTypes, data: string) {
     const attachmentId = addAttachmentToCurrentDraft({type, data});
     if (!attachmentId)
         return;
@@ -45,7 +45,7 @@ interface AttachableItem {
     }[]
 }
 
-function pasteTextToInputArea(text: string) {
+export function pasteTextToChatInput(text: string) {
     if(!text)
         return;
     if (chatPaneInputTextArea.selectionStart || chatPaneInputTextArea.selectionStart == 0) {
@@ -190,22 +190,22 @@ function chooseAttachmentFormatAndAttach(variations: {data: string, format:Attac
     if(imageVariation)
         (pasteFormatChoiceButtonGroup.querySelector("#pasteAsImageButton") as HTMLButtonElement).onclick = () => {
             pasteFormatChoiceModal.hide();
-            addAttachment(MessageAttachmentTypes.IMAGE, imageVariation!.data);
+            addAttachmentToChatInput(MessageAttachmentTypes.IMAGE, imageVariation!.data);
         }
     if(plainTextVariation)
         (pasteFormatChoiceButtonGroup.querySelector("#pasteAsPlainTextButton") as HTMLButtonElement).onclick = () => {
             pasteFormatChoiceModal.hide();
-            pasteTextToInputArea(plainTextVariation!.data);
+            pasteTextToChatInput(plainTextVariation!.data);
         }
     if(markdownVariation)
         (pasteFormatChoiceButtonGroup.querySelector("#pasteAsMarkdownButton") as HTMLButtonElement).onclick = () => {
             pasteFormatChoiceModal.hide();
-            pasteTextToInputArea(markdownVariation!.data);
+            pasteTextToChatInput(markdownVariation!.data);
         }
     if(htmlVariation)
         (pasteFormatChoiceButtonGroup.querySelector("#pasteAsHTMLButton") as HTMLButtonElement).onclick = () => {
             pasteFormatChoiceModal.hide();
-            pasteTextToInputArea(htmlVariation!.data);
+            pasteTextToChatInput(htmlVariation!.data);
         }
     pasteFormatChoiceModal.show();
 }
@@ -225,13 +225,13 @@ export function setInputAreaAttachmentEventListeners() {
                                 item = item.variations[0];
                             }
                             if(item.format === "audio" && item.data) {
-                                addAttachment(MessageAttachmentTypes.AUDIO, item.data);
+                                addAttachmentToChatInput(MessageAttachmentTypes.AUDIO, item.data);
                             }
                             else if(item.format === "image" && item.data) {
-                                addAttachment(MessageAttachmentTypes.IMAGE, item.data);
+                                addAttachmentToChatInput(MessageAttachmentTypes.IMAGE, item.data);
                             }
                             else if(!item.variations && ["textPlain", "textHTML"].includes(item.format || "")) {
-                                pasteTextToInputArea(item.data || "");
+                                pasteTextToChatInput(item.data || "");
                             }
                             else if(item.variations) {
                                 chooseAttachmentFormatAndAttach(item.variations);
@@ -281,13 +281,13 @@ export function setInputAreaAttachmentEventListeners() {
                                 item = item.variations[0];
                             }
                             if(item.format === "audio" && item.data) {
-                                addAttachment(MessageAttachmentTypes.AUDIO, item.data);
+                                addAttachmentToChatInput(MessageAttachmentTypes.AUDIO, item.data);
                             }
                             else if(item.format === "image" && item.data) {
-                                addAttachment(MessageAttachmentTypes.IMAGE, item.data);
+                                addAttachmentToChatInput(MessageAttachmentTypes.IMAGE, item.data);
                             }
                             else if(!item.variations && ["textPlain", "textHTML"].includes(item.format || "")) {
-                                pasteTextToInputArea(item.data || "");
+                                pasteTextToChatInput(item.data || "");
                             }
                             else if(item.variations) {
                                 chooseAttachmentFormatAndAttach(item.variations);

@@ -36,8 +36,8 @@ import {customPlayerFactory} from "./helpers/players/custom";
 import {markdownRenderer} from "./helpers/sidePanel/markdown";
 import {CustomActionSystemInstructionLiquidScope} from "./helpers/prompts";
 import {initializePageListTable} from "./helpers/sidePanel/pageList";
-
-
+import {stockContextMenuItems} from "./helpers/stockContextMenuItems";
+import {executeStockMenuAction} from "./helpers/stockContextMenuActions";
 
 
 async function loadChatToChatPane(chatId: string) {
@@ -236,6 +236,13 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
 if(chrome && chrome.runtime) {
     chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, sendResponse: Function) => {
         if (!sender.tab && request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
+            const stockContextMenuAction = stockContextMenuItems.find((item) => item.id === (request as ExecuteCustomActionInSidePanelRequest).actionId);
+            if(stockContextMenuAction) {
+                if(stockContextMenuAction.resultsPresentation === CustomActionResultsPresentation.chatPane)
+                    showChatPane();
+                sendResponse(executeStockMenuAction(stockContextMenuAction.id, (request as ExecuteCustomActionInSidePanelRequest).context));
+            }
+
             executeCustomAction(request as ExecuteCustomActionInSidePanelRequest).then(() => sendResponse(true)).catch(() => sendResponse(false));
         }
         return undefined;

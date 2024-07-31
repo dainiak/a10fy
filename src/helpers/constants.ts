@@ -86,6 +86,7 @@ export interface DataForCustomActionRequest extends ExtensionMessageRequest {
 export interface DataForCustomActionResult {
     elementInnerHTML?: string,
     elementOuterHTML?: string,
+    elementOuterHTMLSimplified?: string,
     documentCompleteHTML?: string,
     documentSimplifiedHTML?: string,
     documentTitle?: string,
@@ -103,6 +104,7 @@ export interface DataForCustomActionResult {
 export interface CustomActionContext {
     elementInnerHTML?: string,
     elementOuterHTML?: string,
+    elementOuterHTMLSimplified?: string,
     documentCompleteHTML?: string,
     documentSimplifiedHTML?: string,
     documentTitle?: string,
@@ -212,4 +214,11 @@ export interface RegisterContextMenuEventRequest extends ExtensionMessageRequest
     messageGoal: typeof extensionMessageGoals.registerContextMenuEvent,
     availableCustomActions: string[],
     selectedText: string
+}
+
+export enum stockContextMenuItemID {
+    attachAsImageToCurrentChat = "attachAsImageToCurrentChat",
+    attachPageScreenshotToCurrentChat = "attachPageScreenshotToCurrentChat",
+    sendTableAsHTMLToCurrentChat = "sendTableAsHTMLToCurrentChat",
+    sendTableAsCSVToCurrentChat = "sendTableAsCSVToCurrentChat"
 }

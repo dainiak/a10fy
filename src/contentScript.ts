@@ -9,12 +9,13 @@ import {
     ElementPropertiesRequest,
     RegisterContextMenuEventRequest, storageKeys, DataForCustomActionRequest, DataForCustomActionResult
 } from "./helpers/constants";
-import {getDocumentSkeleton, findElementByIndex, gatherElementsForCustomActions} from "./helpers/domTools";
+import {getDOMSkeleton, findElementByIndex, gatherElementsForCustomActions} from "./helpers/domTools";
 import {enqueuePageAction} from "./helpers/llmPageActions";
 
 import ActionQueue from "./helpers/actionQueue";
 import {SerializedCustomAction} from "./helpers/settings/dataModels";
 import {getFromStorage} from "./helpers/storage/storageHandling";
+import {stockContextMenuItems} from "./helpers/stockContextMenuItems";
 
 const pageActionQueue = new ActionQueue();
 setInterval(
@@ -57,7 +58,7 @@ chrome.runtime.onMessage.addListener(
             return;
         if (request.messageGoal === extensionMessageGoals.getDocumentInfo) {
             sendResponse({
-                html: getDocumentSkeleton(),
+                html: getDOMSkeleton(),
                 text: document.body.innerText,
                 url: document.location.href,
                 title: document.title
@@ -90,8 +91,9 @@ chrome.runtime.onMessage.addListener(
         }
         else if (request.messageGoal === extensionMessageGoals.requestDataForCustomAction) {
             const actionId = (request as DataForCustomActionRequest).actionId;
-            getFromStorage(storageKeys.customActions).then(actions => {
-                const action = (actions as SerializedCustomAction[] || []).find(action => action.id === actionId);
+            getFromStorage(storageKeys.customActions).then(storedActions => {
+                const actions = [...stockContextMenuItems, ...((storedActions || []) as SerializedCustomAction[])];
+                const action = actions.find(action => action.id === actionId);
 
                 if(action) {
                     const element = contextMenuPossibleActionTargets.get(action.id);
@@ -104,9 +106,10 @@ chrome.runtime.onMessage.addListener(
 
                     const result: DataForCustomActionResult = {
                         elementOuterHTML: element ? element.outerHTML : "",
+                        elementOuterHTMLSimplified: element instanceof HTMLElement ? getDOMSkeleton({}, element) : "",
                         elementInnerHTML: element ? element.innerHTML : "",
                         documentCompleteHTML: document.body.outerHTML,
-                        documentSimplifiedHTML: getDocumentSkeleton(),
+                        documentSimplifiedHTML: getDOMSkeleton(),
                         documentTitle: document.title,
                         documentURL: document.location.href,
                         elementInnerText: element instanceof HTMLElement ? element.innerText || "" : "",
@@ -143,10 +146,11 @@ document.addEventListener("contextmenu", async (event) => {
     const element = event.target as HTMLElement;
     const selection = window.getSelection();
     const selectedText = selection ? selection.toString() : "";
-    const actions: SerializedCustomAction[] = (await getFromStorage(storageKeys.customActions) || []).filter((action: SerializedCustomAction) => {
+    const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
+    const availableActions: SerializedCustomAction[] = actions.filter((action: SerializedCustomAction) => {
         return action.pathInContextMenu && (!action.selectedTextRegExp || selectedText.match(RegExp(action.selectedTextRegExp)))
     });
-    const possibleActionsElements = await gatherElementsForCustomActions(actions, element);
+    const possibleActionsElements = await gatherElementsForCustomActions(availableActions, element);
     contextMenuPossibleActionTargets = possibleActionsElements;
     chrome.runtime.sendMessage({
         messageGoal: extensionMessageGoals.registerContextMenuEvent,

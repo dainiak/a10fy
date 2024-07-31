@@ -7,11 +7,10 @@ type JSONValue = JSONPrimitive | JSONValue[] | {
     [key: string]: JSONValue;
 };
 
-export function getDataFromSharingString() {
+export function getDataFromSharingString(s: string) {
     try {
-        let hash = window.location.hash.substring(1);
-        hash = hash.replace(/-/g, '+').replace(/_/g, '/');
-        const charCodeArray = Array.from(window.atob(hash)).map((char) => char.charCodeAt(0));
+        s = s.replace(/-/g, '+').replace(/_/g, '/');
+        const charCodeArray = Array.from(atob(s)).map((char) => char.charCodeAt(0));
         return JSON.parse(inflate(new Uint8Array(charCodeArray), { to: 'string' }));
     }
     catch {
@@ -21,7 +20,7 @@ export function getDataFromSharingString() {
 
 export function getSharingStringFromData(data: JSONValue) {
     try {
-        let hash = window.btoa(Array.from(gzip(JSON.stringify(data), {level: 9})).map((byte) => String.fromCharCode(byte)).join(''));
+        let hash = btoa(Array.from(gzip(JSON.stringify(data), {level: 9})).map((byte) => String.fromCharCode(byte)).join(''));
         hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         return hash;
     }

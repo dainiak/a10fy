@@ -42,7 +42,7 @@ export type DocumentSkeletonizationOptions = {
     includeTitle?: boolean;
 }
 
-export function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}): string {
+export function getDOMSkeleton(options: DocumentSkeletonizationOptions = {}, baseNode?: HTMLElement): string {
     const wrapTextNodes = options?.wrapTextNodes || false;
     const revealPseudoElements = options?.revealPseudoElements || false;
     const attributesToKeep = options?.attributesToKeep || ["standard", "aria", "style", "id"];
@@ -173,17 +173,27 @@ export function getDocumentSkeleton(options: DocumentSkeletonizationOptions = {}
         return [];
     }
 
-    const simplifiedDomBody = getSimplifiedDomRecursive(document.body, false, false);
-    if (simplifiedDomBody) {
-        const bodyHTML = simplifiedDomBody.map(
-            element => (element instanceof HTMLElement) ? element.outerHTML : element instanceof Text ? element.textContent : ""
-        ).join("");
-        const metaTagsHTML = !keepMetaTags ? "" : Array.from(document.getElementsByTagName("meta")).map(
-            (element) => element.outerHTML
-        ).join("");
-        const titleHTML = includeTitle ? `<title>${escapeToHTML(document.title)}</title>` : "";
-        return `<html><head>${metaTagsHTML}${titleHTML}</head>${bodyHTML}</html>`
+    if (baseNode) {
+        const simplifiedDom = getSimplifiedDomRecursive(baseNode, false, false);
+        if (simplifiedDom)
+            return simplifiedDom.map(
+                element => (element instanceof HTMLElement) ? element.outerHTML : element instanceof Text ? element.textContent : ""
+            ).join("");
     }
+    else {
+        const simplifiedDom = getSimplifiedDomRecursive(document.body, false, false);
+        if (simplifiedDom) {
+            const bodyHTML = simplifiedDom.map(
+                element => (element instanceof HTMLElement) ? element.outerHTML : element instanceof Text ? element.textContent : ""
+            ).join("");
+            const metaTagsHTML = !keepMetaTags ? "" : Array.from(document.getElementsByTagName("meta")).map(
+                (element) => element.outerHTML
+            ).join("");
+            const titleHTML = includeTitle ? `<title>${escapeToHTML(document.title)}</title>` : "";
+            return `<html><head>${metaTagsHTML}${titleHTML}</head>${bodyHTML}</html>`
+        }
+    }
+
     return "";
 }
 

@@ -103,12 +103,12 @@ export default [
 
     constructJsConfig('background', [...jsPluginConfigs, copyPluginConfig]),
     constructJsConfig('contentScript', jsPluginConfigs),
-    constructJsConfig('offscreen', jsPluginConfigs),
-    constructJsConfig('popup', jsPluginConfigs),
+    // constructJsConfig('offscreen', jsPluginConfigs),
+    // constructJsConfig('popup', jsPluginConfigs),
     //
-    constructJsConfig('customPlayerSandbox', jsPluginConfigs),
-    constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),
+    // constructJsConfig('customPlayerSandbox', jsPluginConfigs),
+    // constructJsConfig('sandbox', [...jsPluginConfigs, replaceSessionStorageString],),
     //
-    constructJsConfig('settings', jsPluginConfigs),
+    // constructJsConfig('settings', jsPluginConfigs),
     constructJsConfig('sidePanel', jsPluginConfigs),
 ];

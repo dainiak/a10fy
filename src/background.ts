@@ -28,6 +28,7 @@ import {SerializedPageSnapshot} from "./helpers/storage/pageStorage";
 import {uniqueString} from "./helpers/misc";
 import {summarizePage} from "./helpers/summarization";
 import {addSerializedPage, getTimestampStringForPage} from "./helpers/storage/pageStorage";
+import {stockContextMenuItems} from "./helpers/stockContextMenuItems";
 
 setupOffscreenDocument().catch();
 rebuildContextMenus().catch();
@@ -185,10 +186,11 @@ async function textCommandGetThenExecute() {
     catch {}
 }
 
+
 async function rebuildContextMenus() {
     await chrome.contextMenus.removeAll();
-    const actions = (await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[];
     const createdItems = new Set<string>();
+    const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
     for (const action of actions) {
         if(action.pathInContextMenu) {
             let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
@@ -215,6 +217,9 @@ async function rebuildContextMenus() {
                 contexts: [action.selectedTextRegExp ? "selection" : "all"],
                 visible: false
             };
+            if(parentItem) {
+                itemProperties.parentId = parentItem;
+            }
             if(createdItems.has(action.id)) {
                 await chrome.contextMenus.update(action.id, itemProperties);
             } else {
@@ -294,7 +299,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.sidePanel.open({windowId: tab.windowId}, async () => {
         setWorkingStatus("busy");
         try {
-            const action = (await getFromStorage(storageKeys.customActions) || []).find((a: SerializedCustomAction) => a.id === info.menuItemId) as SerializedCustomAction;
+            const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
+            const action = actions.find((a: SerializedCustomAction) => a.id === info.menuItemId) as SerializedCustomAction;
             if (!action) {
                 return;
             }
@@ -376,8 +382,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 async function registerContextMenuEvent(request: RegisterContextMenuEventRequest) {
-    const availableCustomActions = (await getFromStorage(storageKeys.customActions) || []).filter((a: SerializedCustomAction) => request.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
-    for (const action of availableCustomActions) {
+    const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
+    const availableActions = actions.filter((a: SerializedCustomAction) => request.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
+    for (const action of availableActions) {
         let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
         if (!menuItem) {
             menuItem = parentItem;
