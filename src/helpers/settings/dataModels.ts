@@ -22,6 +22,7 @@ export interface SerializedModel {
     temperature: number | null,
     apiKey: string,
     isVisibleInChat: boolean,
+    enableCodeExecution: boolean,
     safetySettings: {
         dangerousContent: HarmBlockThreshold,
         hateSpeech: HarmBlockThreshold,

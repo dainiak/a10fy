@@ -7,6 +7,7 @@ type JSONValue = JSONPrimitive | JSONValue[] | {
     [key: string]: JSONValue;
 };
 
+
 export function getDataFromSharingString(s: string) {
     try {
         s = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -17,6 +18,7 @@ export function getDataFromSharingString(s: string) {
     }
     return null;
 }
+
 
 export function getSharingStringFromData(data: JSONValue) {
     try {

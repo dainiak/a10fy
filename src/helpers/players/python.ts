@@ -10,7 +10,7 @@ export function playPython(_: string, code: string, outputElement: HTMLElement, 
     const requestId = uniqueString();
 
     const resultMessageHandler = (event: MessageEvent) => {
-        if(event.data.action !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
+        if(event.data.messageGoal !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
             return;
         const result = event.data as SandboxedTaskResult;
         codeResultElement.textContent = result.result.stdout;

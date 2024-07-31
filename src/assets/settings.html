@@ -43,19 +43,23 @@
                         <input type="checkbox" class="form-check-input" id="modelVisibleInChat">
                         <label for="modelVisibleInChat" class="form-label">Available in chat mode</label>
                     </div>
+                    <div class="mb-3">
+                        <input type="checkbox" class="form-check-input" id="modelEnableCodeExecution">
+                        <label for="modelEnableCodeExecution" class="form-label">Enable code execution</label>
+                    </div>
                     <h5 class="card-title mt-5 mb-2">Generation Settings <a target="_blank" href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/adjust-parameter-values#temperature"><i class="bi bi-info-circle"></i></a></h5>
                     <div class="mb-3 form-floating has-validation">
-                        <input type="number" class="form-control" id="modelTopK" placeholder="Top-K">
+                        <input type="number" min="1" max="1000" step="1" class="form-control" id="modelTopK" placeholder="Top-K">
                         <label for="modelTopK" class="form-label">Top-K</label>
                         <div class="invalid-feedback">Top-K should be a positive integer.</div>
                     </div>
                     <div class="mb-3 form-floating has-validation">
-                        <input type="number" class="form-control" id="modelTopP" placeholder="Top-P">
+                        <input type="number" min="0" max="1" step="0.05" class="form-control" id="modelTopP" placeholder="Top-P">
                         <label for="modelTopP" class="form-label">Top-P</label>
                         <div class="invalid-feedback">Top-P should be a number between 0 and 1.</div>
                     </div>
                     <div class="mb-3 form-floating has-validation">
-                        <input type="number" class="form-control" id="modelTemperature" placeholder="Temperature">
+                        <input type="number" min="0" max="2" step="0.05" class="form-control" id="modelTemperature" placeholder="Temperature">
                         <label for="modelTemperature" class="form-label">Temperature</label>
                         <div class="invalid-feedback">Temperature should be a number between 0 and 2.</div>
                     </div>
@@ -382,7 +386,7 @@
                         <i class="bi bi-info-circle mb-2"></i>
                         <p>The A10fy extension is powered by Google Gemini family of large language models available under <a target="_blank" href="https://ai.google.dev/pricing" class="alert-link">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid" class="alert-link">if you are on Free tier of the Google Gemini, the data that comes to Gemini API may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>. According to Google’s <a target="_blank" href="https://ai.google.dev/gemini-api/terms#age-requirements" class="alert-link">Terms of Service</a>, <strong>you must be at least 18 years old</strong> to use the services that power the A10fy extension.</p>
                     </div>
-                    <div class="h5 mb-2 card-title">Enter the default Gemini API key (you can get it <a target="_blank" href="https://aistudio.google.com/app/apikey">here</a>)</div>
+                    <div class="h5 mb-2 card-title">Enter the default Gemini API key (you can get it <a target="_blank" href="https://makersuite.google.com/app/apikey">here</a>)</div>
                     <div class="mb-3 form-floating"><input class="form-control" id="mainGoogleApiKey" type="password" placeholder="API key"><label for="mainGoogleApiKey">Google Gemini API key</label></div>
                     <div class="h5 mt-3 mb-2 card-title">Permissions</div>
                     <div class="card-text">
@@ -400,7 +404,7 @@
                         <p>Large Language Models or just “Models” for short are the algorithms that generate text messages in response to user’s input. Google Gemini API currently provides <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-flash" class="alert-link">Gemini Flash</a> and <a target="_blank" href="https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-pro" class="alert-link">Gemini Pro</a> models, the latter being more advanced and capable of more complex tasks, but costing more if you are on a paid plan. The stable versions of the models are available under technical names  The latest versions of those models are <code>gemini-1.5-flash-latest</code> and <code>gemini-1.5-pro-latest</code> respectively, while their stable versions are <code>gemini-1.5-flash</code> and <code>gemini-1.5-pro</code>.</p>
                         <p>The Gemini models are available under <a target="_blank" href="https://ai.google.dev/pricing" class="alert-link">Free or Paid pricing tiers</a>. All the data that you exchange with the model comes to Google APIs directly and is not stored by A10fy extension anywhere but locally in your browser’s storage, so the <strong>authors of the extension do not have access to your data</strong>. However, <a target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid" class="alert-link">if you are on Free tier of the Google Gemini, the data that comes to the model may be used by Google to improve its services</a>, so it is recommended <strong>not to submit sensitive, confidential, or personal information to the chat and not use the A10fy assistant on pages containing confidential or personal information if you are on Free tier of Gemini API</strong>.</p>
                     </div>
-                    <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newModelButton"><i class="bi bi-plus-square-fill"></i> Add model</button>
+                    <button aria-label="Add a model" class="btn btn-outline-primary my-3 px-2" id="newModelButton"><i class="bi bi-plus-square-fill"></i> New model</button>
                     <table id="modelsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
@@ -480,7 +484,10 @@
                         <i class="bi bi-info-circle"></i>
                         <p>“Personas” are defined by the respective System Prompts, i.e. instructions that steer the behavior of large language models. Typically, system prompts start with “You are &lt;some character here&gt;” and may provide the model with information about the user so that the model can adapt its messages to the user’s knowledge and goals. <a target="_blank" href="https://promptengineering.org/system-prompts-in-large-language-models/" class="alert-link">Learn more about writing system prompts.</a></p>
                     </div>
-                    <button aria-label="Add persona" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> Add persona</button>
+                    <div class="d-flex flex-row">
+                    <button aria-label="New persona" class="btn btn-outline-primary my-3 px-2" id="newPersonaButton"><i class="bi bi-plus-square-fill"></i> New persona</button>
+                    <button aria-label="Import persona" class="btn btn-outline-primary mx-3 my-3 px-2" id="importPersonaButton"><i class="bi bi-box-arrow-in-down"></i> Import persona</button>
+                    </div>
                     <table id="personasTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
@@ -508,7 +515,11 @@ if True:
     print("Hello, world!")
 ```</code></pre><p>“Code players” are small programs that interpret code blocks and produce HTML output. A code player is run in a sandboxed webpage in an iframe, and either populates the webpage inside the iframe (in case if interactivity is needed) or produces static HTML code that replaces the iframe upon execution. Examples of code players are available <a href="#" class="alert-link open-code-player-examples">here</a>.</p>
                     </div>
-                    <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> Add code player</button>
+                    <div class="d-flex flex-row">
+                        <button aria-label="Add a custom player" class="btn btn-outline-primary my-3 px-2" id="newCodePlayer"><i class="bi bi-plus-square-fill"></i> New code player</button>
+                        <button aria-label="Import a custom player" class="btn btn-outline-primary mx-3 my-3 px-2" id="importCodePlayer"><i class="bi bi-box-arrow-in-down"></i> Import code player</button>
+                    </div>
+
                     <table id="codePlayersTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
                         <tr>
@@ -525,7 +536,7 @@ if True:
             <div class="card my-4">
                 <div class="card-header"><h5 class="card-title mt-1"><i class="bi bi-magic"></i> Custom actions</h5></div>
                 <div class="card-body">
-                    <button aria-label="Add custom action" class="btn btn-outline-primary my-3 px-2" id="newCustomActionButton"><i class="bi bi-plus-square-fill"></i> Add custom action</button>
+                    <button aria-label="New custom action" class="btn btn-outline-primary my-3 px-2" id="newCustomActionButton"><i class="bi bi-plus-square-fill"></i> New custom action</button>
                     <table id="customActionsTable" class="table table-striped table-hover row-border" style="width: 100%; bottom:0">
                         <thead>
                         <tr>

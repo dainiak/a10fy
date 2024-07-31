@@ -95,6 +95,7 @@ export async function setupAssistantModelSettings() {
             temperature: null,
             apiKey: "",
             isVisibleInChat: true,
+            enableCodeExecution: false,
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
                 hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
@@ -133,7 +134,8 @@ export async function setupSummarizationModelSettings() {
             topP: null,
             temperature: null,
             apiKey: "",
-            isVisibleInChat: true,
+            isVisibleInChat: false,
+            enableCodeExecution: false,
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
                 hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
@@ -173,6 +175,7 @@ export async function setupEmbeddingModelSettings() {
             temperature: null,
             apiKey: "",
             isVisibleInChat: false,
+            enableCodeExecution: false,
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.BLOCK_NONE,
                 hateSpeech: HarmBlockThreshold.BLOCK_NONE,
@@ -213,6 +216,7 @@ async function editModel(modelId: string, modelType: "normal" | "assistant" | "s
                 temperature: null,
                 apiKey: "",
                 isVisibleInChat: false,
+                enableCodeExecution: false,
                 safetySettings: {
                     dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
                     hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
@@ -237,6 +241,7 @@ async function editModel(modelId: string, modelType: "normal" | "assistant" | "s
                 temperature: null,
                 apiKey: "",
                 isVisibleInChat: false,
+                enableCodeExecution: false,
                 safetySettings: {
                     dangerousContent: HarmBlockThreshold.BLOCK_ONLY_HIGH,
                     hateSpeech: HarmBlockThreshold.BLOCK_ONLY_HIGH,
@@ -264,6 +269,7 @@ async function editModel(modelId: string, modelType: "normal" | "assistant" | "s
     const modelSafetyHarassmentInput = document.getElementById("modelSafetyHarassment") as HTMLSelectElement;
     const modelSafetySexuallyExplicitInput = document.getElementById("modelSafetySexuallyExplicit") as HTMLSelectElement;
     const modelVisibleInChatCheckbox = document.getElementById("modelVisibleInChat") as HTMLInputElement;
+    const modelEnableCodeExecutionCheckbox = document.getElementById("modelEnableCodeExecution") as HTMLInputElement;
 
     modelNameInput.value = model.name;
     modelDescriptionInput.value = model.description;
@@ -273,6 +279,7 @@ async function editModel(modelId: string, modelType: "normal" | "assistant" | "s
     modelTemperatureInput.value = model.temperature !== null ? model.temperature.toString() : "";
     modelApiKeyInput.value = model.apiKey;
     modelVisibleInChatCheckbox.checked = model.isVisibleInChat;
+    modelEnableCodeExecutionCheckbox.checked = model.enableCodeExecution;
     modelSafetyDangerousContentInput.value = model.safetySettings.dangerousContent;
     modelSafetyHateSpeechInput.value = model.safetySettings.hateSpeech;
     modelSafetyHarassmentInput.value = model.safetySettings.harassment;
@@ -288,6 +295,7 @@ async function editModel(modelId: string, modelType: "normal" | "assistant" | "s
         model.temperature = modelTemperatureInput.value ? parseFloat(modelTemperatureInput.value.trim()) : null;
         model.apiKey = modelApiKeyInput.value.trim();
         model.isVisibleInChat = modelVisibleInChatCheckbox.checked;
+        model.enableCodeExecution = modelEnableCodeExecutionCheckbox.checked;
         model.safetySettings = {
             dangerousContent: modelSafetyDangerousContentInput.value as HarmBlockThreshold,
             hateSpeech: modelSafetyHateSpeechInput.value as HarmBlockThreshold,
@@ -326,6 +334,7 @@ export function setupNewModelButton() {
             topP: null,
             temperature: null,
             isVisibleInChat: true,
+            enableCodeExecution: true,
             apiKey: "",
             safetySettings: {
                 dangerousContent: HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED,

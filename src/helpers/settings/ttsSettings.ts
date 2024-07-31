@@ -33,7 +33,7 @@ export async function fillTTSVoicePreferencesTable() {
         row.innerHTML = `
             <td class="voice-preference-lang"><select class="form-select form-select-sm"></select></td>
             <td class="voice-preference-name"><select class="form-select form-select-sm"></select></td>
-            <td class="voice-preference-rate"><input type="number" value="${voiceSettings.rate}" step="0.1" max="3" min="0.1" class="form-control form-control-sm"></td>
+            <td class="voice-preference-rate"><input type="number" value="${voiceSettings.rate}" min="0.1" max="3" step="0.1" class="form-control form-control-sm"></td>
             <td><button class="btn btn-outline-danger btn-sm delete-btn" data-lang-id="${voiceLang}" aria-label="Delete voice preference" title="Delete voice preference"><i class="bi bi-trash"></i></button></td>
 `;
         voicePreferencesTableBody.appendChild(row);

@@ -2,7 +2,8 @@ import {loadPyodide, version as pyodideVersion} from "pyodide";
 import {extensionMessageGoals, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
 
 window.addEventListener('message', function (event) {
-    if (event.data.action !== extensionMessageGoals.runInSandbox)
+    console.log(event.data);
+    if (event.data.messageGoal !== extensionMessageGoals.runInSandbox)
         return;
 
     const request = event.data as RunInSandboxRequest;
@@ -54,6 +55,4 @@ window.addEventListener('message', function (event) {
         textContent += `failed due to error:\n${e}`;
         sendUpdateMessage(textContent, true);
     });
-
-
 });

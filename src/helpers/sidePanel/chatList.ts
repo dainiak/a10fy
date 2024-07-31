@@ -72,11 +72,11 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
         },
         columns: [
             {
-                title: '',
+                title: '★',
                 data: 'score',
                 searchable: false,
                 orderable: false,
-                render: (data) => ``,
+                render: (data) => data ? `${data.toFixed(2)}` : "—",
             },
             {
                 title: '',

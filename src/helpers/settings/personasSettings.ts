@@ -29,6 +29,7 @@ export async function fillPersonasTable() {
             <td class="persona-system-instruction"></td>
             <td><div class="d-flex flex-row">
                 <button class="btn btn-outline-secondary btn-sm edit-btn mx-1" data-persona-id="${persona.id}" aria-label="Edit persona" title="Edit persona"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-outline-secondary btn-sm share-btn mx-1" data-persona-id="${persona.id}" aria-label="Share persona" title="Share persona"><i class="bi bi-share-fill"></i></button>
                 <button class="btn btn-outline-danger btn-sm delete-btn mx-1" data-persona-id="${persona.id}" aria-label="Delete persona" title="Delete persona"><i class="bi bi-trash"></i></button>
                 <button class="btn btn-outline-secondary btn-sm move-up-btn mx-1" data-persona-id="${persona.id}" aria-label="Move persona up the list" title="Move persona up the list"><i class="bi bi-arrow-up"></i></button>
                 <button class="btn btn-outline-secondary btn-sm move-down-btn mx-1" data-persona-id="${persona.id}" aria-label="Move persona down the list" title="Move persona down the list"><i class="bi bi-arrow-down"></i></button>
@@ -41,9 +42,11 @@ export async function fillPersonasTable() {
 
         (tr.querySelector("td.persona-system-instruction") as HTMLTableCellElement).textContent = persona.systemInstructionTemplate.length > 60 ? persona.systemInstructionTemplate.slice(0, 50) + "…" : persona.systemInstructionTemplate;
         (tr.querySelector("button.edit-btn") as HTMLButtonElement).onclick = () => editPersona(persona.id);
+        (tr.querySelector("button.share-btn") as HTMLButtonElement).onclick = () => sharePersona(persona.id);
         (tr.querySelector("button.delete-btn") as HTMLButtonElement).onclick = () => deletePersona(persona.id, tr);
         (tr.querySelector("button.move-up-btn") as HTMLButtonElement).onclick = () => movePersonaUp(persona.id, tr);
         (tr.querySelector("button.move-down-btn") as HTMLButtonElement).onclick = () => movePersonaDown(persona.id, tr);
+
         tbody.appendChild(tr);
     });
     if(!personas.length) {
@@ -108,6 +111,15 @@ async function editPersona(personaId: string) {
     };
 
     personaModal.show();
+}
+
+async function sharePersona(personaId: string) {
+    const personas = await ensureNonEmptyPersonas();
+    const persona = personas.find((persona: SerializedPersona) => persona.id === personaId);
+    if (!persona)
+        return;
+
+
 }
 
 async function deletePersona(personaId: string, tr: HTMLTableRowElement) {

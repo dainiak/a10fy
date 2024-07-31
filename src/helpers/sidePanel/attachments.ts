@@ -14,7 +14,6 @@ const pasteFormatChoiceButtonGroup = pasteFormatChoiceModalElement.querySelector
 const pasteFormatChoiceModal = Modal.getOrCreateInstance(pasteFormatChoiceModalElement);
 
 
-
 export function addAttachmentToChatInput(type: MessageAttachmentTypes, data: string) {
     const attachmentId = addAttachmentToCurrentDraft({type, data});
     if (!attachmentId)
@@ -22,7 +21,13 @@ export function addAttachmentToChatInput(type: MessageAttachmentTypes, data: str
     const iconContainer = document.createElement("div");
     iconContainer.className = "icon";
     const icon = type === MessageAttachmentTypes.IMAGE ? document.createElement("img") : document.createElement("i");
-    type === MessageAttachmentTypes.IMAGE ? (icon as HTMLImageElement).src = data : icon.className = "bi bi-file-earmark-music";
+    if(type === MessageAttachmentTypes.IMAGE) {
+        (icon as HTMLImageElement).src = data;
+        icon.className = "object-fit-contain";
+    }
+    else {
+        icon.className = "bi bi-file-earmark-music";
+    }
     iconContainer.appendChild(icon);
     inputAreaAttachmentIconsContainer.appendChild(iconContainer);
     const trashIcon = document.createElement("i");

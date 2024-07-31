@@ -6,7 +6,7 @@ import {
 } from "./helpers/constants";
 
 window.addEventListener('message', function (event) {
-    if (event.data.action !== extensionMessageGoals.runInSandbox)
+    if (event.data.messageGoal !== extensionMessageGoals.runInSandbox)
         return;
 
     const request = event.data as RunInSandboxRequest;

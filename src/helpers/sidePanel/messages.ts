@@ -12,7 +12,7 @@ import {
     saveUpdatedChat,
     SerializedChat, SerializedMessage
 } from "../storage/chatStorage";
-import {getGeminiTextModel} from "../geminiInterfacing";
+import {getGeminiTextChatModel} from "../geminiInterfacing";
 import {getInlineDataPart} from "../promptParts";
 import {storageKeys} from "../constants";
 import {SerializedCustomCodePlayer, SerializedModel, SerializedPersona} from "../settings/dataModels";
@@ -311,7 +311,7 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
             link.onclick = (evt) => {evt.preventDefault(); showSettingsPane()};
     }
 
-    const chatModel = await getGeminiTextModel(model, persona);
+    const chatModel = await getGeminiTextChatModel(model, persona);
     try {
         chatModel.generateContentStream({contents: geminiHistory}).then(async (result) => {
             let llmMessageText = "";

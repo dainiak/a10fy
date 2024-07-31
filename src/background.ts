@@ -145,7 +145,7 @@ async function submitUserRequest(websiteData: TabDocumentInfo, userRequest: User
 }
 
 async function getTabDocumentInfo(tab: chrome.tabs.Tab) {
-    if (!tab.id)
+    if (!tab || !tab.id)
         return {};
 
     let tabScreenshot = "";
@@ -179,8 +179,14 @@ async function textCommandGetThenExecute() {
             return;
         const response: PromptUserResult = await chrome.tabs.sendMessage(tab.id, {messageGoal: extensionMessageGoals.promptUser} as PromptUserRequest);
         if (response.userResponse !== null && response.userResponse !== "") {
+            setWorkingStatus("busy");
             const tabDocumentInfo = await getTabDocumentInfo(tab);
-            await submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab);
+            submitUserRequest(tabDocumentInfo, {text: response.userResponse}, tab).then(() => {
+                setWorkingStatus("idleAfterSuccess");
+            }).catch((err) => {
+                console.log(err);
+                setWorkingStatus("idleAfterFailure");
+            });
         }
     }
     catch {}
@@ -241,8 +247,15 @@ async function voiceCommandRecordThenExecute(){
                     active: true,
                     lastFocusedWindow: true
                 });
+                if(!tab || !tab.id)
+                    return;
+                setWorkingStatus("busy");
                 const tabDocumentInfo = await getTabDocumentInfo(tab);
-                await submitUserRequest(tabDocumentInfo, {audio: response.audio}, tab);
+                submitUserRequest(tabDocumentInfo, {audio: response.audio}, tab).then(() => {
+                    setWorkingStatus("idleAfterSuccess");
+                }).catch(() => {
+                    setWorkingStatus("idleAfterFailure");
+                });;
             }
         }
     );
@@ -256,20 +269,10 @@ async function voiceCommandStopRecording() {
 
 chrome.commands.onCommand.addListener(async (command) => {
     if (command === "textCommandGetThenExecute") {
-        setWorkingStatus("busy");
-        textCommandGetThenExecute().then(() => {
-            setWorkingStatus("idleAfterSuccess");
-        }).catch(() => {
-            setWorkingStatus("idleAfterFailure");
-        });
+        textCommandGetThenExecute().catch();
     }
     else if (command === "voiceCommandRecordThenExecute") {
-        setWorkingStatus("busy");
-        voiceCommandRecordThenExecute().then(() => {
-            setWorkingStatus("idleAfterSuccess");
-        }).catch(() => {
-            setWorkingStatus("idleAfterFailure");
-        });
+        voiceCommandRecordThenExecute().catch();
     }
     else if (command === "voiceCommandStopRecording") {
         await voiceCommandStopRecording();

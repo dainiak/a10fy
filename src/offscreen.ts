@@ -82,7 +82,7 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
             const requestId = (request as RunInSandboxRequest).requestId;
 
             const resultMessageHandler = (event: MessageEvent) => {
-                if(event.data.action !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
+                if(event.data.messageGoal !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
                     return;
                 const result = event.data as SandboxedTaskResult;
                 if (result.isFinal) {

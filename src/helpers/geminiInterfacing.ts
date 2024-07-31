@@ -6,7 +6,7 @@ import {
     GenerationConfig,
     GoogleGenerativeAI,
     HarmBlockThreshold,
-    HarmCategory,
+    HarmCategory, ModelParams,
     ResponseSchema, Schema
 } from "@google/generative-ai";
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
@@ -156,6 +156,7 @@ export async function asyncRequestAndParseJSON(requestData: GenerateContentReque
         parser.write(text);
         completeText += text;
     }
+    console.log(completeText);
     // TODO: log parsing errors
 }
 
@@ -184,7 +185,7 @@ export async function getTextEmbedding(data: string | string[]) {
     }
 }
 
-export async function getGeminiTextModel(model: SerializedModel, persona: SerializedPersona | null) {
+export async function getGeminiTextChatModel(model: SerializedModel, persona: SerializedPersona | null) {
     const apiKey = model.apiKey || await getFromStorage(storageKeys.mainGoogleApiKey);
     const generationConfig: GenerationConfig = {
         temperature: model.temperature || 0,
@@ -220,12 +221,21 @@ export async function getGeminiTextModel(model: SerializedModel, persona: Serial
     scope.persona.description = persona ? persona.description : "";
     const systemInstruction = liquidEngine.parseAndRenderSync(persona ? persona.systemInstructionTemplate : getDefaultChatSystemPromptTemplate(), scope);
 
-    return (new GoogleGenerativeAI(apiKey)).getGenerativeModel({
+    const modelParams: ModelParams = {
         model: model.technicalName,
         generationConfig: generationConfig,
         safetySettings: safetySettings,
-        systemInstruction: systemInstruction
-    });
+        systemInstruction: systemInstruction,
+    };
+    if(model.enableCodeExecution) {
+        modelParams.tools = [
+            {
+                // @ts-ignore
+                codeExecution: {},
+            },
+        ]
+    }
+    return (new GoogleGenerativeAI(apiKey)).getGenerativeModel(modelParams);
 }
 
 export async function getModelForCustomAction(model: SerializedModel, systemInstruction: string, jsonMode: boolean = false) {

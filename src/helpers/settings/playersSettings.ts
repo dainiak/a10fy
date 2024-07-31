@@ -22,6 +22,7 @@ export async function fillPlayersTable() {
         <td class="player-description"></td>
         <td class="player-edit">
             <button class="btn btn-outline-secondary btn-sm edit-btn" aria-label="Edit player" title="Edit player"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-outline-secondary btn-sm share-btn" aria-label="Share player" title="Share player"><i class="bi bi-share-fill"></i></button>
             <button class="btn btn-outline-danger btn-sm delete-btn" aria-label="Delete player" title="Delete player"><i class="bi bi-trash"></i></button>
         </td>
         `;
@@ -30,6 +31,7 @@ export async function fillPlayersTable() {
         (tr.querySelector('td.player-language-tags') as HTMLTableCellElement).innerHTML = escapeToHTML(player.languageTags, "code");
         (tr.querySelector('td.player-description') as HTMLTableCellElement).textContent = player.description;
         (tr.querySelector('button.edit-btn') as HTMLButtonElement).onclick = () => editPlayer(player.id);
+        (tr.querySelector('button.share-btn') as HTMLButtonElement).onclick = () => sharePlayer(player.id);
         (tr.querySelector('button.delete-btn') as HTMLButtonElement).onclick = () => deletePlayer(player.id, tr);
         tbody.appendChild(tr);
     });
@@ -100,6 +102,14 @@ async function editPlayer(playerId: string) {
         );
     }
     playerModal.show();
+}
+
+async function sharePlayer(playerId: string) {
+    const players: SerializedCustomCodePlayer[] = (await getFromStorage(storageKeys.codePlayers) || []);
+    const player = players.find((player: SerializedCustomCodePlayer) => player.id === playerId);
+    if (!player)
+        return;
+    
 }
 
 async function deletePlayer(playerId: string, tr: HTMLTableRowElement) {

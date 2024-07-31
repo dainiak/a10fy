@@ -23,7 +23,7 @@ export function customPlayerFactory(customCSS: string, customJS: string, customH
         outputElement.appendChild(sandbox);
 
         const resultMessageHandler = (event: MessageEvent) => {
-            if (event.data.action !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
+            if (event.data.messageGoal !== extensionMessageGoals.sandboxedTaskResultsUpdate || event.data.requestId !== requestId)
                 return;
             window.removeEventListener("message", resultMessageHandler);
             try {
