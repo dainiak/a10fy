@@ -18,6 +18,27 @@
 <datalist id="embeddingModelsDataList">
     <option>text-embedding-004</option>
 </datalist>
+
+<div id="sharingModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <textarea class="form-control" id="sharingLinkArea" style="font-family: monospace"></textarea>
+                        <label for="sharingLinkArea" class="form-label">Sharing link</label>
+                    </div>
+                    <button id="sharingButton" class="btn btn-outline-primary"><i class="bi bi-clipboard"></i> <span>Copy to clipboard</span></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="editModelModal" class="modal fade" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">

@@ -1,13 +1,6 @@
 import {inflate, gzip} from 'pako';
 
 
-type JSONPrimitive = string | number | boolean | null | undefined;
-
-type JSONValue = JSONPrimitive | JSONValue[] | {
-    [key: string]: JSONValue;
-};
-
-
 export function getDataFromSharingString(s: string) {
     try {
         s = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -20,7 +13,7 @@ export function getDataFromSharingString(s: string) {
 }
 
 
-export function getSharingStringFromData(data: JSONValue) {
+export function getSharingStringFromData(data: any) {
     try {
         let hash = btoa(Array.from(gzip(JSON.stringify(data), {level: 9})).map((byte) => String.fromCharCode(byte)).join(''));
         hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

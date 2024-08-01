@@ -7,6 +7,8 @@ import {setToStorage} from "../storage/storageHandling";
 import {createLiquidCodeMirror} from "../codeMirror";
 import {EditorView} from "@codemirror/view";
 import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "./ensureNonEmpty";
+import {getDataFromSharingString, getSharingStringFromData} from "../sharing";
+import {openSharingModal} from "./sharingModal";
 
 export const personaModalElement = document.getElementById("editPersonaModal") as HTMLDivElement;
 const personaModal = Modal.getOrCreateInstance(personaModalElement);
@@ -119,7 +121,11 @@ async function sharePersona(personaId: string) {
     if (!persona)
         return;
 
-
+    persona.id = "";
+    persona.sortingIndex = -1;
+    const sharingLink = getSharingStringFromData(persona);
+    if(sharingLink)
+        openSharingModal("export", "persona", `https://a10fy.net/share/persona#${sharingLink}`);
 }
 
 async function deletePersona(personaId: string, tr: HTMLTableRowElement) {
@@ -171,6 +177,36 @@ export function setupNewPersonaButton() {
         await fillPersonasTable();
         await editPersona(newPersona.id);
     };
+}
+
+export function setupImportPersonaButton() {
+    (document.getElementById("importPersonaButton") as HTMLButtonElement).onclick = () => {
+        openSharingModal("import", "persona", "", async (data: string) => {
+            if(!data.startsWith("https://a10fy.net/share/persona#")) {
+                alert("Invalid sharing link");
+                return;
+            }
+            data = data.slice("https://a10fy.net/share/persona#".length);
+            const providedPersona = getDataFromSharingString(data) as SerializedPersona;
+            if(!providedPersona){
+                alert("Invalid sharing link");
+                return;
+            }
+            const personas = await ensureNonEmptyPersonas();
+            personas.push({
+                id: uniqueString(),
+                sortingIndex: personas.length,
+                name: providedPersona.name,
+                description: providedPersona.description,
+                systemInstructionTemplate: providedPersona.systemInstructionTemplate,
+                isVisibleInChat: true,
+                defaultModel: "",
+            });
+
+            await setToStorage(storageKeys.personas, personas);
+            await fillPersonasTable();
+        });
+    }
 }
 
 export function destroyPersonaCodeMirrors() {

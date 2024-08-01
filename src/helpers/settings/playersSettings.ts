@@ -5,6 +5,8 @@ import {uniqueString} from "../misc";
 import Modal from "bootstrap/js/dist/modal";
 import {customPlayerFactory} from "../players/custom";
 import {escapeToHTML} from "../domTools";
+import {getDataFromSharingString, getSharingStringFromData} from "../sharing";
+import {openSharingModal} from "./sharingModal";
 
 const playerModalElement = document.getElementById("editCodePlayerModal") as HTMLDivElement;
 const playerModal = Modal.getOrCreateInstance(playerModalElement);
@@ -109,7 +111,10 @@ async function sharePlayer(playerId: string) {
     const player = players.find((player: SerializedCustomCodePlayer) => player.id === playerId);
     if (!player)
         return;
-    
+    player.id = "";
+    const sharingLink = getSharingStringFromData(player);
+    if(sharingLink)
+        openSharingModal("export", "player", `https://a10fy.net/share/player#${sharingLink}`)
 }
 
 async function deletePlayer(playerId: string, tr: HTMLTableRowElement) {
@@ -145,5 +150,25 @@ export function setupNewPlayerButton() {
         await setToStorage(storageKeys.codePlayers, [...players, newPlayer]);
         await fillPlayersTable();
         await editPlayer(newPlayer.id);
+    };
+}
+
+export function setupImportPlayerButton() {
+    (document.getElementById("importCodePlayer") as HTMLButtonElement).onclick = async () => {
+        openSharingModal("import", "player", "", async (data: string) => {
+            if (!data.startsWith("https://a10fy.net/share/player#")) {
+                alert("Invalid sharing link");
+                return;
+            }
+            data = data.slice("https://a10fy.net/share/player#".length);
+            const providedPlayer = getDataFromSharingString(data);
+            if (!providedPlayer) {
+                alert("Invalid sharing link");
+                return;
+            }
+            const players: SerializedCustomCodePlayer[] = await getFromStorage(storageKeys.codePlayers) || [];
+            await setToStorage(storageKeys.codePlayers, [...players, providedPlayer]);
+            await fillPlayersTable();
+        });
     };
 }

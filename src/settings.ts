@@ -8,11 +8,11 @@ import {
 import {
     destroyPersonaCodeMirrors,
     fillPersonasTable,
-    personaModalElement,
+    personaModalElement, setupImportPersonaButton,
     setupNewPersonaButton
 } from "./helpers/settings/personasSettings";
 import {getFromStorage, setToStorage} from "./helpers/storage/storageHandling";
-import {fillPlayersTable, setupNewPlayerButton} from "./helpers/settings/playersSettings";
+import {fillPlayersTable, setupImportPlayerButton, setupNewPlayerButton} from "./helpers/settings/playersSettings";
 import Tab from "bootstrap/js/dist/tab";
 import {
     actionModalElement,
@@ -67,9 +67,11 @@ setupNewModelButton();
 fillModelsTable().catch();
 
 setupNewPersonaButton();
+setupImportPersonaButton();
 fillPersonasTable().catch();
 
 setupNewPlayerButton();
+setupImportPlayerButton();
 fillPlayersTable().catch();
 
 setupNewCustomActionButton();
