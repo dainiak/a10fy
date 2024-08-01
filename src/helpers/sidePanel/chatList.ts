@@ -102,7 +102,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
                 orderable: false,
                 render: (data) => `<div class="d-flex flex-row">
 <button class="btn btn-outline-info btn-sm summarize-chat-btn" data-chat-id="${data}" aria-label="Summarize chat" title="Summarize chat"><i class="bi bi-journal-text"></i></button>
-<button class="btn btn-outline-danger btn-sm delete-chat-btn" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>
+<button class="btn btn-outline-danger btn-sm delete-chat-btn mx-1" data-chat-id="${data}" aria-label="Delete chat" title="Delete chat"><i class="bi bi-trash"></i></button>
 </div>
 `.trim(),
             }
@@ -188,6 +188,13 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
     searchField.classList.remove("form-control-sm");
     searchField.classList.add("form-control");
     searchField.ariaLabel = "Search chats";
+
+    const scrollDiv = document.querySelector("#chatListPane div.dt-scroll") as HTMLDivElement;
+    scrollDiv.className = "dt-scroll container-fluid";
+    const dtScrollInner = document.querySelector("#chatListPane div.dt-scroll-headInner") as HTMLDivElement;
+    dtScrollInner.style.setProperty("width", "");
+    const dtTable = document.querySelector("#chatListPane table") as HTMLTableElement;
+    dtTable.style.setProperty("width", "");
 
     return chatListTable;
 }

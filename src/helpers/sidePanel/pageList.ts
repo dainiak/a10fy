@@ -161,5 +161,12 @@ export async function initializePageListTable() {
     searchField.classList.add("form-control");
     searchField.ariaLabel = "Search history";
 
+    const scrollDiv = document.querySelector("#pageListPane div.dt-scroll") as HTMLDivElement;
+    scrollDiv.className = "dt-scroll container-fluid";
+    const dtScrollInner = document.querySelector("#pageListPane div.dt-scroll-headInner") as HTMLDivElement;
+    dtScrollInner.style.setProperty("width", "");
+    const dtTable = document.querySelector("#pageListPane table") as HTMLTableElement;
+    dtTable.style.setProperty("width", "");
+
     return pageListTable;
 }

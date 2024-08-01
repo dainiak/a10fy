@@ -67,6 +67,17 @@ export function pasteTextToChatInput(text: string) {
     chatPaneInputTextArea.focus();
 }
 
+const base64FromBlob = async (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            resolve(reader.result as string);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
+
 async function processTransferredItems(transferredData: DataTransfer, processClipboard = true, detectOnly = false) {
     const attachableItems: AttachableItem[] = [];
 
@@ -79,16 +90,7 @@ async function processTransferredItems(transferredData: DataTransfer, processCli
             return true;
         // can only attach one audio file
         const file = audioFiles[0];
-        const fileReadPromise = new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = function () {
-                if(reader.result)
-                    resolve({format: "audio", data: reader.result as string} as AttachableItem);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-        attachableItems.push(await fileReadPromise as AttachableItem);
+        attachableItems.push({format: "audio", data: await base64FromBlob(file)});
     }
 
     const items = processClipboard ? (await navigator.clipboard.read()) : [];
@@ -98,7 +100,7 @@ async function processTransferredItems(transferredData: DataTransfer, processCli
     if(detectOnly && textItems.length > 0)
         return true;
 
-    await Promise.all(textItems.map(async (item) => {
+    for(let item of textItems) {
         const attachableItem: AttachableItem = {
             variations: []
         };
@@ -124,15 +126,14 @@ async function processTransferredItems(transferredData: DataTransfer, processCli
 
         const imageTypes = item.types.filter(type => type.startsWith("image"));
         if(imageTypes.length > 0) {
-            item.getType(imageTypes[0]).then((blob) => {
-                attachableItem.variations!.push({
-                    format: "image",
-                    data: URL.createObjectURL(blob)
-                });
+            const blob = await item.getType(imageTypes[0]);
+            attachableItem.variations!.push({
+                format: "image",
+                data: await base64FromBlob(blob)
             });
         }
         attachableItems.push(attachableItem);
-    }));
+    }
 
     const imageItems = items.filter((item) =>
         !item.types.includes("text/plain") && !item.types.includes("text/html") && item.types.filter(type => type.startsWith("image")).length > 0
@@ -140,35 +141,28 @@ async function processTransferredItems(transferredData: DataTransfer, processCli
     if (imageItems.length > 0) {
         if(detectOnly)
             return true;
-        imageItems.forEach((item) => {
+        for (let item of imageItems) {
             for (let type of item.types) {
                 if (type.startsWith('image')) {
-                    item.getType(type).then((blob) => {
-                        attachableItems.push({
-                            format: "image",
-                            data: URL.createObjectURL(blob)
-                        });
-                    })
+                    const blob = await item.getType(type);
+                    attachableItems.push({
+                        format: "image",
+                        data: await base64FromBlob(blob)
+                    });
                 }
             }
-        });
+        };
     }
     else {
         if(detectOnly && imageFiles.length > 0)
             return true;
         if(!textItems.find((item) => item.types.filter(type => type.startsWith("image")).length > 0))
-            await Promise.all(imageFiles.map(async (file) => {
-                const fileReadPromise = new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = function () {
-                        if(reader.result)
-                            resolve({format: "image", data: reader.result as string} as AttachableItem);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
+            for(let file of imageFiles) {
+                attachableItems.push({
+                    format: "image",
+                    data: await base64FromBlob(file)
                 });
-                attachableItems.push(await fileReadPromise as AttachableItem);
-            }));
+            }
     }
     if(detectOnly)
         return false;

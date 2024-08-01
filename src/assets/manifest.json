@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "A10fy",
-  "version": "1.0",
-  "description": "Access the web. Better.",
+  "version": "0.9.0",
+  "description": "A10fy brings Google Gemini-powered AI browser assistant and chat with interactive features to your browser’s side panel.",
   "icons": {
     "128": "icon.png"
   },

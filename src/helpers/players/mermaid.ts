@@ -24,10 +24,14 @@ export function playMermaid(_: string, code: string, outputElement: HTMLElement,
     mermaid.parse(code, { suppressErrors: false }).then(() => {
         mermaid.render(tempElement.id, code).then((renderResult) => {
             outputElement.innerHTML = renderResult.svg;
-            (outputElement.querySelector("svg") as SVGElement)?.removeAttribute("id");
+            const resultSVG = outputElement.querySelector("svg") as SVGElement;
+            const id = resultSVG ? resultSVG.getAttribute("id") : null;
+            resultSVG?.removeAttribute("id");
             tempElement.remove();
             document.getElementById(tempElement.id)?.remove();
             document.getElementById("d" + tempElement.id)?.remove();
+            if(id)
+                resultSVG?.setAttribute("id", id);
             if(successCallback)
                 successCallback();
         }).catch((e) => {

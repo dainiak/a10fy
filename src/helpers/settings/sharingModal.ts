@@ -21,7 +21,9 @@ export function openSharingModal(taskType: "import" | "export", entityType: "per
     } else {
         textArea.value = "";
     }
-    button.onclick = () => {
+    button.onclick = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
         if(taskType === "import") {
             if(callback)
                 callback(textArea.value);

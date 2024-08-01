@@ -35,7 +35,8 @@ window.addEventListener('message', function (event) {
         stderr: (text) => {
             textContent += text + "\n";
             sendUpdateMessage(textContent);
-        }
+        },
+        fullStdLib: false
     }).then((pyodide) => {
         textContent += "done.\n";
         try {
