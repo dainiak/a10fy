@@ -18,9 +18,6 @@
     "tabCapture",
     "tts"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
   "sandbox": {
     "pages": ["sandbox.html", "customPlayerSandbox.html"]
   },
