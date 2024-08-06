@@ -93,7 +93,7 @@ async function editAction(actionId: string) {
         actionMessageCodeMirrorView = null;
     }
     actionMessageCodeMirrorView = createLiquidCodeMirror(
-        messageTextInputContainer, action.messageTemplate, saveMessage, getChatSystemInstructionDummyScope()
+        messageTextInputContainer, action.messageTemplate, saveMessage, getCustomActionSystemInstructionDummyScope()
     );
 
     const jsonModeInput = document.getElementById("customActionModelJSONMode") as HTMLInputElement;

@@ -152,9 +152,9 @@ document.addEventListener("contextmenu", async (event) => {
     });
     const possibleActionsElements = await gatherElementsForCustomActions(availableActions, element);
     contextMenuPossibleActionTargets = possibleActionsElements;
-    chrome.runtime.sendMessage({
+    await chrome.runtime.sendMessage({
         messageGoal: extensionMessageGoals.registerContextMenuEvent,
         availableCustomActions: Array.from(possibleActionsElements.keys()),
         selectedText: selectedText,
-    } as RegisterContextMenuEventRequest).catch();
+    } as RegisterContextMenuEventRequest);
 });

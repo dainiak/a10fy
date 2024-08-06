@@ -31,7 +31,7 @@ import {addSerializedPage, getTimestampStringForPage} from "./helpers/storage/pa
 import {stockContextMenuItems} from "./helpers/stockContextMenuItems";
 
 setupOffscreenDocument().catch();
-rebuildContextMenus().catch();
+rebuildContextMenus();
 
 let workingStatus: "idleAfterFailure" | "idleAfterSuccess" | "idle" | "busy" = "idle";
 let busyBadgeState: number = 0;
@@ -192,48 +192,49 @@ async function textCommandGetThenExecute() {
     catch {}
 }
 
-
-async function rebuildContextMenus() {
-    await chrome.contextMenus.removeAll();
-    const createdItems = new Set<string>();
-    const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
-    for (const action of actions) {
-        if(action.pathInContextMenu) {
-            let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
-            if (!menuItem) {
-                menuItem = parentItem;
-                parentItem = undefined;
-            }
-            if (parentItem) {
-                const parentProperties: any = {
-                    title: parentItem,
-                    contexts: ["all"],
-                    visible: false
+function rebuildContextMenus() {
+    chrome.contextMenus.removeAll(async () => {
+        const createdItems = new Set<string>();
+        const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
+        for (const action of actions) {
+            if(action.pathInContextMenu) {
+                let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
+                if (!menuItem) {
+                    menuItem = parentItem;
+                    parentItem = undefined;
+                }
+                if (parentItem) {
+                    const parentProperties: any = {
+                        title: parentItem,
+                        contexts: ["all"],
+                        visible: true
+                    };
+                    if(createdItems.has(parentItem)) {
+                        await chrome.contextMenus.update(parentItem, parentProperties);
+                    }
+                    else {
+                        chrome.contextMenus.create({id: parentItem, ...parentProperties});
+                        createdItems.add(parentItem);
+                    }
+                }
+                const itemProperties: any = {
+                    title: menuItem,
+                    contexts: [action.selectedTextRegExp ? "selection" : "all"],
+                    visible: true,
+                    enabled: false
                 };
-                if(createdItems.has(parentItem)) {
-                    await chrome.contextMenus.update(parentItem, parentProperties);
+                if(parentItem) {
+                    itemProperties.parentId = parentItem;
                 }
-                else {
-                    chrome.contextMenus.create({id: parentItem, ...parentProperties});
-                    createdItems.add(parentItem);
+                if(createdItems.has(action.id)) {
+                    await chrome.contextMenus.update(action.id, itemProperties);
+                } else {
+                    chrome.contextMenus.create({id: action.id, ...itemProperties});
+                    createdItems.add(action.id);
                 }
-            }
-            const itemProperties: any = {
-                title: menuItem,
-                contexts: [action.selectedTextRegExp ? "selection" : "all"],
-                visible: false
-            };
-            if(parentItem) {
-                itemProperties.parentId = parentItem;
-            }
-            if(createdItems.has(action.id)) {
-                await chrome.contextMenus.update(action.id, itemProperties);
-            } else {
-                chrome.contextMenus.create({id: action.id, ...itemProperties});
-                createdItems.add(action.id);
             }
         }
-    }
+    });
 }
 
 async function voiceCommandRecordThenExecute(){
@@ -387,25 +388,47 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 async function registerContextMenuEvent(request: RegisterContextMenuEventRequest) {
     const actions = [...stockContextMenuItems, ...((await getFromStorage(storageKeys.customActions) || []) as SerializedCustomAction[])];
     const availableActions = actions.filter((a: SerializedCustomAction) => request.availableCustomActions.includes(a.id)) as SerializedCustomAction[];
-    for (const action of availableActions) {
+    const parentItems = new Set<string>();
+    for (const action of actions) {
+        if(!action.pathInContextMenu)
+            continue;
         let [parentItem, menuItem] = action.pathInContextMenu.split("/").map(s => s.trim()) as (string | undefined)[];
         if (!menuItem) {
             menuItem = parentItem;
             parentItem = undefined;
         }
-        if(parentItem)
+        if(availableActions.includes(action)) {
+            if (parentItem) {
+                parentItems.add(parentItem);
+                await chrome.contextMenus.update(
+                    parentItem,
+                    {
+                        enabled: true
+                    }
+                );
+            }
             await chrome.contextMenus.update(
-                parentItem,
+                action.id,
                 {
-                    visible: true
+                    enabled: true
                 }
             );
-        await chrome.contextMenus.update(
-            action.id,
-            {
-                visible: true
-            }
-        );
+        }
+        else {
+            if (parentItem && !parentItems.has(parentItem))
+                await chrome.contextMenus.update(
+                    parentItem,
+                    {
+                        enabled: false
+                    }
+                );
+            await chrome.contextMenus.update(
+                action.id,
+                {
+                    enabled: false
+                }
+            );
+        }
     }
 }
 
@@ -447,11 +470,11 @@ async function takeCurrentPageSnapshot() {
     }
 }
 
-chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest) => {
+chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, sendResponse) => {
     if (request.messageGoal === extensionMessageGoals.registerContextMenuEvent) {
-        registerContextMenuEvent(request as RegisterContextMenuEventRequest).catch();
+        registerContextMenuEvent(request as RegisterContextMenuEventRequest).then(() => sendResponse());
     } else if (request.messageGoal === extensionMessageGoals.rebuildContextMenus) {
-        rebuildContextMenus().catch();
+        rebuildContextMenus();
     } else if (request.messageGoal === extensionMessageGoals.voiceCommandRecordThenExecute) {
         voiceCommandRecordThenExecute().catch();
     } else if (request.messageGoal === extensionMessageGoals.voiceCommandStopRecording) {
