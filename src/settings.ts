@@ -22,7 +22,14 @@ import {
 } from "./helpers/settings/actionsSettings";
 import {setupClearButtons} from "./helpers/sidePanel/clearData";
 import {fillTTSVoicePreferencesTable, setupNewVoicePreferenceButton} from "./helpers/settings/ttsSettings";
+import {isRunningAsExtension} from "./helpers/misc";
 
+if(!isRunningAsExtension()) {
+    for(const element of Array.from(document.querySelectorAll(".rm-in-standalone"))) {
+        element.remove();
+    }
+    (document.querySelector("#actionSettingsTab span") as HTMLSpanElement).textContent = "Code players";
+}
 
 function setupGeneral() {
     const quickSetupTab = Tab.getOrCreateInstance(document.getElementById("setupTab") as HTMLElement);
@@ -38,11 +45,12 @@ function setupGeneral() {
 
 function setupAllowToUseMicrophone() {
     const allowToUseMicrophone = document.getElementById("allowToUseMicrophone") as HTMLElement;
-    allowToUseMicrophone.onclick = () => {
-        navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-            stream.getTracks().forEach(track => track.readyState === 'live' && track.stop());
-        }).catch();// TODO: tell the user how to enable the microphone properly
-    };
+    if(allowToUseMicrophone)
+        allowToUseMicrophone.onclick = () => {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                stream.getTracks().forEach(track => track.readyState === 'live' && track.stop());
+            }).catch();// TODO: tell the user how to enable the microphone properly
+        };
 }
 
 async function setupDefaultApiKeyInput() {

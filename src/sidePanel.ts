@@ -38,6 +38,16 @@ import {CustomActionSystemInstructionLiquidScope} from "./helpers/prompts";
 import {initializePageListTable} from "./helpers/sidePanel/pageList";
 import {stockContextMenuItems} from "./helpers/stockContextMenuItems";
 import {executeStockMenuAction} from "./helpers/stockContextMenuActions";
+import {isRunningAsExtension} from "./helpers/misc";
+import {ensureNonEmptyModels, ensureNonEmptyPersonas} from "./helpers/settings/ensureNonEmpty";
+
+if(!isRunningAsExtension()) {
+    for(const element of Array.from(document.querySelectorAll(".rm-in-standalone"))) {
+        element.remove();
+    }
+    ensureNonEmptyModels().catch();
+    ensureNonEmptyPersonas().catch();
+}
 
 
 async function loadChatToChatPane(chatId: string) {
@@ -233,7 +243,7 @@ async function executeCustomAction(request: ExecuteCustomActionInSidePanelReques
     }
 }
 
-if(chrome && chrome.runtime) {
+if(isRunningAsExtension()) {
     chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, sendResponse: Function) => {
         if (!sender.tab && request.messageGoal === extensionMessageGoals.executeCustomActionInSidePanel) {
             const stockContextMenuAction = stockContextMenuItems.find((item) => item.id === (request as ExecuteCustomActionInSidePanelRequest).actionId);
@@ -257,5 +267,7 @@ if(chrome && chrome.runtime) {
 }
 
 if(!getCurrentChatId()) {
+    ensureNonEmptyModels().catch();
+    ensureNonEmptyPersonas().catch();
     startNewChat();
 }

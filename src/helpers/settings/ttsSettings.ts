@@ -1,10 +1,13 @@
 import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {storageKeys} from "../constants";
 import {SerializedVoiceSettings} from "./dataModels";
+import {isRunningAsExtension} from "../misc";
 
 const newVoicePreferenceButton = document.getElementById('newVoicePreferenceButton') as HTMLButtonElement;
 
 export async function setupNewVoicePreferenceButton() {
+    if(!isRunningAsExtension())
+        return;
     newVoicePreferenceButton.onclick = async () => {
         const voicePreferences = (await getFromStorage(storageKeys.ttsVoicePreferences) || {}) as SerializedVoiceSettings;
         voicePreferences[""] = {voiceName: "", rate: 1};
@@ -20,6 +23,8 @@ newVoicePreferenceButton.onclick = async () => {
 }
 
 export async function fillTTSVoicePreferencesTable() {
+    if(!isRunningAsExtension())
+        return;
     const voicePreferencesTableBody = document.querySelector("#voicePreferencesTable tbody") as HTMLTableSectionElement;
 
     voicePreferencesTableBody.innerHTML = "";

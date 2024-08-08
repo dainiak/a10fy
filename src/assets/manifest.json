@@ -15,7 +15,6 @@
     "scripting",
     "sidePanel",
     "storage",
-    "tabCapture",
     "tts"
   ],
   "sandbox": {
@@ -33,12 +32,6 @@
     "default_title": "A10fy menu",
     "default_icon": "icon.png"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["js/contentScript.js"]
-    }
-  ],
   "side_panel": {
     "default_path": "sidePanel.html"
   },

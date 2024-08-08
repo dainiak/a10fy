@@ -2,7 +2,7 @@ import {storageKeys} from "../constants";
 import {SerializedModel} from "./dataModels";
 import Modal from "bootstrap/js/dist/modal";
 import {HarmBlockThreshold} from "@google/generative-ai";
-import {uniqueString} from "../misc";
+import {isRunningAsExtension, uniqueString} from "../misc";
 import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {ensureNonEmptyModels} from "./ensureNonEmpty";
 
@@ -82,6 +82,8 @@ async function deleteModel(modelId: string, tr: HTMLTableRowElement) {
 }
 
 export async function setupAssistantModelSettings() {
+    if(!isRunningAsExtension())
+        return;
     let assistantModel: SerializedModel | null = await getFromStorage(storageKeys.assistantModel);
     if(!assistantModel) {
         assistantModel = {
@@ -151,7 +153,7 @@ export async function setupSummarizationModelSettings() {
         summarizationModel.apiKey = summarizationModelApiKeyInput.value;
         await setToStorage(storageKeys.summarizationModel, summarizationModel);
     });
-    const summarizationModelNameInput = document.getElementById("assistantModelTechnicalName") as HTMLInputElement;
+    const summarizationModelNameInput = document.getElementById("summarizationModelTechnicalName") as HTMLInputElement;
     summarizationModelNameInput.value = summarizationModel?.technicalName || "gemini-1.5-flash-latest";
     summarizationModelNameInput.addEventListener("change", async () => {
         summarizationModel.technicalName = summarizationModelNameInput.value;

@@ -38,10 +38,10 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="chatListTab" aria-label="List of chats" title="List of chats" data-bs-toggle="tab" data-bs-target="#chatListPane" type="button" role="tab" aria-controls="chatListPane" aria-selected="false"><i class="bi bi-stack"></i></button>
             </li>
-            <li class="nav-item" role="presentation">
+            <li class="nav-item rm-in-standalone" role="presentation">
                 <button class="nav-link" id="actionResultsTab" aria-label="Actions pane" title="Actions pane" data-bs-toggle="tab" data-bs-target="#actionResultsPane" type="button" role="tab" aria-controls="actionResultsPane" aria-selected="false"><i class="bi bi-magic"></i></button>
             </li>
-            <li class="nav-item" role="presentation">
+            <li class="nav-item rm-in-standalone" role="presentation">
                 <button class="nav-link" id="pageListTab" aria-label="Browser history search" title="Browser history search" data-bs-toggle="tab" data-bs-target="#pageListPane" type="button" role="tab" aria-controls="pageListPane" aria-selected="false"><i class="bi bi-window-stack"></i></button>
             </li>
             <li class="nav-item" role="presentation">
@@ -82,7 +82,7 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="tab-pane fade container-lg py-3" id="pageListPane" role="tabpanel" aria-labelledby="pageListTab">
+            <div class="tab-pane fade container-lg py-3 rm-in-standalone" id="pageListPane" role="tabpanel" aria-labelledby="pageListTab">
                 <div class="input-group mb-1">
                     <label for="fuzzySearchPagesInput" class="input-group-text"><i class="bi bi-binoculars"></i></label>
                     <input type="search" class="form-control" id="fuzzySearchPagesInput" placeholder="start typing here…" aria-controls="pageListTable" aria-label="Fuzzy search history">
@@ -100,7 +100,7 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="tab-pane fade container-fluid" id="actionResultsPane" role="tabpanel" aria-labelledby="actionResultsTab">
+            <div class="tab-pane fade container-fluid rm-in-standalone" id="actionResultsPane" role="tabpanel" aria-labelledby="actionResultsTab">
                 <div id="actionResultsContainer" class="container-fluid mx-3 my-3"></div>
             </div>
             <div class="tab-pane fade container-fluid px-0 text-center" id="settingsPane" role="tabpanel" aria-labelledby="settingsTab">

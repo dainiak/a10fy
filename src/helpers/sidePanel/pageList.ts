@@ -4,11 +4,13 @@ import 'datatables.net-fixedheader-bs5';
 import {pageListTab} from "./htmlElements";
 import {deletePage, getPages} from "../storage/pageStorage";
 import {getTextEmbedding} from "../geminiInterfacing";
-import {cosine, debounce} from "../misc";
+import {cosine, debounce, isRunningAsExtension} from "../misc";
 import {escapeToHTML} from "../domTools";
 
 
 export async function initializePageListTable() {
+    if(!isRunningAsExtension())
+        return;
     DataTable.ext.errMode = 'none';
     let scrollPos: number;
     let tableBody: HTMLDivElement;

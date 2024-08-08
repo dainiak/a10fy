@@ -3,6 +3,8 @@ import {
     ExtensionMessageRequest,
     storageKeys
 } from "./helpers/constants";
+import ScriptInjection = chrome.scripting.ScriptInjection;
+import {injectContentScript} from "./helpers/misc";
 
 document.addEventListener("DOMContentLoaded", function () {
     document.body.setAttribute(
@@ -26,7 +28,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    voiceCommandButton.onclick = () => {
+    voiceCommandButton.onclick = async () => {
+        await injectContentScript();
         chrome.storage.session.get(storageKeys.voiceRecordingInProgress).then((result) => {
             if (result[storageKeys.voiceRecordingInProgress]) {
                 chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.voiceCommandStopRecording} as ExtensionMessageRequest).catch();
@@ -45,11 +48,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const textCommandButton = document.getElementById("textCommandButton") as HTMLButtonElement;
     textCommandButton.onclick = async () => {
+        await injectContentScript();
         await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.textCommandGetThenExecute} as ExtensionMessageRequest)
     };
 
     const openSidePanelButton = document.getElementById("openSidePanelButton") as HTMLButtonElement;
     openSidePanelButton.onclick = async function () {
+        await injectContentScript();
         const currentWindow = await chrome.windows.getCurrent();
         await chrome.sidePanel.open({windowId: currentWindow.id});
     }
@@ -65,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
         snapshotIcon.className = "bi bi-camera-fill blinking";
         snapshotText.textContent = "Taking snapshot…";
         try {
+            await injectContentScript();
             await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.takeCurrentPageSnapshot} as ExtensionMessageRequest);
         } catch {
             snapshotIcon.className = "bi bi-camera";

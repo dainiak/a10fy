@@ -1,3 +1,5 @@
+import ScriptInjection = chrome.scripting.ScriptInjection;
+
 export function uniqueString() {
     let s = Array.from(crypto.getRandomValues(new Uint32Array(2))).map(x => x.toString(36)).join("").slice(0, 10);
     return s + "0000000000".slice(0, 10 - s.length);
@@ -40,4 +42,17 @@ export function cosine(v1: number[], v2: number[]) {
     const mag1 = Math.sqrt(v1.reduce((acc, cur) => acc + cur * cur, 0));
     const mag2 = Math.sqrt(v2.reduce((acc, cur) => acc + cur * cur, 0));
     return dot / (mag1 * mag2);
+}
+
+export function isRunningAsExtension() {
+    return chrome && chrome.runtime && chrome.runtime.onMessage && true || false;
+}
+
+export async function injectContentScript() {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ["js/contentScript.js"],
+        injectImmediately: true
+    } as ScriptInjection);
 }

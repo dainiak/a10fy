@@ -25,10 +25,12 @@ import {GenerateContentRequest, Part} from "@google/generative-ai";
 import {getFromStorage} from "./helpers/storage/storageHandling";
 import {SerializedCustomAction} from "./helpers/settings/dataModels";
 import {SerializedPageSnapshot} from "./helpers/storage/pageStorage";
-import {uniqueString} from "./helpers/misc";
+import {injectContentScript, uniqueString} from "./helpers/misc";
 import {summarizePage} from "./helpers/summarization";
 import {addSerializedPage, getTimestampStringForPage} from "./helpers/storage/pageStorage";
 import {stockContextMenuItems} from "./helpers/stockContextMenuItems";
+import InjectionTarget = chrome.scripting.InjectionTarget;
+import ScriptInjection = chrome.scripting.ScriptInjection;
 
 setupOffscreenDocument().catch();
 rebuildContextMenus();
@@ -270,9 +272,11 @@ async function voiceCommandStopRecording() {
 
 chrome.commands.onCommand.addListener(async (command) => {
     if (command === "textCommandGetThenExecute") {
+        await injectContentScript();
         textCommandGetThenExecute().catch();
     }
     else if (command === "voiceCommandRecordThenExecute") {
+        await injectContentScript();
         voiceCommandRecordThenExecute().catch();
     }
     else if (command === "voiceCommandStopRecording") {
@@ -487,3 +491,12 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
 
     return undefined;
 });
+
+//
+// chrome.action.onClicked.addListener((tab) => {
+//     console.log("Action clicked");
+//     chrome.scripting.executeScript({
+//         target: {tabId: tab.id},
+//         files: ["js/contentScript.js"]
+//     } as ScriptInjection).catch(console.log);
+// });
