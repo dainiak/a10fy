@@ -2,7 +2,6 @@ import {loadPyodide, version as pyodideVersion} from "pyodide";
 import {extensionMessageGoals, RunInSandboxRequest, SandboxedTaskResult} from "./helpers/constants";
 
 window.addEventListener('message', function (event) {
-    console.log(event.data);
     if (event.data.messageGoal !== extensionMessageGoals.runInSandbox)
         return;
 
@@ -11,49 +10,40 @@ window.addEventListener('message', function (event) {
     if (request.taskType !== "python")
         return;
 
-    let textContent = `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`;
-    const sendUpdateMessage = (content: string, isFinal: boolean = false) => {
+    const sendUpdateMessage = (result: any, isFinal: boolean = false) => {
         event.source?.postMessage(
             {
                 messageGoal: extensionMessageGoals.sandboxedTaskResultsUpdate,
                 requestId: request.requestId,
-                result: {
-                    stdout: content,
-                },
+                result: result,
                 isFinal: isFinal
             } as SandboxedTaskResult, {
                 targetOrigin: event.origin
             }
         );
     }
+    sendUpdateMessage({stdout: `Loading Python 3.12.1 interpreter (Pyodide ${pyodideVersion})...`})
 
     loadPyodide({
-        stdout: (text) => {
-            textContent += text + "\n";
-            sendUpdateMessage(textContent);
-        },
-        stderr: (text) => {
-            textContent += text + "\n";
-            sendUpdateMessage(textContent);
-        },
+        stdout: (text) => {sendUpdateMessage({stdout: text})},
+        stderr: (text) => {sendUpdateMessage({stderr: text})},
         fullStdLib: false
     }).then((pyodide) => {
-        textContent += "done.\n";
         try {
             const result = pyodide.runPython(request.taskParams.code);
             if(result !== undefined && result !== null && result !== "") {
-                textContent += result.toString();
+                let textContent = result.toString();
                 if(result.destroy)
                     result.destroy();
+                sendUpdateMessage({stdout: textContent}, true);
             }
-            sendUpdateMessage(textContent, true);
+            else
+                sendUpdateMessage({}, true);
         } catch (e) {
-            if (textContent)
-                textContent += `\n${e}`;
-            sendUpdateMessage(textContent, true);
+            const textContent = `\n${e}`;
+            sendUpdateMessage({stdout: textContent}, true);
         }
     }).catch((e) => {
-        textContent += `failed due to error:\n${e}`;
-        sendUpdateMessage(textContent, true);
+        sendUpdateMessage({stderr: `failed due to error:\n${e}`}, true);
     });
 });

@@ -49,10 +49,14 @@ export function isRunningAsExtension() {
 }
 
 export async function injectContentScript() {
-    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["js/contentScript.js"],
-        injectImmediately: true
-    } as ScriptInjection);
+    try {
+        const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+        if (tab.url && tab.url.startsWith("http"))
+            await chrome.scripting.executeScript({
+                target: {tabId: tab.id},
+                files: ["js/contentScript.js"],
+                injectImmediately: true
+            } as ScriptInjection);
+    }
+    catch {}
 }

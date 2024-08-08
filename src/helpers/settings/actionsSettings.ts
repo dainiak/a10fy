@@ -8,7 +8,7 @@ import {
 import {getFromStorage, setToStorage} from "../storage/storageHandling";
 import {extensionMessageGoals, ExtensionMessageRequest, storageKeys} from "../constants";
 import Modal from "bootstrap/js/dist/modal";
-import {uniqueString} from "../misc";
+import {isRunningAsExtension, uniqueString} from "../misc";
 import {EditorView} from "@codemirror/view";
 import {createLiquidCodeMirror} from "../codeMirror";
 import {getChatSystemInstructionDummyScope, getCustomActionSystemInstructionDummyScope} from "../prompts";
@@ -25,6 +25,8 @@ function rebuildContextMenus() {
 }
 
 export async function fillCustomActionsTable() {
+    if(!isRunningAsExtension())
+        return;
     const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
     const table = document.getElementById("customActionsTable") as HTMLTableElement;
     const tbody = table.querySelector("tbody") as HTMLTableSectionElement;
@@ -198,6 +200,8 @@ async function deleteAction(actionId: string, tr: HTMLTableRowElement) {
 }
 
 export function setupNewCustomActionButton(){
+    if(!isRunningAsExtension())
+        return;
     (document.getElementById("newCustomActionButton") as HTMLButtonElement).onclick = async () => {
         const actions: SerializedCustomAction[] = await getFromStorage(storageKeys.customActions) || [];
         const newAction: SerializedCustomAction = {
