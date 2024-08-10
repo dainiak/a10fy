@@ -19,7 +19,7 @@ export function updateInputAreaHeight() {
     const newHeight = Math.min(chatPaneInputTextArea.scrollHeight, 183);
     chatPaneInputTextArea.style.setProperty("height", `${newHeight}px`);
     chatPaneInputTextArea.style.setProperty("overflow-y", chatPaneInputTextArea.scrollHeight > 180 ? 'auto' : 'hidden');
-    chatPaneChatArea.style.setProperty("height", `calc(100vh - ${73 + newHeight}px)`);
+    chatPaneChatArea.style.setProperty("height", `calc(100dvh - ${73 + newHeight}px)`);
 }
 
 export function makeUserInputAreaAutoexpandable() {

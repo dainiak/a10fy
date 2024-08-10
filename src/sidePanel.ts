@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // iframe.width = "100%";
         // iframe.height = `${document.body.getBoundingClientRect().height - 40}px`;
         iframe.style.setProperty("width", "100vw")
-        iframe.style.setProperty("height", "calc(100vh - 40px)");
+        iframe.style.setProperty("height", "calc(100dvh - 40px)");
         settingsPane.innerHTML = ``;
         settingsPane.appendChild(iframe);
     }

@@ -1,5 +1,5 @@
 body, html {
-    height: 100vh;
+    height: 100dvh;
     width: 100vw;
     margin: 0;
     padding: 0;
@@ -8,21 +8,17 @@ body, html {
 }
 .sidebar {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     border-right: 1px solid #dee2e6;
 }
 
 .a10fy-chat-area {
-    height: calc(100vh - 110px);
+    height: calc(100dvh - 110px);
     overflow-y: scroll;
 }
 .a10fy-input-area {
     height: 70px;
 }
-.a10fy-input-area.droppable {
-    /*border: 2px dashed #28a745;*/
-}
-
 
 .a10fy-input-area textarea {
     height: 38px;

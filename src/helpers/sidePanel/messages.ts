@@ -152,6 +152,8 @@ function activateEditMessageTextButton(messageCard: HTMLElement, message: Serial
 
         await addPlayers(cardBodyElement);
         editButton.innerHTML = '<i class="bi bi-pencil-square"></i>';
+        editButton.title = "Edit message";
+        editButton.ariaLabel = "Edit message";
     }
 
     editButton?.addEventListener('click', async () => {
@@ -162,6 +164,8 @@ function activateEditMessageTextButton(messageCard: HTMLElement, message: Serial
         cardBodyElement.innerHTML = '';
         cmView = createMarkdownCodeMirror(cardBodyElement, message.content, saveMessage);
         editButton.innerHTML = '<i class="bi bi-floppy"></i>';
+        editButton.title = "Save message";
+        editButton.ariaLabel = "Save message";
     });
 }
 
@@ -186,8 +190,8 @@ function replacePreWithCodeCard(preElement: HTMLElement) {
     codeCard.className = "card mb-3";
     codeCard.innerHTML = `
     <div class="card-header"><span>${heading}</span><div class="header-buttons">
-        <button class="btn btn-sm btn-outline-secondary toggle-code"><i class="bi bi-code"></i></button>
-        <button class="btn btn-sm btn-outline-secondary run-code"><i class="bi bi-play-fill"></i></button>
+        <button class="btn btn-sm btn-outline-secondary toggle-code" title="Toggle code" aria-label="Toggle code"><i class="bi bi-code"></i></button>
+        <button class="btn btn-sm btn-outline-secondary run-code" title="Run code" aria-label="Run code"><i class="bi bi-play-fill"></i></button>
     </div></div>${preElement.outerHTML}<div class="player-output mt-2"></div>`;
 
     preElement.replaceWith(codeCard);

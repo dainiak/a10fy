@@ -55,7 +55,7 @@ export async function initializeChatListTable(openChatCallback: (chatId: string)
         colReorder: true,
         order: [{name: 'timestamp', dir: 'desc'}],
         scrollX: false,
-        scrollY: 'calc(100vh - 250px)',
+        scrollY: 'calc(100dvh - 250px)',
         scrollCollapse: true,
         language: {
             search: '<i class="bi bi-search"></i>',
