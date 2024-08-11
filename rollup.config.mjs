@@ -7,7 +7,7 @@ import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 
 
-const enableTerser = false;
+const enableTerser = true;
 
 const jsPluginConfigs = [
     commonjs(),

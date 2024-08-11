@@ -1,13 +1,12 @@
 import {
     FunctionDeclarationSchema,
-    FunctionDeclarationSchemaProperty,
     FunctionDeclarationSchemaType,
     GenerateContentRequest,
     GenerationConfig,
     GoogleGenerativeAI,
     HarmBlockThreshold,
     HarmCategory, ModelParams,
-    ResponseSchema, Schema
+    ResponseSchema
 } from "@google/generative-ai";
 import type {ParsedElementInfo} from "@streamparser/json/dist/mjs/utils/types/ParsedElementInfo";
 import {JSONParser} from "@streamparser/json";
@@ -24,7 +23,7 @@ function alertOfAbsentApiKey() {
     if(chrome && chrome.runtime && chrome.runtime.openOptionsPage) {
         chrome.runtime.openOptionsPage().catch();
     } else if(window) {
-        window.alert("API key is not set. Please set the API key in the settings page.");
+        window.alert("API key is not set. Please set the API key in the settings tab.");
     }
 }
 

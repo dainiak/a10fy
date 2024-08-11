@@ -4,143 +4,262 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>A10fy</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha256-PI8n5gCcz9cQqQXm3PEtDuPG8qx9oFsFctPg0S5zb8g=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI=" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha256-3gQJhtmj7YnV1fmtbVcnAV6eI4ws0Tr48bVZCThtCGQ=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha256-PI8n5gCcz9cQqQXm3PEtDuPG8qx9oFsFctPg0S5zb8g=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha256-9kPW/n5nn53j4WMRYAxe9c1rCY96Oogo/MKSVdKzPmI=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+            integrity="sha256-3gQJhtmj7YnV1fmtbVcnAV6eI4ws0Tr48bVZCThtCGQ=" crossorigin="anonymous"></script>
 </head>
 <body class="container">
 <header class="my-4">
-    <h1 class="text-center">A10fy</h1>
-    <p class="lead text-center">A powerful Chrome extension with a web version that enhances your productivity and creativity.</p>
+    <h1 class="display-1 text-center">A10fy</h1>
+    <p class="lead text-center">A <a href="https://a10fy.net/chat" class="link-body-emphasis">chat web app</a> and a <a
+            href="https://chromewebstore.google.com/detail/a10fy/mphepoohgbafpfijnlkkcbejlkmafmba"
+            class="link-body-emphasis">Chromium browser extension</a> bringing the power of Google Gemini large language
+        models to your browser.</p>
 </header>
 
-<section class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="ratio ratio-16x9 card-img-top">
-                <iframe aria-label="Embedding-based Browsing History Fuzzy Search" style="max-width: 100%;height: 100%;" src="https://www.youtube.com/embed/cofYwVE1XSo?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=cofYwVE1XSo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">AI Assistant</h5>
-                <p class="card-text">???</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="ratio ratio-16x9 card-img-top">
-                <iframe aria-label="Embedding-based Browsing History Fuzzy Search" style="max-width: 100%;height: 100%;" src="https://www.youtube.com/embed/8PPlr7JCoDQ?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=8PPlr7JCoDQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">Fuzzy Search</h5>
-                <p class="card-text">Use embedding-based technology to perform fuzzy searches through your browsing history for enhanced retrieval.</p>
-            </div>
-        </div>
-    </div>
-</section>
+<div class="container">
+    <h2>What is A10fy?</h2>
+    <p>Ever used ChatGPT/Claude/Gemini/Poe/… web interface? Then you are largely familiar with the <em>chat</em> portion
+        of what A10fy offers. But there is more, read on…</p>
+    <h2>How is A10fy different?</h2>
+    <span><strong>The chat</strong> in A10fy is highly tinkerer-friendly:</span>
+    <ul>
+        <li>You can switch models on the fly: start chatting with a simple (cheap) model and if you are not
+            satisfied, continue <em>the same</em> conversation with a more capable model. Or vary model generation
+            parameters to tweak the creativity of the output.
+        </li>
+        <li>You can create a collection of custom system prompts (called <em>personas</em>) tuned for specific creative
+            or information processing tasks. Personas can be as well changed within the same conversation.
+        </li>
+        <li>You can edit any message of the chat at any moment of time. E.g. if using LLM for some tasks with similar
+            output format, if LLM does not produce the exact desired output immediately, it is often more effective to
+            correct the output in place than to describe to LLM what was wrong. And later during the conversation that
+            corrected answer serves as a one-shot example!
+        </li>
+        <li>You can paste rich text into the chat input area as plain text, HTML or Markdown.</li>
+        <li>You can include math notation in the chat using LaTeX syntax, the de-facto standard for math typesetting;
+            formulas are beautifully displayed using <a href="https://katex.org/" target="_blank" class="link-body-emphasis">KaTeX</a>. Code blocks in LLM output and your messages are
+            automatically highlighted. The chat also supports display of <a href="https://mermaid.js.org/" target="_blank" class="link-body-emphasis">Mermaid</a> diagrams, one of the currently most
+            popular formats of describing diagrams in Markdown ecosystem.
+        </li>
+        <li>You can run Python code blocks in the chat messages directly in your browser, this is powered by <a href="https://pyodide.org/" target="_blank" class="link-body-emphasis">Pyodide</a>.
+        </li>
+        <li>You can define your own “code block players” — sandboxed javascript code that interprets the output of LLM,
+            thus bringing to life static LLM messages.
+        </li>
+    </ul>
+    <span><strong>Beyond the chat.</strong> if you go beyond the web app and install Chromium extension, you are also
+        getting:</span>
+    <ul>
+        <li>AI Assistant: a voice- and text-controlled assistant that can summarise the current page, answer questions
+            grounding on the page content, and perform certain actions on the page DOM.
+        </li>
+        <li>Fuzzy Search: use embedding-based technology to perform fuzzy searches through your browsing history for
+            enhanced retrieval.
+        </li>
+        <li>Custom LLM-powered actions on the page: add custom context menu entries to process specific portions of the
+            page using LLM with custom prompts.
+        </li>
+    </ul>
+    <h2>How do I start using A10fy?</h2>
+    <p>A10fy is a wrapper around Google Gemini API. There is no proxying, the frontend directly communicated with the
+        Google’s servers. Thus, <strong>you need a valid Gemini API key</strong> to use A10fy (you can get your API key
+        <a target="_blank" class="link-body-emphasis" href="https://makersuite.google.com/app/apikey">here</a>). You can
+        use multiple API keys if you have many. According to Google’s <a target="_blank"
+                                                                         href="https://ai.google.dev/gemini-api/terms#age-requirements"
+                                                                         class="link-body-emphasis">Terms of Service</a>,
+        <strong>you must be at least 18 years old</strong> to use the services that power the A10fy extension.</p>
+    <h2>Is A10fy free?</h2>
+    <p>A10fy is free to use. The <a class="link-body-emphasis" href="https://github.com/dainiak/a10fy">source code is
+        available on GitHub</a> under MIT license.</p>
+    <h2>How does A10fy use my data?</h2>
+    <p><strong>Plain and simple: it doesn’t. A10fy does not have a backend to store your data, so all your conversations
+        are stored on <em>your own</em> computer in your browser’s local storage.</strong> However, up to Google <a
+            target="_blank" href="https://ai.google.dev/gemini-api/terms#data-use-unpaid" class="link-body-emphasis">Terms
+        of Service</a>, if you are on Free tier of the Google Gemini, the data that comes to Gemini API may be used by
+        Google to improve its services, so it is recommended not to submit sensitive, confidential, or personal
+        information to the chat and not use the A10fy assistant on pages containing confidential or personal information
+        <strong>if you are on Free tier of Gemini API</strong>.</p>
 
-<section class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="ratio ratio-16x9 card-img-top">
-                <iframe aria-label="Embedding-based Browsing History Fuzzy Search" style="max-width: 100%;height: 100%;" src="https://www.youtube.com/embed/xZ7yVLbtvZE?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=xZ7yVLbtvZE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <h2 class="mb-3 mt-4"><a class="link-body-emphasis"
+                             href="https://chromewebstore.google.com/detail/mphepoohgbafpfijnlkkcbejlkmafmba">Chromium
+        Extension</a> vs. <a class="link-body-emphasis" href="https://a10fy.net/chat">Web Version</a> Feature Comparison
+    </h2>
+
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">Feature</th>
+            <th scope="col" class="text-center">Web Version</th>
+            <th scope="col" class="text-center">Chromium Extension</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Browser AI Assistant</td>
+            <td class="text-center"></td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+        </tr>
+        <tr>
+            <td>Chat with AI with
+                <ul>
+                    <li>image attachments,</li>
+                    <li>Markdown editing,</li>
+                    <li>flexible text paste (HTML/Markdown/Plaintext),</li>
+                    <li>code block players</li>
+                </ul>
+            </td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+        </tr>
+        <tr>
+            <td>Custom Code Players</td>
+            <td class="text-center">Sandboxed, can load external libs</td>
+            <td class="text-center">Sandboxed, no access to external URLs</td>
+        </tr>
+        <tr>
+            <td>Python Code Player: available packages</td>
+            <td class="text-center">All Pyodide-compatible packages</td>
+            <td class="text-center">Only standard library</td>
+        </tr>
+        <tr>
+            <td>Flexible Model and Persona Editing</td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+        </tr>
+        <tr>
+            <td>Fuzzy Search of Browsing History</td>
+            <td class="text-center"></td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+        </tr>
+        <tr>
+            <td>Customizable processing of page DOM elements</td>
+            <td class="text-center"></td>
+            <td class="text-center"><i class="bi bi-check-lg"></i></td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <h2 class="mb-3 mt-4">Video demos</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="ratio ratio-16x9 card-img-top">
+                    <iframe aria-label="AI Assistant (video)" style="max-width: 100%;height: 100%;"
+                            src="https://www.youtube.com/embed/cofYwVE1XSo?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=cofYwVE1XSo"
+                            title="AI Assistant (video)"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">AI Assistant</h5>
+                    <span class="card-text">Give commands with your voice or by typing to</span>
+                    <ul>
+                        <li>summarise the current page,</li>
+                        <li>answer questions grounding on the page content,</li>
+                        <li>perform certain action on the page DOM.</li>
+                    </ul>
+                    <span class="card-text">Receive answers in text form or voiced using your browser’s text-to-speech engine.</span>
+                </div>
             </div>
-            <div class="card-body">
-                <h5 class="card-title">Custom LLM-powered actions on the page</h5>
-                <p class="card-text">???</p>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="ratio ratio-16x9 card-img-top">
+                    <iframe aria-label="Embedding-based Browsing History Fuzzy Search (video)"
+                            style="max-width: 100%;height: 100%;"
+                            src="https://www.youtube.com/embed/8PPlr7JCoDQ?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=8PPlr7JCoDQ"
+                            title="Embedding-based Browsing History Fuzzy Search (video)"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Fuzzy Search</h5>
+                    <p class="card-text">Use embedding-based technology to perform fuzzy searches through your browsing
+                        history for enhanced retrieval.</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="ratio ratio-16x9 card-img-top">
-                <iframe aria-label="Embedding-based Browsing History Fuzzy Search" style="max-width: 100%;height: 100%;" src="https://www.youtube.com/embed/rNipUTN5Zhg?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=rNipUTN5Zhg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="ratio ratio-16x9 card-img-top">
+                    <iframe aria-label="Custom LLM-powered actions on the page (video)"
+                            style="max-width: 100%;height: 100%;"
+                            src="https://www.youtube.com/embed/xZ7yVLbtvZE?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=xZ7yVLbtvZE"
+                            title="Custom LLM-powered actions on the page (video)"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Custom LLM-powered actions on the page</h5>
+                    <p class="card-text">Add custom context menu entries to process specific portions of the page using
+                        LLM with custom prompts.</p>
+                </div>
             </div>
-            <div class="card-body">
-                <h5 class="card-title">Chat attachments</h5>
-                <p class="card-text">???</p>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="ratio ratio-16x9 card-img-top">
+                    <iframe aria-label="Flexible chat attachments (video)" style="max-width: 100%;height: 100%;"
+                            src="https://www.youtube.com/embed/rNipUTN5Zhg?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=rNipUTN5Zhg"
+                            title="Flexible chat attachments (video)"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Flexible chat attachments</h5>
+                    <p class="card-text">Drag or paste images into the chat or add images directly from the page. Copy
+                        content from the page and paste in plain text, markdown or HTML.</p>
+                </div>
             </div>
         </div>
     </div>
-</section>
 
-<section class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="ratio ratio-16x9 card-img-top">
-                <iframe aria-label="Embedding-based Browsing History Fuzzy Search" style="max-width: 100%;height: 100%;" src="https://www.youtube.com/embed/czcbNek2QGM?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=czcbNek2QGM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="ratio ratio-16x9 card-img-top">
+                    <iframe aria-label="Custom code players (video)" style="max-width: 100%;height: 100%;"
+                            src="https://www.youtube.com/embed/czcbNek2QGM?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=czcbNek2QGM"
+                            title="Custom code players (video)"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Custom code players</h5>
+                    <p class="card-text">Run code blocks in LLM output and your own messages directly in the browser,
+                        incl. Python code, Mermaid diagrams and Vega.js specifications.</p>
+                </div>
             </div>
-            <div class="card-body">
-                <h5 class="card-title">Custom code players</h5>
-                <p class="card-text">???</p>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="ratio ratio-16x9 card-img-top">
+                    <iframe aria-label="Models and personas (video)" style="max-width: 100%;height: 100%;"
+                            src="https://www.youtube.com/embed/5154H5i6hSA?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=5154H5i6hSA"
+                            title="Models and personas (video)"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Models and personas</h5>
+                    <p class="card-text">Switchable chat models and system prompts (personas). Personas sharing.</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="ratio ratio-16x9 card-img-top">
-                <iframe aria-label="Embedding-based Browsing History Fuzzy Search" style="max-width: 100%;height: 100%;" src="https://www.youtube.com/embed/5154H5i6hSA?autoplay=1&controls=0&loop=1&mute=1&rel=0&playlist=5154H5i6hSA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">Models and personas</h5>
-                <p class="card-text">???</p>
-            </div>
-        </div>
-    </div>
-</section>
 
-
-<h3 class="text-center mb-4"><a class="link-secondary" href="https://chromewebstore.google.com/detail/mphepoohgbafpfijnlkkcbejlkmafmba">Chromium Extension</a> vs. <a class="link-secondary" href="https://a10fy.net/chat">Web Version</a> Feature Comparison</h3>
-
-<table class="table table-hover">
-    <thead>
-    <tr>
-        <th scope="col">Feature</th>
-        <th scope="col" class="text-center">Web Version</th>
-        <th scope="col" class="text-center">Chromium Extension</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>Browser AI Assistant</td>
-        <td class="text-center"></td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-    </tr>
-    <tr>
-        <td>Chat with AI with <ul><li>image attachments,</li><li>Markdown editing,</li><li>flexible text paste (HTML/Markdown/Plaintext),</li><li>code block players</li></ul></td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-    </tr>
-    <tr>
-        <td>Custom Code Players</td>
-        <td class="text-center">Sandboxed, can load external libs</td>
-        <td class="text-center">Sandboxed, no access to external URLs</td>
-    </tr>
-    <tr>
-        <td>Python Code Player: available packages</td>
-        <td class="text-center">All Pyodide-compatible packages</td>
-        <td class="text-center">Only standard library</td>
-    </tr>
-    <tr>
-        <td>Flexible Model and Persona Editing</td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-    </tr>
-    <tr>
-        <td>Fuzzy Search of Browsing History</td>
-        <td class="text-center"></td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-    </tr>
-    <tr>
-        <td>Customizable processing of page DOM elements</td>
-        <td class="text-center"></td>
-        <td class="text-center"><i class="bi bi-check-lg"></i></td>
-    </tr>
-    </tbody>
-</table>
+</div>
 
 <footer class="text-center py-4">
-    <p><a href="https://github.com/dainiak/a10fy">MIT Licensed open source software.</a></p>
+    <p>Open source software. MIT License. <a href="https://github.com/dainiak/a10fy">Fork the code on GitHub</a></p>
 </footer>
 
 <script>
