@@ -72,7 +72,7 @@ export function createMarkdownCodeMirror(targetElement: HTMLElement, initialText
             if(info.includes("sql")) return sql().language;
             return null;
         }}),
-        lineNumbers(),
+        // lineNumbers(),
         highlightActiveLineGutter(),
         highlightSpecialChars(),
         history(),

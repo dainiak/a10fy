@@ -196,9 +196,9 @@ export function setupImportPersonaButton() {
             personas.push({
                 id: uniqueString(),
                 sortingIndex: personas.length,
-                name: providedPersona.name,
-                description: providedPersona.description,
-                systemInstructionTemplate: providedPersona.systemInstructionTemplate,
+                name: providedPersona.name || "(Imported persona)",
+                description: providedPersona.description || "",
+                systemInstructionTemplate: providedPersona.systemInstructionTemplate || "You are a helpful assistant.",
                 isVisibleInChat: true,
                 defaultModel: "",
             });

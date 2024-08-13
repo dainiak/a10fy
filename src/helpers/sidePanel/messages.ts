@@ -259,15 +259,17 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
     const serializedAssistantMessage = currentChat.messages[currentChat.messages.length - 1];
     if (!currentChat.timestamp)
         currentChat.timestamp = getTimestampStringForChat();
+
     await saveUpdatedChat(currentChat);
 
     if(!llmMessageCardElement) {
         Array.from(chatPaneChatArea.querySelectorAll("button.regenerate-message")).forEach((button) => button.remove());
         llmMessageCardElement = createMessageCard(ChatMessageTypes.MODEL, serializedAssistantMessage.id);
-        llmMessageCardElement.querySelector(".regenerate-message")?.addEventListener("click", async () => {
-            currentChat.messages.pop();
-            await fillModelMessageCard(currentChat, llmMessageCardElement);
-        });
+        const regenerationButton = llmMessageCardElement.querySelector(".regenerate-message") as HTMLButtonElement;
+        if(regenerationButton)
+            regenerationButton.onclick = async () => {
+                await fillModelMessageCard(currentChat, llmMessageCardElement);
+            };
     }
 
     const llmMessageCardBodyElement = llmMessageCardElement.querySelector('.card-body') as HTMLDivElement;
@@ -281,6 +283,9 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
             }
         }
     );
+
+    if(geminiHistory.length && geminiHistory[geminiHistory.length - 1].role === "model")
+        geminiHistory.pop();
 
     const personas: SerializedPersona[] = (await getFromStorage(storageKeys.personas)) || [];
     let persona = personas.find((persona: SerializedPersona) => persona.id === currentChat.persona) || null;

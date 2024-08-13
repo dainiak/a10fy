@@ -166,8 +166,20 @@ export function setupImportPlayerButton() {
                 alert("Invalid sharing link");
                 return;
             }
+
             const players: SerializedCustomCodePlayer[] = await getFromStorage(storageKeys.codePlayers) || [];
-            await setToStorage(storageKeys.codePlayers, [...players, providedPlayer]);
+            await setToStorage(storageKeys.codePlayers, [...players, {
+                id: uniqueString(),
+                name: providedPlayer.name || "(Imported player)",
+                description: providedPlayer.description || "",
+                languageTags: providedPlayer.languageTags || [],
+                autoplay: providedPlayer.autoplay || false,
+                hideCode: providedPlayer.hideCode || false,
+                customCSS: providedPlayer.customCSS || "",
+                customJS: providedPlayer.customJS || "",
+                customHTML: providedPlayer.customHTML || "",
+                testCode: providedPlayer.testCode || ""
+            } as SerializedCustomCodePlayer]);
             await fillPlayersTable();
         });
     };
