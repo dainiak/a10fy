@@ -4,6 +4,7 @@ import {
     RunInSandboxRequest,
     SandboxedTaskResult
 } from "./helpers/constants";
+import {themeType} from "./helpers/sidePanel/htmlElements";
 
 window.addEventListener('message', function (event) {
     if (event.data.messageGoal !== extensionMessageGoals.runInSandbox)
@@ -13,6 +14,9 @@ window.addEventListener('message', function (event) {
 
     if (request.taskType !== "custom")
         return;
+
+    if(document.body)
+        document.body.dataset.bsTheme = themeType;
 
     const params = request.taskParams as CustomPlayerRequestParams;
     (window as any).customCodePlayerParams = {language: params.language, code: params.code};

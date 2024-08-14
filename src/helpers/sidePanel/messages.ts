@@ -21,6 +21,7 @@ import {customPlayerFactory} from "../players/custom";
 import {uniqueString} from "../misc";
 import {ensureNonEmptyModels} from "../settings/ensureNonEmpty";
 import {inputAreaAttachmentIconsContainer} from "./htmlElements";
+import {escapeToHTML} from "../domTools";
 
 
 let currentChat: SerializedChat | null = null;
@@ -306,6 +307,9 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
         if(errorString.includes("Please use API Key or other form of API consumer identity")) {
             llmMessageCardBodyElement.innerHTML = `${badge} API Key not set. Please set in <a href="#">settings.</a>`;
         }
+        else if (errorString.includes("API_KEY_INVALID")) {
+            llmMessageCardBodyElement.innerHTML = `${badge} API Key is invalid. Please set the correct key in <a href="#">settings.</a>`;
+        }
         else if (errorString.includes("Call ListModels to see the list of available models and their supported methods")) {
             llmMessageCardBodyElement.innerHTML = `${badge} Model not found. Please use one of correct model technical names in <a href="#">settings.</a>`;
         }
@@ -313,7 +317,7 @@ export async function fillModelMessageCard(currentChat:SerializedChat, llmMessag
             llmMessageCardBodyElement.innerHTML = `${badge} Some of the model generation parameters (Temperature/Top-K/Top-P) are incorrect. Correct them in <a href="#">settings.</a>`;
         }
         else {
-            llmMessageCardBodyElement.textContent = `${badge} Error generating message: ${errorString}`;
+            llmMessageCardBodyElement.innerHTML = `${badge} Error generating message: ${escapeToHTML(errorString)}`;
         }
         const link = llmMessageCardBodyElement.querySelector("a");
         if(link)
