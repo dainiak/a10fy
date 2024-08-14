@@ -270,35 +270,6 @@ async function voiceCommandStopRecording() {
     await chrome.runtime.sendMessage({messageGoal: extensionMessageGoals.stopAudioCapture} as ExtensionMessageRequest);
 }
 
-chrome.commands.onCommand.addListener(async (command) => {
-    if (command === "textCommandGetThenExecute") {
-        await injectContentScript();
-        textCommandGetThenExecute().catch();
-    }
-    else if (command === "voiceCommandRecordThenExecute") {
-        await injectContentScript();
-        voiceCommandRecordThenExecute().catch();
-    }
-    else if (command === "voiceCommandStopRecording") {
-        await voiceCommandStopRecording();
-    }
-    else if (command === "showSettingsPage") {
-        await chrome.tabs.create({
-            url: chrome.runtime.getURL("settings.html"),
-            active: true
-        })
-    }
-});
-
-//
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).finally();
-
-chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason === "install") {
-        await chrome.runtime.openOptionsPage();
-    }
-});
-
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if(!tab)
@@ -490,6 +461,38 @@ chrome.runtime.onMessage.addListener((request: ExtensionMessageRequest, sender, 
     }
 
     return undefined;
+});
+
+chrome.commands.onCommand.addListener(async (command) => {
+    if (command === "textCommandGetThenExecute") {
+        await injectContentScript();
+        textCommandGetThenExecute().catch();
+    }
+    else if (command === "voiceCommandRecordThenExecute") {
+        await injectContentScript();
+        voiceCommandRecordThenExecute().catch();
+    }
+    else if (command === "voiceCommandStopRecording") {
+        await voiceCommandStopRecording();
+    }
+    else if (command === "showSettingsPage") {
+        await chrome.tabs.create({
+            url: chrome.runtime.getURL("settings.html"),
+            active: true
+        })
+    }
+    else if (command === "takeCurrentPageSnapshot") {
+        await injectContentScript();
+        await takeCurrentPageSnapshot();
+    }
+});
+
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).finally();
+
+chrome.runtime.onInstalled.addListener(async (details) => {
+    if (details.reason === "install") {
+        await chrome.runtime.openOptionsPage();
+    }
 });
 
 //
