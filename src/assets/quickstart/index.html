@@ -16,7 +16,7 @@
     <h1 class="display-1 text-center">A10fy Quick Start Guide</h1>
 </header>
 
-<div class="container">
+<div class="container container-lg" style="max-width: 900px">
     <h2>First things first</h2>
     <p>First you will need to <a target="_blank" class="link-body-emphasis" href="https://makersuite.google.com/app/apikey">obtain the Gemini API key from Google</a> and paste it on the settings page (screenshot shown for the web app version, in this case the settings are under the rightmost tab of the <a class="link-body-emphasis" href="https://a10fy.net/chat">chat</a> page):</p>
     <figure class="w-100 object-fit-contain" >
@@ -73,20 +73,60 @@ public class HelloWorld {
     }
 }
 ```</textarea></code>
-    <h2>Code players</h2>
+    <h2 class="mt-4">Code players</h2>
     <p>In the resulting output of the LLM you should see the Python code block with <i class="bi bi-play-fill"></i> button enabling you to run the resulting code block in the browser. Such ability is integrated into A10fy for Python code blocks, Mermaid diagrams and Vega JSON specifications. Try asking LLM to <code>Output a simple Mermaid diagram</code> or <code>Draw a minimalistic pie chart with Vega</code>. Press the <i class="bi bi-code"></i> button to see the code of those diagram and pie chart if it is hidden by default.</p>
     <p>You can define a custom code player for any type of code. Let’s consider a non-trivial example of combining a custom persona that is designed to generate quiz specifications with a corresponding custom player that turns the LLM’s output into an actual quiz. Import the following persona:</p>
     <code><textarea disabled  class="w-100 form-control" style="font-size:0.8rem">https://a10fy.net/share/persona#H4sIAAAAAAACA21SsW7cMAz9FUKz46LrLUWQyUOGAkWB4HzoKRZtCZYpV6RxcYr-eyn7cm2KLBJJPT5Sj_xlOGUJNDTk8MUc7j5XJjhzMKYyZCdU6-sSXmFAwmwlZY075C6HWUKij597u0R5TA7jTsQrC04NseSlK2nfcJqjlcL-lBawGcGCxzj3SwTLHFgsCcw5uaXT5kA8AtIQA3v4qQVfkWto-i2-MGZNGhkkbY_gw_TJazARcJpQvFJUsGqlzhKkReZFtOCGDbSR9CnGdCml-pQnK4eWzuezI_ejoFo6tgSwHbcLoDWPK8zaPQlD6gWVy47YmuoNcWzNVHyFNvs1rYyxv9qB9PFU_eW7BPHv07W5aUertd6skP8x-T8Sj9unVhhS0aT87xlt5-vW7KhTufaUo9Z4UFWKOhHJFdqPun7fsZqakGFG6kL8oiGlPG2atdTSHYyI8y6sIpDBktvc1tw0NdDpiqhiQw33kRNQEnW9lQ2Zw-B1SsQXnST7tEQHNl7sypo3KbH-W97Gp4shNTxdJ6zbk3eS66xdyNhJXKHou-thu1FCN-791bqkgb8HDs8RG3rQHsxBlxV__wGlcfPXIAMAAA</textarea></code>
-    <p>Now go to the Player import:</p>
+    <p class="mt-3">Now go to the Player import:</p>
     <figure class="w-100 object-fit-contain" >
         <img src="img/player-import.png" style="max-width: 500px; width: 100%;" alt="Importing a player">
     </figure>
     <p>and import the custom player by pasting the following link into the import dialog:</p>
     <code><textarea disabled  class="w-100 form-control" style="font-size:0.8rem">https://a10fy.net/share/player#H4sIAAAAAAACA61YeW_bNhT_KoQaNNJmy3bbrIBzFENSYC3WtVv712xjoSXaZiKRKkklcQN_9z1SJHXl6tYAsSXy8R2_d9K3AU2DaRAMAoZzAk9nAq-fp4IX6GtJv8F6SmQiaKEoZxVhhtm6xGvyBa9lMJ0FKUv_MbSLQYBLxYsMb4OpEiUZBBuaklOeEveelFLx_PTzZ2AVpyBqjZcZQbdzhlBSCsnFFBWcMkXE4Zzt5mzOnnEjW1ZEOWXDDaHrjZqiF-Pi5lAvFjhNKVtP0cStLLlICfCaFDcoxXJDUvRsPH69XK0c21jbWNTSm4xfOTbXNFWbKdJWHToiu3bwHaIEv66E4Iyu2ZAqksspSogzM3DAvNe4XFOW8utYEpaeVnABgJ8AVCL-IrLMVHhrdfhlPB4gp_TBeLyLgFsCWCnjvG9EnmGF0TF6__njH3GBhSRh0mH5CQucyziBBX16zlYlSzTgSG7K1SojIRYCb6PKgBUXKMyIQhS4mo04I2ytNmiIJoeweoLG8DUcWnrwqlHnAsg_YLWJVxnnIjSPAoOdeRihn1BI0c9oEkWH1ZmZ4Tyji0ElY3axWACDmXtxy3SxMCd2-kMQVQpW7TjkGyjEoPpbnGzCUC8ODEDvWEpuInR8YgPQI3fKmcKUEQFS98L9o5ReoSTDUh7PA70_TDxBvhweoPxm-GoenByNgPBkvzKj4ia1k1lCHuLoaJCOk3x7HyubBw9xcqmS8KzNQ3PRitcoOKEDr2IHDeQ36kMQQmqA9GePGCG6QuGvJiSoNN-GPIpqCmeJTr2_OSPGgnoTofOWNXWGgj3DF_MA8kvhoeY6pFo-0Ozdem12jsB4qCbwnvYEzrAGUQuEnQfvvNbOBWcTGe-LGBcF5GvoLGsS63RJuBAkUR-Nf8BsrfRsvGhQAcZh08-Ir3wG9nGskXQltAtlH0xHuVRM_4PxK47y4eRHwvZED1k4zG5baeTMPz4-bqPWptMu2rutaHc9X7W9hWqY6p4TdgQLckUElNF5QNkV1Ol0HgzaFFJhTeDrY9jxiP7bC9WGyiiGhnSqgQ8t8ATYtVa1AwpBcyy2ekeQnF-R5qb2Duwcdszu6cSLJ6rUFnG_VlbwHSrV-j6o1S6K02WWZDS5DB_QrApgwHRN1JnP9H4YQyDH7Zo7JV_DZnxGqG7ms6dG6mL2WKguztuKuDraNYHcUKlg_Dhr5GLHrHgFIgDFOvz6IOry2WNlu2vUhaRPWBWgLzzcC5-Al20U51EUJ-DfW2TiaB7AUANxDyVrpfwr2vUt93HupHYMdmwLLqmWpJlB_iiaaPaPCmsGU-u12wPrumtxaJLv3OMOkUySZgDeW8DbRVP3HT38mWKjY2OHbK2p5VgpVtFds9v2uPfEOgTDrmEVN8iF4JkdYvyWydnqlN5vKLyfYJEi7_d928QaB1pa2XnLCaqTSB_wL65Q4iQhRav-1aDX0NoprJHDLlSSjEsilRbUDk8tjcqa24OUEXr-3LPUGQxUdQ4DgWkcjXp_B4nTzfnQlS8od6JpH3QEBuNOSRv2eWuqqmhmfx3E8-AFzP-SQ-NAa0EIqxPcsy_Vf-fev130BWiXPSahKllw1RKw16xYJa2L02GbGmeC4HRrkhvkH3s1H6xqup61T_aLWWffV5Oufg8Hj1PD5pCOkqdWtUqNLvw2WfpaGLe4mlY5xkv7Xn8Z-bZcmDxPNiS5_BOs0zZV7TOsJ-y9vu2onbFEj-h3NNy7JsVH_ae9l3a6kL7ceeelHVSWOLlcC16yFBTMuIGhl4Z2oNNp-gZAyvTN1WYLMi0CZzn3qeMQ8tfj3758-B0uyEfVDxJIigRq9EapQk5HoyRlF1IHSpmuMixAL56P8AW-GWV0KUcXX0sitqOX8et4Yl9iuM7HF9IM-xXLkzn7H8xLOprEk5fxS_s-hJz6YSKWnCupBC5GB7ER0ViKlwA7oHynMN0eaGovru0-0uhz_jrbvH7a0_dTLUulINYM-0b4-hPuquEnx5NTTYU02dGoOm1lgZMVZHj1Y1Ew0_6f2V8DfJoGH7b65gQ5KeF6BJ0U5qxL0hjUZ_MgJ1UCvqu-8q0k2co-g-4w1g1qftdUbdrH1YbkFTU8bf0TFY1H2WGy0YoANVpzqDj6ES11MsZQHQzVQn9VR2Yg4xQztOUl1COmbxl3at3WGB7hgEBQlhKavYElYLkIdv8C12bt-74TAAA</textarea></code>
-    <p>Now start a new chat with the “Quiz generator” persona that you’ve imported and type something like the following message into the chat input:</p>
+    <p class="mt-3">Now start a new chat with the “Quiz generator” persona that you’ve imported and type something like the following message into the chat input:</p>
     <code><textarea disabled  class="w-100 form-control" style="font-size:0.8rem">Test me on the usage of English proverbs. No more than 5-6 questions please.</textarea></code>
-    <p>You will get an interactive quiz where options can be selected either by double-clicking or dragging them onto the placeholders. You can go to the player settings to see its code. That is nothing but a sandboxed webpage displayed in an iframe. See the <a target="_blank" href="https://codepen.io/dainiak/pen/qBzVMgE">player’s code in detail</a>. Note that loading external JS/CSS libs by URL into the player is only possible in the web app version of A10fy; the security policy restrictions for Chromium extensions do not allow that. For convenience though, the following libraries are preloaded even in the extension: <code>Bootstrap 5.3.x</code>, <code>KaTeX</code> (with auto-render and copy-tex extensions), <code>Liquid.JS</code>, <code>jQuery 3.7.x</code>, <code>jQuery UI 1.14.x</code>. Library versions are subject to change.</p>
+    <p>You will get an interactive quiz where options can be selected either by double-clicking or dragging them onto the placeholders. You can go to the player settings to see its code. That is nothing but a sandboxed webpage displayed in an iframe. See the <a target="_blank" href="https://codepen.io/dainiak/pen/qBzVMgE">player’s code in detail</a>. Note that loading external JS/CSS libs by URL into the player is only possible in the web app version of A10fy; the security policy restrictions for Chromium extensions do not allow that. For convenience though, the following libraries are preloaded even in the extension: <code>Bootstrap 5.3.x</code>, <code>KaTeX</code> (with auto-render and copy-tex extensions), <code>Liquid.JS</code>, <code>jQuery 3.7.x</code>, <code>jQuery UI 1.14.x</code>. Library versions are subject to change. Any other library should be bundled with the code of the player for it to be functional in Chromium extension version of A10fy.</p>
     <p>One important note is that the player state is not saved with the chat.</p>
+
+    <h2>Extension-specific feature: AI Assistant</h2>
+    <p>While the chat is available in both web app and Chromium extension versions of A10fy, there are two features that available only in the extension: <em>AI Assistant</em>, <em>Fuzzy Page Search</em> and <em>LLM query on specific DOM element</em>.</p>
+    <p>AI Assistant feature is the ability to call LLM putting the web page in the current browser tab into context. By default, LLM will be given a screenshot and a simplified version of the HTML code of the page. Querying the page can be accomplished either by using the extension’s popup menu or with hotkeys (set them up using your browser’s extension hotkeys page, e.g. <code>edge://extensions/shortcuts</code> in Microsoft Edge). To dictate queries (commands) you’ll need to allow the extension to use your microphone on the settings page:</p>
+    <figure class="w-100 object-fit-contain" >
+        <img src="img/permission-microphone.png" style="max-width: 500px; width: 100%;" alt="AI Assistant settings">
+    </figure>
+    <p>Try opening the popup menu on any web page and select either voice or text command:</p>
+    <figure class="w-100 object-fit-contain" >
+        <img src="img/assistant-queries.png" style="max-width: 150px; width: 100%;" alt="Popup menu">
+    </figure>
+    <p>After clicking the “Voice command” button you will hear a “ding” sound marking the beginning of the audio recording process. After dictating your command click the same button again to transmit the audio to LLM along with the page content. If you select “Text command” instead, you will be prompted to enter the command/query in the popup of the current tab. Some things to try out as commands:</p>
+    <ul>
+        <li>Summarize the page and speak the summary.</li>
+        <li>Describe what you see on the page.</li>
+        <li>Scroll to the paragraph containing the answer to [some question here].</li>
+        <li>What notable resources are listed on the page?</li>
+    </ul>
+    <p>The Assistant will either display the answer to your query in the actions pane of the side panel (make sure you have it opened in advance to see the message)</p>
+    <figure class="w-100 object-fit-contain" >
+        <img src="img/assistant-output.png" style="max-width: 500px; width: 100%;" alt="AI Assistant answer">
+    </figure>
+    <p>or will be dictated using your browser’s text-to-speech engine or will result in some modifications on the page itself. It is a good idea to steer the behaviour of the model by telling it in what way to provide the answer if it matters and is unclear from the main part of the query.</p>
+    <p>To change the model that powers the AI Assistant feature, go to the Models tab of the Settings page:</p>
+    <figure class="w-100 object-fit-contain" >
+        <img src="img/assistant-model-settings.png" style="max-width: 500px; width: 100%;" alt="AI Assistant model settings">
+    </figure>
+    <h2 class="mt-3">Extension-specific feature: Fuzzy Page Search</h2>
+    <p>Another feature available only in the extension is the <em>Fuzzy Page Search</em>. It is a tool to search for pages in the browser history by their summarized content. For the page to appear in the fuzzy search results, its snapshot should be taken (via extension popup menu or using a keyboard shortcut). The model which is used for page summarization can be tweaked in the Models tab of the extension Settings page (the model used to produce vector text embeddings powering the fuzzy search is also present there).</p>
+    <p>To search for pages whose snapshots were previously taken, go to the corresponding tab of the extension side panel:</p>
+    <figure class="w-100 object-fit-contain" >
+        <img src="img/fuzzy-search.png" style="max-width: 500px; width: 100%;" alt="Fuzzy Page Search">
+    </figure>
+    <p>The input field marked with binocular is for the fuzzy search query, while the one marked with magnifying glass is for more conventional search. Most of the time entering a meaningful query into the “binocular” input field will suffice. Note that the complete textual content of the web pages is not currently saved; only a title, keywords, short summary and up to 3 vectors characterizing the page are stored. If the page content has changed since the last snapshot was taken, you will only have access to the current version of the page.</p>
+    <h2 class="mt-3">Extension-specific feature: LLM query on specific DOM element</h2>
+    <p>This feature is suitable for technically advanced users of the extension. Earlier in this guide we have introduced an idea that “Custom Persona (i.e., system prompt) + Custom Player = POWER” 😊. With the A10fy Chromium extension you can get one step further by adding a specific page element content/properties into the mix, resulting in a <em>Custom Action</em> concept. Custom actions can be added in the corresponding tab of the Settings page:</p>
+    <figure class="w-100 object-fit-contain" >
+        <img src="img/actions-intro.png" style="max-width: 500px; width: 100%;" alt="Custom Action">
+    </figure>
+    <p>You can define actions suitable e.g. for <code>code</code> or <code>table</code> DOM elements on the page or only for elements with graphical content or for some selected text on a page etc. These actions can be invoked through the browser’s context menu opened on a specific element or text selection. To be able to flexibly modify the system instruction for LLM to process the element correctly, you can use Liquid.JS template syntax enriched with some custom filters that enable further processing of the element’s DOM subtree. See details in the documentation.</p>
 </div>
 
 <footer class="text-center py-4">
