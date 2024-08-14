@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "A10fy",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "A10fy brings Google Gemini-powered AI browser assistant and chat with interactive features to your browser’s side panel.",
   "icons": {
     "128": "icon.png"
@@ -60,13 +60,13 @@
       },
       "description": "Execute the voice command."
     },
-    "showSettingsPage": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+W",
-        "windows": "Ctrl+Shift+W",
-        "mac": "Command+Shift+W"
-      },
-      "description": "Show the welcome/settings screen."
+    "takeCurrentPageSnapshot" : {
+        "suggested_key": {
+            "default": "Ctrl+Shift+P",
+            "windows": "Ctrl+Shift+P",
+            "mac": "Command+Shift+P"
+        },
+        "description": "Take a snapshot of the current page for fuzzy browsing history search."
     }
   }
 }
