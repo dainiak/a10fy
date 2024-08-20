@@ -1,7 +1,19 @@
-export async function getFromStorage(key: string) {
+import {storageKeys} from "../constants";
+
+function shouldBeSynced(key: storageKeys) {
+    return [
+        storageKeys.assistantModel,
+        storageKeys.embeddingModel,
+        storageKeys.summarizationModel,
+        storageKeys.mainGoogleApiKey,
+        storageKeys.models
+    ].includes(key);
+}
+
+export async function getFromStorage(key: storageKeys) {
     try {
         if(chrome.storage.sync)
-            return (await chrome.storage.sync.get([key]))[key];
+            return (await (shouldBeSynced(key) ? chrome.storage.sync : chrome.storage.local).get([key]))[key];
     }
     catch {
         const value = localStorage.getItem(key);
@@ -9,20 +21,20 @@ export async function getFromStorage(key: string) {
     }
 }
 
-export async function setToStorage(key: string, value: any) {
+export async function setToStorage(key: storageKeys, value: any) {
     try {
         if (chrome.storage.sync)
-            await chrome.storage.sync.set({[key]: value});
+            await (shouldBeSynced(key) ? chrome.storage.sync : chrome.storage.local).set({[key]: value});
     }
     catch {
         localStorage.setItem(key, JSON.stringify(value));
     }
 }
 
-export async function removeFromStorage(key: string) {
+export async function removeFromStorage(key: storageKeys) {
     try {
         if (chrome.storage.sync)
-            await chrome.storage.sync.remove(key);
+            await (shouldBeSynced(key) ? chrome.storage.sync : chrome.storage.local).remove(key);
     }
     catch {
         localStorage.removeItem(key);

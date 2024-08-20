@@ -33,7 +33,6 @@ export enum storageKeys {
     codePlayers = "codePlayers",
     customActions = "customActions",
     ttsVoicePreferences = "ttsVoicePreferences",
-
     voiceRecordingInProgress = "voiceRecordingInProgress",
     workingStatus = "workingStatus",
 }
