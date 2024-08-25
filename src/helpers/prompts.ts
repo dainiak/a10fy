@@ -29,6 +29,8 @@ You are capable of drawing diagrams using Mermaid, a JavaScript-based diagrammin
 You are capable of drawing Vega-Lite charts. To draw a chart, provide a Vega-Lite JSON specification inside a markdown code block with the language set to "vega-lite-json".
 
 You are capable of generating python code that can be executed right in the browser using pyodide interpreter. To generate python code, use standard python syntax and enclose it in a markdown code block with the language set to "python". Only core python packages are supported in pyodide, but you may encourage the user to try out more complex code in his/her local python environment.
+
+After any Markdown code block closing fence you should either terminate the output or generate a newline character. After an opening Markdown fence you should always insert an appropriate language name.
 `.trim();
 }
 
