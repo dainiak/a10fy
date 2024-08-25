@@ -15,7 +15,7 @@ export function playMermaid(_: string, code: string, outputElement: HTMLElement,
 
     mermaid.initialize({
         startOnLoad: false,
-        // suppressErrorRendering: true, – likely to be available in the next Mermaid version
+        suppressErrorRendering: true,
         securityLevel: 'loose',
         legacyMathML: true, // render using KaTeX
         theme: themeType === "light" ? "default" : "dark",

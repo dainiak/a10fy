@@ -67,7 +67,7 @@
     "katex": "^0.16.11",
     "liquidjs": "^10.16.1",
     "markdown-it": "^14.1.0",
-    "mermaid": "^10.9.1",
+    "mermaid": "^11.0.2",
     "pako": "^2.1.0",
     "pyodide": "^0.26.2",
     "rollup-plugin-copy": "^3.5.0",
